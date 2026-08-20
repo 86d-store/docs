@@ -102,7 +102,7 @@ Use `await page.waitForLoadState('networkidle')` rather than `waitForTimeout()`.
 
 1. Run the focused tests for the package or Module you touched.
 2. Run all four health gates.
-3. Seed the target Store with `bun run db:seed`.
+3. Seed the target Store with `bun run db:seed` (curated Modules with compiled tables only; requires `DATABASE_URL`).
 4. Run `bun run test:e2e` against it.
 5. Look at every visual difference before you update a snapshot.
 

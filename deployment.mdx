@@ -37,7 +37,9 @@ A deployment created through [86d.app](/introduction) is a different arrangement
     docker compose up
     ```
 
-    First boot waits for PostgreSQL, runs every migration, seeds demo data with [Store Admin](/concepts/admin) credentials, and starts the Next.js server on port 3000. Four services come up:
+    First boot waits for PostgreSQL, applies `internals/docker/init.sql` (nanoid/pgcrypto), runs Drizzle migrations, compiles curated Module tables, seeds demo data with `AUTO_SEED=true`, and starts the Next.js server on port 3000. Seed writes only curated Modules that compile to tables (`stripe` remains tier-none). A second container restart with `AUTO_SEED=true` must upsert the same seed-owned keys without wiping schemas or duplicating rows.
+
+    Health is served at `/api/health` after boot. Four services come up:
 
     | Service | Default port |
     | --- | --- |
