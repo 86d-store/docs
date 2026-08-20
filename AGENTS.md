@@ -1,14 +1,21 @@
 # Documentation site instructions for AI agents
 
-This file briefs AI agents on how to work in `docs/`. It is short by design.
+Mintlify documentation site for [86d](https://86d.app), Aspen theme. Pages are MDX files with YAML frontmatter; navigation and configuration live in `docs.json`. Two top-level tabs: **Documentation** (Get started, Concepts, Configuration, Guides, CLI, Operations, Resources) and **Modules** (one reference page per first-party Module, grouped by domain).
 
-## Project shape
+The `mint` CLI is not a repo dependency. Run it from the `docs/` directory: `bunx mint dev` to preview locally, `bunx mint broken-links` to check internal links.
 
-- Mintlify documentation site for [86d](https://86d.app), Aspen theme.
-- Pages are MDX files with YAML frontmatter. Configuration lives in `docs.json`.
-- Two top-level tabs: **Documentation** (Get started, Concepts, Configuration, Guides, CLI, Operations, Resources) and **Modules** (one reference page per first-party Module, grouped by domain).
-- Run `mint dev` to preview locally. Run `mint broken-links` to check internal links.
-- Module storage tiers and isolation authority live in `../prd/contexts/store-runtime/module-system.md`. This site projects shipped behavior, not the full contract.
+## Source of truth
+
+The 86d codebase is split across two sibling repos. `docs/` is a third sibling and is published independently.
+
+- **Target product behavior and vocabulary:** `../prd/README.md`. Follow its reading route for architecture, commercial terms, agents, and launch claims. Module storage tiers and isolation authority live in `../prd/contexts/store-runtime/module-system.md`; this site projects shipped behavior, not the full contract.
+- **Current implementation:** the source and tests below. Verify them before claiming a Feature exists, is available, or behaves a certain way.
+  - **Framework** (Modules, CLI, Templates, runtime, registry): `../public/`. CLI commands, flags, behavior: `../public/packages/cli/src/commands/`. Module names, options, contracts: `../public/modules/<name>/src/` and `../public/apps/registry/registry.json`. Template structure: `../public/templates/<name>/`. Framework environment variables: `../public/.env.example`.
+  - **86d.app and Control Plane** (86d Accounts, Businesses, Store lifecycle, provisioning, Cloud billing, agents): `../private/`. Platform environment variables and provisioning behavior: `../private/.env.example` and `../private/packages/api/src/router/provisioning.ts`.
+
+When target context and code differ, document the current behavior accurately or label future behavior clearly. Never present a target decision as shipped. Never keep a stale implementation claim because an older page says it is current.
+
+The canonical Module registry is `https://raw.githubusercontent.com/86d-app/86d/main/apps/registry/registry.json`, generated from `../public/apps/registry/registry.json`.
 
 ## Who reads these pages
 
@@ -27,7 +34,7 @@ Open every capability page with what it does for a Store in plain words. Put the
 - **Sentence case for headings.** "Module configuration", not "Module Configuration". Capitalized defined terms keep their capitals inside a heading.
 - **Use "you", not "the user".**
 - **Active voice. Short sentences. One idea per sentence.**
-- **No em dashes, and no en dashes misused as em dashes.** This is a hard rule. Use a comma, a colon, a semicolon, parentheses, or a sentence break. CI greps for them.
+- **No em dashes, and no en dashes misused as em dashes.** This is a hard rule, checked by the dash grep in [Health gates](#health-gates). Use a comma, a colon, a semicolon, parentheses, or a sentence break.
 - **No `easy`, `simple`, `quick`, `very`, `just`, or `really`.** Say the concrete thing instead: "one command", "two fields", "no configuration".
 - **No weasel words.** Replace `typically`, `generally`, `most`, and `often` with the actual number or condition.
 - **Bold for UI elements** (`Click **Settings**`) and for load-bearing facts. Not for emphasis.
@@ -52,7 +59,7 @@ Do not use bare "dashboard", "console", "analytics", or "telemetry". Name which 
 
 ## Maturity
 
-Every Module in `../public/apps/registry/registry.json` currently publishes `"maturity": "experimental"` with an empty `maturityEvidence` array. Read the registry before you state a maturity anywhere. Never promote a page past what the registry records.
+Read `../public/apps/registry/registry.json` before you state a maturity anywhere, and never promote a page past what the registry records. Today every Module publishes `"maturity": "experimental"` with an empty `maturityEvidence` array.
 
 Capability pages carry the maturity in two places:
 
@@ -78,25 +85,6 @@ Narrative pages that do not document one capability carry the in-development cal
   **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
 </Warning>
 ```
-
-## Source of truth
-
-The 86d codebase is split across two sibling repos. `docs/` is a third sibling and is published independently.
-
-- **Target product behavior and vocabulary:** `../prd/README.md`. Follow its reading route for architecture, commercial terms, agents, and launch claims.
-- **Current implementation:** the source and tests listed below. Verify them before claiming a Feature exists, is available, or behaves a certain way.
-
-When target context and code differ, document the current behavior accurately or label future behavior clearly. Never present a target decision as shipped. Never keep a stale implementation claim because an older page says it is current.
-
-- **Framework** (Modules, CLI, Templates, runtime, registry): `../public/`.
-  - CLI commands, flags, behavior: `../public/packages/cli/src/`.
-  - Module names, options, contracts: `../public/modules/<name>/src/` and `../public/apps/registry/registry.json`.
-  - Template structure: `../public/templates/<name>/`.
-  - Framework environment variables: `../public/.env.example`.
-- **86d.app and Control Plane** (86d Accounts, Businesses, Store lifecycle, provisioning, Cloud billing, agents): `../private/`.
-  - Platform environment variables and provisioning behavior: `../private/.env.example` and `../private/packages/api/src/router/provisioning.ts`.
-
-The canonical Module registry is `https://raw.githubusercontent.com/86d-app/86d/main/apps/registry/registry.json`, generated from `../public/apps/registry/registry.json`.
 
 ## Public projection boundary
 
@@ -140,13 +128,6 @@ Use these pages as the public conceptual sources and link to them instead of res
 2. Update `cli/commands.mdx` to match flags, sub-commands, and behavior.
 3. If a top-level command was added or removed, also update `cli/overview.mdx`.
 
-### Run health checks
-
-```bash
-mint broken-links
-python3 -c "import re,sys,glob;[sys.exit(1) for f in glob.glob('**/*.mdx',recursive=True) if re.search('[\\u2013\\u2014]',open(f).read())]"  # must return 0
-```
-
 ## Known gaps
 
 Thirteen Module pages are shorter than the rest because their source is thinner: `appointments`, `facebook-shop`, `favor`, `gift-wrapping`, `instagram-shop`, `kiosk`, `order-notes`, `photo-booth`, `pinterest-shop`, `tiktok-shop`, `walmart`, `wish`, and `x-shop`. Expand them only after checking the current source, tests, and failure behavior.
@@ -155,6 +136,33 @@ Thirteen Module pages are shorter than the rest because their source is thinner:
 
 - `LICENSE` and `.git/`.
 - Files in `../public/` and `../private/`. Treat both framework repos as read-only when working in `docs/`.
+
+## Health gates
+
+Both must exit zero before committing, run from `docs/`:
+
+```bash
+bunx mint broken-links
+python3 -c "import re,sys,glob;[sys.exit(1) for f in glob.glob('**/*.mdx',recursive=True) if re.search('[\\u2013\\u2014]',open(f).read())]"  # em/en dash grep
+```
+
+## Git safety
+
+**Agents never push.** Local work stays local until the operator publishes it. This covers every publication path: `git push` and all its variants, `gh`, and any tool that uploads branches or rewrites remote history.
+
+## Commits
+
+Every commit follows [Conventional Commits](https://www.conventionalcommits.org/) with a **required scope**: `type(scope): subject` — imperative, lowercase subject, no trailing period, under 72 characters when possible. Husky and commitlint enforce the format locally. See `CONTRIBUTING.md` for the full contributor guide.
+
+**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+**Scopes:** `site`, `concepts`, `guides`, `cli`, `modules`, `resources`, `config`, `repo`. Scope is the directory you changed (`concepts/` → `concepts`); non-obvious mappings: root-level pages (`index.mdx`, `introduction.mdx`, `quickstart.mdx`, `deployment.mdx`) → `site`, `operations/` → `resources`, `configuration/` → `config` (as are `docs.json` and Mintlify config), cross-cutting repo or hook changes → `repo`.
+
+**Agent rules:**
+
+- Commit only when the user asks, or when finishing a self-contained docs slice that passes both health gates.
+- One logical change per commit. Split unrelated work (for example a concepts rewrite and a CLI reference update) into separate commits.
+- Let the hooks run: `git commit --no-verify` only when the user explicitly requests it.
 
 ## Reporting back
 
