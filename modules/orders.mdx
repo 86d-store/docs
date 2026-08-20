@@ -1,0 +1,252 @@
+---
+title: "Orders"
+description: "Current Experimental Order records, Customer history, returns, and delivery projections."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** The current delivery projections here do not yet match the product boundary between Order, Fulfillment, and Shipping. Use it for local or sandbox evaluation. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Orders [Module](/concepts/modules) stores the current commercial record for each purchase: line snapshots, status fields, Customer-facing views, returns, and invoices.
+
+See [How commerce records relate](/concepts/commerce-model) for the product contract.
+
+**Source:** [`modules/orders`](https://github.com/86d-app/86d/tree/main/modules/orders) · **npm:** [`@86d-app/orders`](https://www.npmjs.com/package/@86d-app/orders)
+
+## Installation
+
+```sh
+npm install @86d-app/orders
+```
+
+## Configuration
+
+```ts
+import orders from "@86d-app/orders";
+import { createModuleClient } from "@86d-app/core";
+
+const client = createModuleClient([
+  orders({
+    currency: "USD",
+  }),
+]);
+```
+
+<ParamField path="currency" default='"USD"' type="string">
+  Default currency code applied to new orders. Individual orders can override this when calling `controller.create()`.
+</ParamField>
+
+## Store endpoints
+
+The `/orders/me/...` account endpoints require an authenticated session. Requests for [Orders](/concepts/commerce-model) that do not belong to the authenticated [Customer](/resources/glossary#customer) return `404` (not `403`) to avoid leaking their existence. [Guest](/resources/glossary#guest) tracking and confirmation use an Order reference plus matching email and do not require authentication.
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/orders/me` | List all orders for the authenticated customer |
+| `GET` | `/orders/me/:id` | Get a specific order with items and addresses |
+| `POST` | `/orders/me/:id/cancel` | Cancel a pending, processing, or on-hold order |
+| `GET` | `/orders/me/:id/fulfillments` | Read the current legacy Fulfillment projection for an Order |
+| `GET` | `/orders/me/:id/invoice` | Get invoice data for an order |
+| `GET` | `/orders/me/:id/returns` | List return requests for an order |
+| `POST` | `/orders/me/:id/returns/create` | Submit a return request |
+| `GET` | `/orders/me/returns` | List all returns across all of the customer's orders |
+| `POST` | `/orders/me/:id/reorder` | Get cart-ready items from a previous order |
+| `POST` | `/orders/track` | Guest order tracking (order number \+ email, no auth required) |
+| `POST` | `/orders/confirm` | Guest confirmation lookup (Order ID \+ email, no auth required) |
+
+<Note>
+  `POST /orders/me/:id/reorder` returns line items ready to be added back to the cart. It does not create a cart or modify any existing cart automatically.
+</Note>
+
+## Current status flows
+
+```text
+Order status:
+  pending → processing → on_hold → completed
+                                  ↘ cancelled
+                                  ↘ refunded
+
+Payment status:
+  unpaid → paid → partially_paid → refunded
+                ↘ voided
+
+Return status:
+  requested → approved → shipped_back → received → refunded → completed
+            → rejected
+
+Fulfillment status:
+  unfulfilled | partially_fulfilled | fulfilled
+```
+
+An Order can be cancelled only while its status is `pending`, `processing`, or `on_hold`.
+
+Order numbers are auto-generated in the format `ORD-{base36timestamp}-{random}`. Invoice numbers follow `INV-{YYYYMMDD}-{orderSuffix}`.
+
+## Events
+
+The current module emits these events. Event names and delivery projections can change before 1.0.
+
+| Event | Trigger |
+| --- | --- |
+| `order.placed` | Order created |
+| `order.updated` | Order metadata changed |
+| `order.fulfilled` | Order completed |
+| `order.cancelled` | Order cancelled |
+| `order.shipped` | Fulfillment shipped with tracking |
+| `shipment.delivered` | Fulfillment delivered |
+| `return.requested` | Return created |
+| `return.approved` | Return approved |
+| `return.rejected` | Return rejected |
+| `return.refunded` | Return refunded |
+| `return.completed` | Return completed |
+
+## Components
+
+### OrderHistory
+
+`OrderHistory` renders a paginated list of the authenticated Customer's Orders. Clicking a row triggers the `onSelectOrder` callback so you can navigate to the Order detail view.
+
+```mdx
+<OrderHistory />
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `onSelectOrder` | `(id: string) => void` |  | Callback when a row is clicked |
+| `pageSize` | `number` | `10` | Number of orders per page |
+
+### OrderDetail
+
+`OrderDetail` shows the full Order: items, totals, Fulfillment status, shipping and billing addresses, and a cancel button when the Order is still eligible for cancellation.
+
+```mdx
+<OrderDetail orderId="ord_abc123" onBack={() => setView("history")} />
+```
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `orderId` | `string` | The order ID to display |
+| `onBack` | `() => void` | Back navigation callback |
+
+### OrderReturns
+
+`OrderReturns` lists the return requests for one Order and includes a form to submit a new one. Returns are available for Orders in `completed` or `processing` status.
+
+```mdx
+<OrderReturns
+  orderId="ord_abc123"
+  items={orderItems}
+  orderStatus="completed"
+/>
+```
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `orderId` | `string` | The order ID |
+| `items` | `OrderItem[]` | Order items for return item selection |
+| `orderStatus` | `string` | Current order status |
+
+### OrderTracker
+
+`OrderTracker` is the public Order tracking form; it needs no authentication. Shoppers enter their Order number and the email address they used at Checkout to retrieve the Order status.
+
+```mdx
+<OrderTracker />
+```
+
+## Types
+
+```ts
+type OrderStatus =
+  | "pending" | "processing" | "on_hold"
+  | "completed" | "cancelled" | "refunded";
+
+type PaymentStatus =
+  | "unpaid" | "paid" | "partially_paid" | "refunded" | "voided";
+
+type ReturnStatus =
+  | "requested" | "approved" | "rejected"
+  | "shipped_back" | "received" | "refunded" | "completed";
+
+type ReturnType = "refund" | "exchange" | "store_credit";
+
+type OrderFulfillmentStatus =
+  | "unfulfilled" | "partially_fulfilled" | "fulfilled";
+
+interface Order {
+  id: string;
+  orderNumber: string;        // e.g. "ORD-lq3k7a-x9p"
+  customerId?: string;
+  guestEmail?: string;
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  subtotal: number;           // in cents
+  taxAmount: number;
+  shippingAmount: number;
+  discountAmount: number;
+  total: number;
+  currency: string;
+  notes?: string;
+  metadata: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface OrderItem {
+  id: string;
+  orderId: string;
+  productId: string;
+  variantId?: string;
+  name: string;       // snapshotted at order creation
+  sku?: string;
+  price: number;      // snapshotted at order creation, in cents
+  quantity: number;
+  subtotal: number;
+  metadata: Record<string, unknown>;
+}
+
+interface Fulfillment {
+  id: string;
+  orderId: string;
+  status: OrderFulfillmentStatus;
+  trackingNumber?: string;
+  trackingUrl?: string;       // auto-generated for UPS, USPS, FedEx, DHL
+  carrier?: string;
+  notes?: string;
+  shippedAt?: Date;
+  deliveredAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ReturnRequest {
+  id: string;
+  orderId: string;
+  status: ReturnStatus;
+  type: ReturnType;
+  reason: string;
+  customerNotes?: string;
+  adminNotes?: string;
+  refundAmount?: number;
+  trackingNumber?: string;
+  trackingUrl?: string;
+  carrier?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+<Info>
+  Item `name` and `price` are snapshotted at order creation time. Subsequent changes to the product catalog do not affect existing order records.
+</Info>
+
+## Related pages
+
+- [Checkout](/modules/checkout)
+- [Payments](/modules/payments)
+- [Fulfillment](/modules/fulfillment)
+- [Shipping](/modules/shipping)
+- [How commerce records relate](/concepts/commerce-model)
+- [86d glossary](/resources/glossary#order)
+- [Versioning and maturity](/resources/versioning)

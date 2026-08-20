@@ -1,0 +1,51 @@
+---
+title: "SEO"
+description: "Per-page meta tags, Open Graph, Twitter Card, and JSON-LD for an 86d Storefront: social previews for people, structured data for search engines."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The SEO [Module](/concepts/modules) manages page-level meta tags and structured data. It generates Open Graph and Twitter Card tags for social previews, plus JSON-LD `Product`, `BreadcrumbList`, and `Organization` schemas for search engines. Because the Module reads catalog data through the Products contract, product pages get accurate meta tags without per-page work.
+
+**Source:** [`modules/seo`](https://github.com/86d-app/86d/tree/main/modules/seo) · **npm:** [`@86d-app/seo`](https://www.npmjs.com/package/@86d-app/seo)
+
+## Installation
+
+```sh
+86d module add seo
+```
+
+## Configuration
+
+```ts
+seo({
+  defaultTitle: "My Store",
+  defaultDescription: "Curated goods.",
+  twitterHandle: "@mystore",
+  defaultOgImage: "/assets/og-default.png",
+});
+```
+
+## Components
+
+- `<SEOMeta title=... description=... image=... canonical=... />`: drop into MDX page heads.
+- `<ProductSEO product={product} />`: emits product-specific meta and JSON-LD.
+- `<CollectionSEO collection={collection} />`: collection meta and breadcrumbs.
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/seo/audit` | Pages with missing or weak meta |
+| `PUT` | `/admin/seo/page/:slug` | Override per-page meta |
+
+## Related pages
+
+- [Sitemap](/modules/sitemap)
+- [Redirects](/modules/redirects)
+- [Products](/modules/products)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

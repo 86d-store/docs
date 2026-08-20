@@ -1,0 +1,98 @@
+---
+title: "What launch evidence means"
+description: "The bar a capability has to clear before 86d calls it Stable, and an honest account of how much of that bar has been cleared."
+sidebarTitle: "Launch evidence"
+---
+
+<Warning>
+  **In development.** No pass is complete. Nothing on this site has earned Stable. See [maturity levels](/resources/versioning).
+</Warning>
+
+Plenty of software calls itself production-ready because the tests are green. Green tests prove the code does what its author expected. They prove nothing about what a payment provider does at 2am when a webhook arrives twice.
+
+So 86d does not let a capability call itself [Stable](/resources/glossary#capability-maturity) on tests. It has to run the real merchant path, in production, against live providers, and produce a record of what happened. This page is the bar. It is written down publicly so you can hold 86d to it.
+
+## Three passes
+
+The same merchant path, proven three times, each one gating something different.
+
+| Pass | Where it runs | Driven by | What it lets 86d claim |
+| --- | --- | --- | --- |
+| **One** | Locally, against real infrastructure with development prefixes and provider sandboxes | 86d Console | That the work is finished |
+| **Two** | Production, live providers | 86d Console | That the product can be marketed |
+| **Three** | Production, live providers | Agent, through Remote OAuth MCP | That agent operation can be advertised |
+
+Pass three gates advertising the agent workflow. It does not gate the product, because pass two already proved a merchant can run a Store.
+
+## What a pass has to produce
+
+Every one of these, actually happening, not simulated and not inferred from a queue accepting a job:
+
+- a Store provisioned, deployed, and serving a page
+- a custom domain activated
+- one live payment
+- one tax decision made by the server against a registration the merchant attested to
+- one real shipping quote against a normalized address
+- a [Checkout](/modules/checkout) that completes and creates an [Order](/modules/orders)
+- one [Inventory](/modules/inventory) deduction, exactly once
+- one physical [Fulfillment](/modules/fulfillment), with one label and one tracking record linked to it
+- [Customer](/modules/customers) history, and a guest Order attaching to an account created afterward
+- [Loyalty](/modules/loyalty) earning, or a deliberate disabled state that is visible to the Shopper
+- one transactional email reaching a Shopper
+- one alert reaching the merchant
+
+Across passes two and three, two more:
+
+- one confirmed refund with correct [Payment](/modules/payments), tax, Inventory, Loyalty, Order, and fee adjustments
+- one ambiguous or retried operation that produces no duplicate Order, Payment, label, notification, or ledger entry
+
+Card, Apple Pay, Google Pay, and PayPal each need their own live test before any of them is advertised.
+
+## What gets recorded
+
+Each entry in the evidence register identifies:
+
+| Field | What it records |
+| --- | --- |
+| Capability | The versioned Feature, Integration, Command, or Workflow |
+| Source | The exact commit |
+| Deployment | Which production deployment |
+| Provider | Which provider, and live or sandbox |
+| Time | The exact timestamp |
+| Actor | The person, agent, or workload that did it |
+| Checks | What was expected, and what would have counted as failure |
+| Result | Pass or fail, with the terminal state actually observed |
+| Support | An artifact an authorized reviewer can go and inspect |
+
+The register itself is access-controlled, because entries reference provider artifacts and production identifiers. What is published is the status, not the underlying record.
+
+A screenshot does not advance a gate. Neither does a verbal report, a sandbox result, or a job being accepted into a queue.
+
+## Genuine activity, specifically
+
+At least one Customer and one completed Order have to come from a real Shopper who is not someone at 86d running a test, using a live payment and ordinary fulfillment.
+
+Sandbox records and internal smoke purchases are useful evidence for the specific thing they check. They do not satisfy this one, because the entire point is to find out what happens when someone who does not know how the system works uses it.
+
+## The go or no-go list
+
+86d does not make a marketed launch claim until all of these are true:
+
+- passes two and three complete, and every payment method has its own live test
+- genuine customer and Order evidence exists
+- every launch-critical capability has earned Stable
+- repository health gates pass for the deployed source
+- export, suspension, restoration, and destruction all work
+- published pricing, terms, privacy, refund, and service descriptions match the product
+- no known path accepts an unsigned provider event, a money value supplied by a Shopper, a missing tax decision, or a missing shipping quote
+
+Unrelated Beta and Experimental Modules do not block any of this. Maturity is per capability.
+
+## Related pages
+
+- [Public Beta status](/resources/public-beta)
+- [Versioning and maturity](/resources/versioning)
+- [86d Cloud plans](/resources/cloud-plans)
+- [Set up a payment provider](/guides/payment-integrations)
+- [How agents work with 86d](/concepts/agentic-design)
+- [Managed Workflows](/operations/managed-workflows)

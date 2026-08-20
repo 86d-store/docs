@@ -1,0 +1,36 @@
+---
+title: "Customer groups"
+description: "Segment Customers in 86d for targeted pricing, promotions, and content. B2B groups, VIPs, employees, and any custom segmentation you need."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Customer Groups [Module](/concepts/modules) attaches [Customers](/resources/glossary#customer) to one or more groups: B2B, VIP, employee, beta tester, anything you define. `@86d-app/price-lists` uses groups for segment-specific pricing, `@86d-app/discounts` uses them for group-only promo codes, and your own MDX can use them to gate content.
+
+**Source:** [`modules/customer-groups`](https://github.com/86d-app/86d/tree/main/modules/customer-groups) · **npm:** [`@86d-app/customer-groups`](https://www.npmjs.com/package/@86d-app/customer-groups)
+
+## Installation
+
+```sh
+86d module add customer-groups
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/customer-groups` | List groups |
+| `POST` | `/admin/customer-groups` | Create |
+| `POST` | `/admin/customer-groups/:id/members` | Add customers |
+| `DELETE` | `/admin/customer-groups/:id/members/:customerId` | Remove |
+
+## Related pages
+
+- [Customers](/modules/customers)
+- [Price lists](/modules/price-lists)
+- [Discounts](/modules/discounts)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

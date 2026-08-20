@@ -1,0 +1,101 @@
+---
+title: "Authentication"
+description: "Set up sessions, email and password sign-in, Store Admin access, and 86d.app single sign-on, and know which login methods do not work yet."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+A Store handles two kinds of sign-in: Shoppers reaching their [Customer](/modules/customers) account, and you reaching [Store Admin](/concepts/admin). Both run on [Better Auth](https://better-auth.com/). Get this configured before the Store is reachable by anyone other than you.
+
+## Set the secret first
+
+`BETTER_AUTH_SECRET` signs every session token and auth cookie. Without a real one, nothing authenticates.
+
+```bash
+openssl rand -base64 32
+```
+
+```bash .env
+BETTER_AUTH_SECRET=generated_secret_here
+```
+
+<Warning>
+  Production refuses to start when this value is missing, under 32 characters, a known default, or too predictable to pass an entropy check. Development and test fall back to a local-only value, and production rejects that fallback by name.
+</Warning>
+
+Point `BETTER_AUTH_URL` at your public URL so OAuth callbacks resolve:
+
+```bash .env
+BETTER_AUTH_URL=https://store.example
+```
+
+## Endpoints
+
+Better Auth owns everything under `/api/auth/[...all]`. These routes are wired for you.
+
+| Endpoint | What it does |
+| --- | --- |
+| `POST /api/auth/sign-in/email` | Sign in with email and password |
+| `POST /api/auth/sign-up/email` | Register a Customer account |
+| `GET, POST /api/auth/[...all]` | OAuth callbacks, session management, single sign-on |
+
+## Shoppers do not need an account
+
+A [Guest](/resources/glossary#guest) can buy without registering. Guest [Carts](/modules/cart) are tracked with a `guestId` cookie set on first visit.
+
+The target behavior is that a Shopper who registers later inherits their earlier Guest [Orders](/modules/orders). That continuity is built but not yet proven in production, so do not promise automatic Order claiming to your Shoppers until the release notes mark it [Stable](/resources/glossary#capability-maturity).
+
+## Social login does not work yet
+
+`.env.example` lists Google, X, Slack, Shopify, Apple, and Facebook credentials. The current auth package does not read them. Setting them enables nothing, and there is no error to tell you so.
+
+Do not advertise those sign-in methods to your Shoppers until the auth package implements and tests them.
+
+## Store Admin access
+
+Admin users hold the `admin` role. Only they can reach `/admin`, manage Products and Orders, or upload files.
+
+### The seeded account
+
+`86d init` and `docker compose up` create a Store Admin account. The defaults are `admin@example.com` and `password123`.
+
+<Warning>
+  Change that password before the Store is reachable from the internet. It is published in these docs, so treat the default as already compromised.
+</Warning>
+
+Store Admin currently has no screen for adding more admin users. For a Store you host yourself, use the seeded account with a replaced password. Managed deployments can use 86d.app sign-in instead. Do not build a workflow that depends on inviting a second admin until that Feature ships.
+
+### 86d.app single sign-on
+
+Set both OAuth client values to let people sign in to Store Admin with their [86d Account](/resources/glossary#86d-account). `86D_API_URL` supplies the OpenID discovery origin.
+
+```bash .env
+86D_API_URL=https://api.86d.app
+86D_ADMIN_OAUTH_CLIENT_ID=store_admin_client_id_here
+86D_ADMIN_OAUTH_CLIENT_SECRET=store_admin_client_secret_here
+```
+
+The provider asks for the `openid`, `profile`, `email`, and `store:admin` scopes. The Store grants a local admin role only when the returned profile carries the `admin` role or the `store:admin` scope. Leave either client value unset and the provider stays off.
+
+<Note>
+  This is a separate OAuth client from anything a machine uses. `86D_WORKLOAD_CREDENTIAL` cannot authenticate a person, and this client secret cannot authenticate a workload. Keep it out of browser code, logs, agent output, Templates, and merchant-readable settings.
+</Note>
+
+## Email and password
+
+Email and password sign-in is on by default. Customers and admins register and sign in with an address and a password, hashed by Better Auth's configured hasher. The pinned version uses scrypt.
+
+<Warning>
+  The current configuration registers no password-reset or verification-email callbacks. `RESEND_API_KEY` alone does not create those flows. A Shopper who forgets their password today has no way back in. Use email and password only where you have tested a recovery path, or use 86d.app sign-in.
+</Warning>
+
+## Related pages
+
+- [Environment variables](/configuration/environment-variables)
+- [Store Admin](/concepts/admin)
+- [Secure a Store Runtime](/operations/security)
+- [Managed identity](/concepts/architecture#managed-identity)
+- [Troubleshooting](/operations/troubleshooting)
+- [Glossary](/resources/glossary)

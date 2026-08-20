@@ -1,0 +1,49 @@
+---
+title: "Quotes"
+description: "B2B request-for-quote flow for 86d. Customers submit a cart for pricing review, and the merchant responds with custom terms."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Quotes [Module](/concepts/modules) turns the cart into a request-for-quote (RFQ) for B2B selling. A [Customer](/resources/glossary#customer) fills a [Cart](/modules/cart), clicks **Request quote** instead of **Checkout**, and the merchant receives the request with line items, customer details, and notes. The merchant responds with a price, an optional discount, and an expiry date; the Customer can then accept or reject the quote.
+
+**Source:** [`modules/quotes`](https://github.com/86d-app/86d/tree/main/modules/quotes) · **npm:** [`@86d-app/quotes`](https://www.npmjs.com/package/@86d-app/quotes)
+
+## Installation
+
+```sh
+86d module add quotes
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/quotes/request` | Submit a quote request |
+| `GET` | `/quotes/me` | List the customer's quotes |
+| `POST` | `/quotes/me/:id/accept` | Accept a quoted price (creates an order) |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/quotes` | List quote requests |
+| `POST` | `/admin/quotes/:id/respond` | Send a quote with price and expiry |
+| `POST` | `/admin/quotes/:id/reject` | Reject |
+
+## Components
+
+- `<RequestQuoteButton />`
+- `<QuoteList />`
+- `<QuoteDetail />`
+
+## Related pages
+
+- [Cart](/modules/cart)
+- [Customer groups](/modules/customer-groups) for B2B segmentation
+- [Orders](/modules/orders)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

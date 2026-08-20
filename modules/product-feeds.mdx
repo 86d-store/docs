@@ -1,0 +1,41 @@
+---
+title: "Product feeds"
+description: "Generate product feeds for external Channels in 86d: Google Shopping, Meta, Pinterest, and custom destinations."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Product Feeds [Module](/concepts/modules) produces XML and CSV feeds in the formats major [Channels](/resources/glossary#channel) expect. It generates each feed on demand or on a schedule and serves it from `/feeds/<name>.xml` for the Channel to fetch.
+
+**Source:** [`modules/product-feeds`](https://github.com/86d-app/86d/tree/main/modules/product-feeds) · **npm:** [`@86d-app/product-feeds`](https://www.npmjs.com/package/@86d-app/product-feeds)
+
+## Installation
+
+```sh
+86d module add product-feeds
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/feeds/:name.xml` | Fetch a generated feed |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/product-feeds` | Configure a feed (format, schedule, filters) |
+| `POST` | `/admin/product-feeds/:id/regenerate` | Force regeneration |
+
+## Related pages
+
+- [Google Shopping](/modules/google-shopping)
+- [Facebook Shop](/modules/facebook-shop)
+- [Pinterest Shop](/modules/pinterest-shop)
+- [Connect a sales channel](/guides/channel-integrations)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

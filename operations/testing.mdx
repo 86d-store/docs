@@ -1,0 +1,130 @@
+---
+title: "Test the Store Runtime"
+description: "Run the health gates, write Vitest coverage that catches real failures, and drive Playwright against a running seeded Store."
+sidebarTitle: "Testing"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+Vitest covers packages and [Modules](/concepts/modules). Playwright covers browser flows and visual snapshots against a running [Store Runtime](/concepts/architecture).
+
+## The four health gates
+
+From the repository root:
+
+```bash
+bun run test          # unit tests across every package and Module
+bun run typecheck     # TypeScript across the workspace
+bun run check         # Biome lint and format
+bun run build         # production build of every package
+```
+
+All four pass before you hand off a change. Playwright runs separately, after its target is up.
+
+## Unit tests
+
+Every Module ships tests under `modules/<name>/src/__tests__/`. The one `86d module create` scaffolds checks the factory and nothing else:
+
+```ts
+import { describe, expect, it } from "vitest";
+import myFeature from "../index.js";
+
+describe("my-feature", () => {
+  it("creates a module with correct id", () => {
+    const mod = myFeature();
+    expect(mod.id).toBe("my-feature");
+  });
+
+  it("creates a module with version", () => {
+    const mod = myFeature();
+    expect(mod.version).toBe("0.0.1");
+  });
+});
+```
+
+### What is worth testing
+
+- **The factory.** It returns the right `id` and takes its options.
+- **Controllers.** Every state transition, guard, and calculation gets one happy path and one failure path. The failure path is the one that matters.
+- **Endpoint handlers.** Input validation, auth checks, response shape.
+- **Contracts.** When your Module publishes something through `exports.read`, test that a consumer receives what you think it does.
+
+For a Module that talks to an outside API, use fixtures that match the provider's real JSON. A test that passes against a shape you invented tells you your invention is consistent. It tells you nothing about the integration.
+
+### One Module at a time
+
+```bash
+bun run --filter @86d-app/cart test
+```
+
+## Browser tests
+
+Playwright lives in `tests/e2e/` with four projects:
+
+| Project | Viewport | Purpose |
+| --- | --- | --- |
+| `visual-desktop` | 1280 x 720 | Desktop visual snapshots |
+| `visual-tablet` | 768 x 1024 | Tablet visual snapshots |
+| `visual-mobile` | 375 x 667 | Mobile visual snapshots |
+| `store-chromium` | desktop | [Storefront](/concepts/storefront) smoke tests |
+
+Point `E2E_STORE_URL` at a Store that is already running and seeded. It defaults to `http://localhost:3000` and fails when nothing is there.
+
+<Warning>
+  Do not start a dev server inside a headless test run. Bring the target up first, then run Playwright. A test suite that owns its own long-running server hangs in ways that are miserable to debug.
+</Warning>
+
+```bash
+bun run test:e2e          # every project
+bun run test:e2e:store    # Storefront smoke tests only
+bun run test:e2e:ui       # with the Playwright UI
+```
+
+### Visual snapshots
+
+`tests/e2e/visual.spec.ts` screenshots every public route and admin screen, in light and dark mode, at three viewport sizes.
+
+After a UI change you meant to make:
+
+```bash
+bun run test:e2e -- --update-snapshots
+```
+
+### Selectors
+
+Use `data-testid`. A CSS class selector breaks the next time someone touches the styling, and you will not find out until CI is red for an unrelated reason.
+
+Use `await page.waitForLoadState('networkidle')` rather than `waitForTimeout()`. A test that waits a fixed number of milliseconds passes on your laptop and fails in CI.
+
+## Checking a whole change
+
+1. Run the focused tests for the package or Module you touched.
+2. Run all four health gates.
+3. Seed the target Store with `bun run db:seed`.
+4. Run `bun run test:e2e` against it.
+5. Look at every visual difference before you update a snapshot.
+
+## Writing a Module that is testable
+
+- **Take [`ModuleDataService`](/resources/glossary#moduledataservice) as a constructor argument.** The runtime hands it to `init` as `ctx.data`. Pass it explicitly into your controllers rather than reaching for a global, and your tests get to substitute it.
+- **Keep the logic that does not need I/O separate.** A function that takes inputs and returns outputs is trivial to test.
+- **Mock at the boundary.** Swap `fetch` itself, not your own wrapper around it. Mocking your wrapper tests your wrapper.
+- **Use `@86d-app/core/test-utils`** for an in-memory data service.
+
+## Coverage
+
+```bash
+bun run test:coverage
+```
+
+There is no enforced threshold. The convention for first-party Modules is that every endpoint handler and every controller method has one happy path plus a failure path for each documented error.
+
+## Related pages
+
+- [Troubleshooting](/operations/troubleshooting)
+- [Build a custom Module](/guides/building-a-module)
+- [Contributing](/resources/contributing)
+- [Versioning and maturity](/resources/versioning)
+- [Quickstart](/quickstart)

@@ -1,0 +1,241 @@
+---
+title: "Loyalty"
+description: "How the Experimental Loyalty Module handles points accounts, tiers, earning rules, and redemption today."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** The current earning and redemption paths are not production-ready rewards accounting. Use test data only. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Loyalty [Module](/concepts/modules) gives each [Customer](/resources/glossary#customer) a points account with four built-in tiers (bronze, silver, gold, platinum), earning rules, and redemption endpoints. It creates the account on the Customer's first interaction and accrues points from the current `order.placed` event flow.
+
+## Planned product contract
+
+The planned Stable behavior uses one Loyalty domain as the points authority. Earning and redemption start disabled. You can configure:
+
+- points earned per dollar
+- points required for one dollar of redemption
+- activation delay and expiration
+- minimum redemption and maximum redemption percentage
+- eligible products and channels
+
+[Store Admin](/concepts/admin) will show the effective reward value, and [Shoppers](/resources/glossary#shopper) will see the actual redemption value. Physical-product points will activate only after the required [Fulfillment](/concepts/commerce-model) is satisfied.
+
+The endpoints and options below describe the current Experimental implementation while that migration is in progress.
+
+**Source:** [`modules/loyalty`](https://github.com/86d-app/86d/tree/main/modules/loyalty) · **npm:** [`@86d-app/loyalty`](https://www.npmjs.com/package/@86d-app/loyalty)
+
+## Installation
+
+```sh
+npm install @86d-app/loyalty
+```
+
+<Info>
+  The Loyalty Module requires the [Customers Module](/modules/customers) to be enabled.
+</Info>
+
+## Configuration
+
+The exported `LoyaltyOptions` fields do not currently configure the controller. Use active rule records created through Store Admin or the administrative rule endpoints.
+
+<Warning>
+  Do not connect current earning or redemption to live [Orders](/concepts/commerce-model). The current money-unit and Checkout integration contracts are incomplete.
+</Warning>
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/loyalty/balance` | Get the authenticated Customer's current point balance |
+| `GET` | `/loyalty/transactions` | List the Customer's point transaction history |
+| `GET` | `/loyalty/tiers` | List all loyalty tiers |
+| `GET` | `/loyalty/calculate` | Calculate how many points an order amount would earn |
+| `POST` | `/loyalty/redeem` | Redeem points against an order |
+| `GET` | `/loyalty/store-search` | Search loyalty data (store search integration) |
+
+### Redeem points (`POST /loyalty/redeem`)
+
+```json
+{
+  "points": 500,
+  "description": "Applied during rewards evaluation",
+  "orderId": "ord_abc123"
+}
+```
+
+The request requires an authenticated Customer and a `description`. It returns the resulting `LoyaltyTransaction` when the controller accepts the deduction. There is no working `minRedemption` option or monetary redemption conversion in the current implementation.
+
+### Calculate points (`GET /loyalty/calculate`)
+
+Pass `amount` as a numeric query parameter:
+
+```text
+GET /loyalty/calculate?amount=49.99
+```
+
+The endpoint returns a point count based on active earning rules. Use it only for isolated evaluation until the money-unit mismatch above is fixed.
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/loyalty/accounts` | List loyalty accounts (filter by `tier`, `status`) |
+| `GET` | `/admin/loyalty/accounts/:customerId` | Get a single Customer's loyalty account |
+| `POST` | `/admin/loyalty/accounts/:customerId/adjust` | Manually add or deduct points |
+| `POST` | `/admin/loyalty/accounts/:customerId/suspend` | Suspend a loyalty account |
+| `POST` | `/admin/loyalty/accounts/:customerId/reactivate` | Reactivate a suspended account |
+| `GET` | `/admin/loyalty/summary` | Get program-wide statistics |
+| `GET` | `/admin/loyalty/rules` | List earning rules |
+| `POST` | `/admin/loyalty/rules/create` | Create an earning rule |
+| `PUT` | `/admin/loyalty/rules/:id/update` | Update an earning rule |
+| `DELETE` | `/admin/loyalty/rules/:id/delete` | Delete an earning rule |
+| `GET` | `/admin/loyalty/tiers` | List tiers |
+| `POST` | `/admin/loyalty/tiers/create` | Create a tier |
+| `PUT` | `/admin/loyalty/tiers/:id/update` | Update a tier |
+| `DELETE` | `/admin/loyalty/tiers/:id/delete` | Delete a tier |
+
+## Store components
+
+Use these components in your MDX [Template](/concepts/templates) files.
+
+### `PointsBalance`
+
+Displays the Customer's current point balance with a tier badge and lifetime earn/redeem stats.
+
+<ParamField path="customerId" type="string">
+  The Customer's ID. If omitted, the component shows a sign-in prompt.
+</ParamField>
+
+```mdx
+<PointsBalance customerId={session.customerId} />
+```
+
+**States:** signed out (sign-in prompt) → loading (skeleton) → loaded (balance, tier badge, lifetime stats).
+
+---
+
+### `TierProgress`
+
+Shows the Customer's current tier and a visual progress bar toward the next tier. Displays a multiplier badge when the current tier has a points multiplier greater than 1×.
+
+<ParamField path="customerId" type="string">
+  The Customer's ID. If omitted, the component shows a sign-in prompt.
+</ParamField>
+
+```mdx
+<TierProgress customerId={session.customerId} />
+```
+
+**States:** signed out → loading (skeleton) → loaded (progress bar, percentage to next tier, tier step indicators with checkmarks).
+
+---
+
+### `PointsHistory`
+
+A filterable table of the Customer's point transactions (earn, redeem, adjust, expire).
+
+<ParamField path="customerId" type="string">
+  The Customer's ID. If omitted, the component shows a sign-in prompt.
+</ParamField>
+
+<ParamField path="limit" default="10" type="number">
+  Maximum number of transactions to display.
+</ParamField>
+
+```mdx
+<PointsHistory customerId={session.customerId} limit={20} />
+```
+
+**States:** signed out → loading (skeleton rows) → loaded (filter bar \+ transaction table) → empty ("No transactions found").
+
+---
+
+### `LoyaltyPage`
+
+A full-page loyalty view that composes `PointsBalance`, `TierProgress`, and `PointsHistory` in a two-column layout.
+
+<ParamField path="customerId" type="string">
+  The Customer's ID. If omitted, the component shows a sign-in prompt.
+</ParamField>
+
+```mdx
+<LoyaltyPage customerId={session.customerId} />
+```
+
+## Types
+
+```ts
+type LoyaltyTierSlug = "bronze" | "silver" | "gold" | "platinum";
+type TransactionType = "earn" | "redeem" | "adjust" | "expire";
+type AccountStatus = "active" | "suspended" | "closed";
+
+interface LoyaltyAccount {
+  id: string;
+  customerId: string;
+  balance: number;
+  lifetimeEarned: number;
+  lifetimeRedeemed: number;
+  tier: LoyaltyTierSlug;
+  status: AccountStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface LoyaltyTransaction {
+  id: string;
+  accountId: string;
+  type: TransactionType;
+  points: number;
+  description: string;
+  orderId?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+}
+
+interface LoyaltyRule {
+  id: string;
+  name: string;
+  type: "per_dollar" | "fixed_bonus" | "multiplier" | "signup";
+  points: number;
+  minOrderAmount?: number;
+  active: boolean;
+  createdAt: Date;
+}
+
+interface LoyaltyTier {
+  id: string;
+  name: string;
+  slug: string;
+  minPoints: number;
+  multiplier: number;
+  perks?: Record<string, unknown>;
+  sortOrder: number;
+}
+
+interface LoyaltySummary {
+  totalAccounts: number;
+  totalPointsOutstanding: number;
+  totalLifetimeEarned: number;
+  tierBreakdown: Array<{ tier: LoyaltyTierSlug; count: number }>;
+}
+```
+
+### Rule types
+
+| Type | Description |
+| --- | --- |
+| `per_dollar` | Award a fixed number of points per dollar spent |
+| `fixed_bonus` | Award a flat point bonus when the order meets a minimum amount |
+| `multiplier` | Multiply the base points earned by a factor |
+| `signup` | One-time bonus awarded on a Customer's first interaction |
+
+## Related pages
+
+- [Orders](/modules/orders)
+- [Checkout](/modules/checkout)
+- [Fulfillment](/modules/fulfillment)
+- [How commerce records relate](/concepts/commerce-model)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

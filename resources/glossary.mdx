@@ -1,0 +1,348 @@
+---
+title: "Glossary"
+description: "Every capitalized term on this site, defined once, in plain language."
+sidebarTitle: "Glossary"
+---
+
+<Warning>
+  **In development.** A term appearing here does not mean the capability exists or works. Definitions describe the product contract; [maturity levels](/resources/versioning) describe what has been proven.
+</Warning>
+
+Capitalized words on this site are not emphasis. **Order** means one specific record with one specific owner, and it is not interchangeable with "purchase" or "sale". Every one of those words is defined here, once, and linked from wherever it first appears on a page.
+
+If you are an agent, this is the vocabulary. Do not substitute a synonym for a term below, and do not assume two terms mean the same thing because they would in ordinary English.
+
+## 86d Account
+
+The identity one person signs in with. An Account belongs to one or more Businesses as a Member. Running a Store yourself needs no Account.
+
+## 86d.app
+
+The optional managed product: Accounts, Businesses, Store records, Cloud operations, service billing, provider onboarding, and agent access. See [How 86d separates product authority](/concepts/architecture).
+
+## 86d.app Product Analytics
+
+Usage reporting 86d keeps about 86d Console itself. It creates no commerce truth in anyone's Store.
+
+## 86d Balance
+
+A Business-owned, USD-denominated service balance, usable only for 86d services. It is not a bank account, it does not hold Shopper proceeds, and it cannot be transferred to anyone.
+
+## 86d Cloud
+
+The managed deployment service inside 86d.app. It owns the lifecycle, funding, metering, and entitlements of Managed Deployments. See [86d Cloud plans](/resources/cloud-plans).
+
+## 86d Console
+
+The interface a person signs in to for 86d.app, at `console.86d.app`. It asks for managed operations. It is not the authority for anything in your Store's database.
+
+## 86d fee
+
+The all-in fee charged on an 86d Payments Checkout. It is your complete cost to accept the payment, and it covers upstream processing. No processor line arrives underneath it.
+
+## 86d Observability
+
+Errors, logs, traces, health, performance, and security evidence for 86d's own systems. Never commerce truth for a Store.
+
+## 86d Payments
+
+The provider-backed service 86d is building for merchant onboarding, cards, wallets, fee allocation, settlement, refunds, and disputes. Not available. Your Store Runtime keeps owning the Payment and its relationship to the Order. See [Set up a payment provider](/guides/payment-integrations).
+
+## 86d.store
+
+The open-source [Store Runtime](/concepts/architecture). Each deployment holds a Storefront, a Store Admin, your Features and Integrations, and one Store's commerce data. It runs without 86d.app.
+
+## Active Store
+
+A Managed Deployment that is available for use and is not Paused, suspended, or destroyed. Traffic, sales volume, and a host idling the container to zero do not change this.
+
+## Approval
+
+Authorization for one exact, unchanged Change Set against the revisions shown to the person approving it. Planned.
+
+## Beta
+
+A maturity level. The capability works and shows a one-time warning the first time you enable it. It has not earned Stable evidence.
+
+## Billing profile
+
+The Business's funding identity: provider customer binding, an optional saved payment method, and a statement timezone. Created the first time you fund something. Never a gate on ordinary work.
+
+## Business
+
+The merchant ownership boundary in the Control Plane. A Business owns Stores, Members, service funding, and Business-scoped provider relationships.
+
+## Capability maturity
+
+Every versioned Feature or Integration is Stable, Beta, Experimental, or Deprecated. Maturity comes from evidence, not from a package existing. See [Versioning and maturity](/resources/versioning).
+
+## Cart
+
+What a Shopper has picked out. Contents and totals are estimates. Checkout recalculates price, tax, and availability on the server before an Order can exist. See [How commerce records relate](/concepts/commerce-model).
+
+## Change Set
+
+A reviewable proposal grouping related draft changes, frozen against the exact revisions used to prepare it. Approval binds to that exact Change Set. Planned. See [How agents work with 86d](/concepts/agentic-design).
+
+## Channel
+
+An outside marketplace or social surface where your Store lists Products and receives Orders through an Integration. Ingested Orders carry a tag naming their Channel. See [Connect a sales channel](/guides/channel-integrations).
+
+## Checkout
+
+The fresh server-side calculation, and the Shopper's acceptance of it, that can create an Order.
+
+## Checkout Request
+
+A non-binding record of what a Shopper wanted and what they were shown, saved when tax, Shipping, or another required decision was unavailable. It creates no Order, stores no payment details, reserves no stock, and requires a fresh Checkout before anyone is charged. Planned.
+
+## CLI
+
+The `86d` command-line tool: local setup, Module and Template operations, code generation, status, diagnostics. See [CLI overview](/cli/overview).
+
+## Command
+
+One authorized business operation, versioned, idempotent, and audited by whichever plane owns the fact it changes. Planned. See [How agents work with 86d](/concepts/agentic-design).
+
+## Confirmation
+
+A fresh acknowledgement by a person who is present, for an action that spends money, changes access, or destroys something. A Standing permission cannot substitute for it.
+
+## Connection
+
+One configured provider relationship an Integration uses. It records owner, scope, capabilities, mode, and health, and keeps the secret itself server-side. Current Integrations use provider-specific environment configuration instead. See [How Connections route provider work](/concepts/connections).
+
+## Control Plane
+
+The authority behind 86d.app: managed-service identity, lifecycle, entitlements, billing, provider operations, audit. Not a user interface. See [How 86d separates product authority](/concepts/architecture).
+
+## Customer
+
+A Store-scoped Shopper identity with an account, Order history, a profile, and an optional Loyalty relationship.
+
+## Deprecated
+
+A maturity level. The capability still works, cannot be newly enabled by default, and has a supported path off it.
+
+## Docs MCP server
+
+The read-only server that serves these pages to agents. Separate from Remote OAuth MCP, and incapable of touching a Store. See [Docs MCP server](/resources/mcp).
+
+## Enterprise
+
+An 86d Cloud plan with negotiated scale, support, security, networking, or operational terms.
+
+## Experimental
+
+A maturity level requiring explicit advanced opt-in, because behavior or compatibility may change substantially. Every first-party Module is currently Experimental.
+
+## Feature
+
+Something your Store does: Products, Checkout, Orders, Loyalty. One Module can deliver several Features.
+
+## Fee assessment
+
+The single idempotent 86d fee entry created when confirmed captures first make one Checkout fully paid. An authorization alone creates none, and several captures do not repeat the fixed charge.
+
+## Fulfillment
+
+One delivery obligation covering zero or more Order lines. Shipping, digital delivery, pickup, and appointments each satisfy different Fulfillment types. A zero-line Fulfillment is an Order-level obligation that does not claim any item shipped. See [How commerce records relate](/concepts/commerce-model).
+
+## Guest
+
+A Shopper who begins or completes Checkout without a Customer account.
+
+## Integration
+
+Software that talks to an outside company. The planned model routes each operation through a persistent Connection. See [How Connections route provider work](/concepts/connections).
+
+## Inventory
+
+What is actually in stock, per Product and Variant, inside one Store Runtime. Browser input never changes it. See [Inventory](/modules/inventory).
+
+## Launch
+
+The introductory 86d Cloud plan: the complete standard product for one qualifying Store at $1 per month for twelve months. See [86d Cloud plans](/resources/cloud-plans).
+
+## Launch reservation
+
+One per verified owner. Signup assigns it to the first Store, and it stays reassignable to another Store you own until the first successful Launch provision consumes it. Creating more Businesses or Stores does not mint another.
+
+## Loyalty
+
+The rewards relationship between one Store and its Customers. Browser input never creates Loyalty truth. See [Loyalty](/modules/loyalty).
+
+## Managed Deployment
+
+The Cloud resources running one managed Store Runtime. A Store record can exist with no Managed Deployment.
+
+## Managed Runtime Diagnostics
+
+Bounded error, health, and performance data from a managed Store Runtime that has explicitly opted in. It excludes Shopper behavior and commerce events.
+
+## Management fee
+
+The disclosed recurring charge for operating the managed service. It is named separately from infrastructure cost so that no margin is hidden inside an at-cost line.
+
+## Manifest
+
+The generated first-party Module list in `registry.json`. Being in it establishes nothing about maturity.
+
+## MDX
+
+Markdown plus JSX. Templates use MDX to build Storefront pages out of registered components.
+
+## Member
+
+A person with scoped access to a Business or Store in the Control Plane.
+
+## Merchant Payment Account
+
+A provider relationship approved for one legal Business and explicitly bound to eligible Stores.
+
+## Module
+
+The package that delivers Store Runtime behavior: schema, endpoints, Store Admin pages, Storefront components. Say Feature or Integration when talking to a merchant. See [How Modules package Store capabilities](/concepts/modules).
+
+## ModuleDataService
+
+The scoped data interface a Module receives. Production reads and writes JSON `ModuleData` today. Target storage is compiled tables under Postgres role isolation. A Module never imports the database client directly.
+
+## Order
+
+Your Store's accepted commercial agreement with a Shopper: lines, quantities, prices, totals. It does not own delivery truth. See [How commerce records relate](/concepts/commerce-model).
+
+## Owner
+
+The Member with ultimate authority over a Business.
+
+## Parcel
+
+A physical package whose movement can satisfy part or all of a Fulfillment.
+
+## Paused Store
+
+A Managed Deployment its owner asked to pause. Commerce is unavailable on the same domain, data is retained, management-fee renewals stop, metered storage continues, and remaining prepaid days are frozen. Different from a suspension for non-payment.
+
+## Payment
+
+Your Store's record of one Shopper-facing attempt: authorization, capture, refund, and dispute state, for one Order.
+
+## Payment Connection
+
+The immutable binding that routes one Payment, and every provider operation after it, through one approved relationship. Refunds and disputes go back the same way. Planned.
+
+## Payment option
+
+What a Shopper sees at Checkout: card, Apple Pay, Google Pay, PayPal. Not the same thing as a Connection.
+
+## Premium
+
+The standard 86d Cloud plan at its regular per-Store management price. See [86d Cloud plans](/resources/cloud-plans).
+
+## Product
+
+A Store-owned item or service that can be offered for sale.
+
+## Promotional Credit
+
+Expiring, nonrefundable service credit granted under stated terms. It cannot become cash and it cannot fund Shopper payments.
+
+## Purchased Funds
+
+Service funds a Business added to its 86d Balance. They do not expire, and unused ones return to the original funding method when the Business closes and every obligation has settled.
+
+## Remote OAuth MCP
+
+The planned authenticated transport for agents performing product operations. In development, and separate from the read-only Docs MCP server. See [How agents work with 86d](/concepts/agentic-design).
+
+## Reservation
+
+A disclosed deferred-capture purchase intent, used when a Store's payments are not yet active. The Shopper's card is collected, the charge waits, the deferral is disclosed at Checkout and in the confirmation email, and there is a fixed deadline. On activation it captures and becomes an Order. Otherwise it cancels and the stored instrument is deleted. Planned.
+
+## Shipping
+
+The capability owning Parcels, rates, labels, postage, adjustments, and tracking for a Fulfillment. Buying a label means pre-transit, not shipped.
+
+## Shopper
+
+A person on your Storefront, signed in or not.
+
+## Stable
+
+A maturity level. The capability passed its own tests and produced production evidence. It applies to one versioned capability, never to a whole repository. See [What launch evidence means](/operations/launch-evidence).
+
+## Standing permission
+
+A revocable grant letting an agent perform bounded actions within named targets, time windows, and spending limits, without confirming each one. Anything outside that scope returns to needing a Confirmation. Planned.
+
+## Store
+
+A commerce operation owned by one Business and served by one Store Runtime.
+
+## Store Admin
+
+The authenticated merchant interface at `/admin` inside one Store Runtime. Distinct from 86d Console. See [Store Admin](/concepts/admin).
+
+## Store allocation
+
+One Store's spending envelope, holding funds and credits assigned from its Business's 86d Balance. This is what a Store's "balance" means. It is not a second wallet, and one Store cannot spend another's.
+
+## Store record
+
+The Control Plane's identity, lifecycle, plan assignment, and operational reference for a Store. Not a copy of the Store's commerce database.
+
+## Store Runtime
+
+One isolated deployment of 86d.store, with its own behavior and its own database.
+
+## Storefront
+
+The shopper-facing side of a Store Runtime, rendered from your Template and enabled Modules. See [Storefront](/concepts/storefront).
+
+## Storefront Analytics
+
+Your own reporting about Shopper behavior inside one Store Runtime. Browser events can inform a report and never create revenue, Inventory, Loyalty, Payment, or Order truth.
+
+## Suspended Store
+
+A Store whose commerce is disabled while its data is retained for the published restoration period. Its domain is not reassigned.
+
+## Template
+
+A versioned presentation package: MDX layout, content structure, visual configuration, assets. See [Templates](/concepts/templates).
+
+## Third-party Analytics
+
+Optional Integrations sending selected events to services you chose. Separate from 86d Observability.
+
+## Third-party Payments
+
+Taking payments through a processor account you hold and contract with directly. 86d charges no fee per Checkout on this model.
+
+## Variant
+
+A purchasable version of a Product, with its own commercial and Inventory identity.
+
+## Webhook
+
+A request from an outside provider reporting that something happened. A production webhook requires provider-specific authentication, Store and Connection scope, deduplication, and idempotent processing.
+
+## Workflow
+
+A user-visible operation coordinating one or more Commands, reporting a truthful terminal or recoverable state. It never reports success because one external step succeeded. See [Managed Workflows](/operations/managed-workflows).
+
+## Workload credential
+
+The opaque machine identity for one managed Store Runtime, supplied as `86D_WORKLOAD_CREDENTIAL`. The runtime exchanges it for short-lived Store-scoped access. It carries no provider secrets and cannot authenticate a person.
+
+Rotation, revocation, and evidence are incomplete. This is not Stable. See [managed identity](/concepts/architecture#managed-identity).
+
+## Related pages
+
+- [How 86d separates product authority](/concepts/architecture)
+- [How commerce records relate](/concepts/commerce-model)
+- [How Connections route provider work](/concepts/connections)
+- [How agents work with 86d](/concepts/agentic-design)
+- [Versioning and maturity](/resources/versioning)
+- [Common questions](/resources/faq)

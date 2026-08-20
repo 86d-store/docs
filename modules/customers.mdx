@@ -1,0 +1,94 @@
+---
+title: "Customers"
+description: "Customer accounts and profiles for an 86d store: a Customer record per Shopper, sign-in flows, and admin search."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Customers [Module](/concepts/modules) manages the [Customer](/resources/glossary#customer) record that backs every authenticated [Shopper](/resources/glossary#shopper). Customers can read and update their profile, change their email, and change their password. You can search, filter, and edit Customer records through the admin endpoints. `@86d-app/loyalty`, `@86d-app/saved-addresses`, `@86d-app/customer-groups`, and most engagement Modules depend on it.
+
+**Source:** [`modules/customers`](https://github.com/86d-app/86d/tree/main/modules/customers) · **npm:** [`@86d-app/customers`](https://www.npmjs.com/package/@86d-app/customers)
+
+## Installation
+
+```sh
+86d module add customers
+```
+
+Then run `86d generate`.
+
+## Configuration
+
+The Customers Module takes no configuration options. Initialize it with no arguments:
+
+```ts
+import customers from "@86d-app/customers";
+import { createModuleClient } from "@86d-app/core";
+
+const client = createModuleClient([customers()]);
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/customers/me` | Get the authenticated customer's profile |
+| `PUT` | `/customers/me` | Update profile (name, phone, marketing opt-in) |
+| `POST` | `/customers/me/change-email` | Request an email change (sends verification) |
+| `POST` | `/customers/me/change-password` | Change the password |
+| `DELETE` | `/customers/me` | Soft-delete the account |
+
+All store endpoints require an authenticated session.
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/customers` | List customers (paginated, filterable by `status`, `tag`) |
+| `GET` | `/admin/customers/search` | Full-text search by name, email, or phone |
+| `GET` | `/admin/customers/:id` | Get a customer record |
+| `PUT` | `/admin/customers/:id` | Update fields |
+| `POST` | `/admin/customers/:id/suspend` | Suspend account |
+| `POST` | `/admin/customers/:id/reactivate` | Reactivate account |
+| `DELETE` | `/admin/customers/:id` | Hard-delete (use with care) |
+
+## Components
+
+| Component | Purpose |
+| --- | --- |
+| `<AccountPage />` | Full customer self-service page (profile, addresses, orders, loyalty) |
+| `<CustomerDetails />` | Editable name and contact form |
+| `<EmailChangeForm />` | Inline email-change form with verification |
+
+## Types
+
+```ts
+type CustomerStatus = "active" | "suspended" | "closed";
+
+interface Customer {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  status: CustomerStatus;
+  marketingOptIn: boolean;
+  tags: string[];
+  metadata: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+## Related pages
+
+- [Saved addresses](/modules/saved-addresses)
+- [Customer groups](/modules/customer-groups)
+- [Loyalty](/modules/loyalty)
+- [Wishlist](/modules/wishlist)
+- [How commerce records relate](/concepts/commerce-model)
+- [86d glossary](/resources/glossary#customer)
+- [Versioning and maturity](/resources/versioning)

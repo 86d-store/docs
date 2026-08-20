@@ -1,0 +1,35 @@
+---
+title: "Settings"
+description: "Store-wide configuration for 86d: a typed key/value store backing per-Module preferences and merchant choices."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Settings [Module](/concepts/modules) is a typed key/value store for configuration that applies to the whole [Store](/resources/glossary#store). Choices scoped to one [Template](/concepts/templates) live in `config.json` instead. Each setting has a key, a typed value, and optional metadata so it renders as a form field on the right [Store Admin](/concepts/admin) page.
+
+Most other Modules read their changeable preferences from Settings.
+
+**Source:** [`modules/settings`](https://github.com/86d-app/86d/tree/main/modules/settings) · **npm:** [`@86d-app/settings`](https://www.npmjs.com/package/@86d-app/settings)
+
+## Installation
+
+```sh
+86d module add settings
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/settings/:key` | Read |
+| `PUT` | `/admin/settings/:key` | Write |
+
+## Related pages
+
+- [`config.json` reference](/configuration/store-config) for template-scoped configuration
+- [Environment variables](/configuration/environment-variables) for deployment-level configuration
+- [Versioning and maturity](/resources/versioning) for maturity criteria
+- [Glossary](/resources/glossary)

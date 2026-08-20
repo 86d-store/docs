@@ -1,0 +1,42 @@
+---
+title: "Gift cards"
+description: "Digital gift cards for 86d: issue cards, redeem them as tender at Checkout, and track balances."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Gift Cards [Module](/concepts/modules) sells and redeems digital gift cards. Each card carries a unique code and a balance; a [Customer](/resources/glossary#customer) redeems it at [Checkout](/concepts/commerce-model) in place of, or alongside, another payment method. The Module tracks each code's balance with a full transaction history.
+
+**Source:** [`modules/giftcards`](https://github.com/86d-app/86d/tree/main/modules/giftcards) · **npm:** [`@86d-app/giftcards`](https://www.npmjs.com/package/@86d-app/giftcards)
+
+## Installation
+
+```sh
+86d module add giftcards
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/giftcards/balance` | Check balance for a code |
+| `POST` | `/giftcards/redeem` | Redeem at Checkout |
+| `POST` | `/giftcards/purchase` | Purchase a new gift card |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/giftcards` | List gift cards |
+| `POST` | `/admin/giftcards/issue` | Manually issue (with reason) |
+
+## Related pages
+
+- [Store credits](/modules/store-credits) for non-monetary credit
+- [Checkout](/modules/checkout)
+- [How commerce records relate](/concepts/commerce-model)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

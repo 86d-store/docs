@@ -1,0 +1,268 @@
+---
+title: "Reviews"
+description: "Collect and moderate product reviews with star ratings, photo uploads, helpfulness voting, abuse reporting, and merchant responses."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Reviews [Module](/concepts/modules) adds a product review system to your [Store](/resources/glossary#store). Reviews wait in a moderation queue until you approve them, unless you enable `autoApprove`. [Customers](/resources/glossary#customer) can submit photo reviews, vote on helpfulness, and report abuse. You can respond to any review from [Store Admin](/concepts/admin).
+
+**Source:** [`modules/reviews`](https://github.com/86d-app/86d/tree/main/modules/reviews) · **npm:** [`@86d-app/reviews`](https://www.npmjs.com/package/@86d-app/reviews)
+
+## Installation
+
+```sh
+npm install @86d-app/reviews
+```
+
+Add the Module to your store configuration:
+
+```ts
+import reviews from "@86d-app/reviews";
+import { createModuleClient } from "@86d-app/core";
+
+const client = createModuleClient([
+  reviews({
+    autoApprove: "false", // default: requires moderation
+  }),
+]);
+```
+
+## Configuration
+
+<ParamField path="autoApprove" default='"false"' type="string">
+  When set to `"true"`, new reviews are immediately published without going through the moderation queue. When `"false"` (default), reviews start in `pending` status and require admin approval.
+</ParamField>
+
+## Review lifecycle
+
+```text
+createReview()         → pending
+updateReviewStatus()   → approved  (publicly visible)
+updateReviewStatus()   → rejected  (hidden from store)
+```
+
+With `autoApprove: "true"`, new reviews skip `pending` and go directly to `approved`.
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/reviews` | Submit a review (with optional images, duplicate prevention) |
+| `GET` | `/reviews/me` | List the authenticated Customer's own reviews (paginated) |
+| `GET` | `/reviews/products/:productId` | List approved reviews and rating summary for a product |
+| `POST` | `/reviews/:id/helpful` | Vote a review as helpful (deduplicated for authenticated users) |
+| `POST` | `/reviews/:id/report` | Report a review for abuse or spam |
+
+### Submit a review (`POST /reviews`)
+
+```json
+{
+  "productId": "prod_abc",
+  "authorName": "Verified shopper",
+  "authorEmail": "reviewer_contact_here",
+  "rating": 5,
+  "title": "Excellent product!",
+  "body": "Exactly what I needed.",
+  "images": [
+    { "url": "https://example.com/photo.jpg", "caption": "Front view" }
+  ]
+}
+```
+
+The endpoint returns `409` if the authenticated Customer has already reviewed the product. Each review accepts up to 5 images.
+
+### List product reviews (`GET /reviews/products/:productId`)
+
+| Query param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `take` | `number` | `20` | Page size (max 100) |
+| `skip` | `number` | `0` | Pagination offset |
+| `sortBy` | `string` | `recent` | `recent` \| `oldest` \| `highest` \| `lowest` \| `helpful` |
+
+```json
+{
+  "reviews": [{ "id": "review_1234567890123", "rating": 5 }],
+  "summary": {
+    "average": 4.3,
+    "count": 12,
+    "distribution": { "1": 0, "2": 1, "3": 2, "4": 4, "5": 5 }
+  }
+}
+```
+
+### Report a review (`POST /reviews/:id/report`)
+
+```json
+{
+  "reason": "spam",
+  "details": "This review is advertising another product"
+}
+```
+
+`reason` must be one of: `spam`, `offensive`, `fake`, `irrelevant`, `harassment`, `other`.
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/reviews` | List all reviews (filter: `status`, `productId`) |
+| `GET` | `/admin/reviews/:id` | Get a single review |
+| `PUT` | `/admin/reviews/:id/approve` | Approve a review |
+| `PUT` | `/admin/reviews/:id/reject` | Reject a review |
+| `POST` | `/admin/reviews/:id/respond` | Add a merchant response |
+| `DELETE` | `/admin/reviews/:id/delete` | Permanently delete a review |
+| `GET` | `/admin/reviews/analytics` | Review reporting, including report counts |
+| `GET` | `/admin/reviews/reports` | List abuse reports (filter: `status`, `reviewId`) |
+| `PUT` | `/admin/reviews/reports/:id/update` | Resolve or dismiss a report |
+| `GET` | `/admin/reviews/requests` | List review request emails |
+| `GET` | `/admin/reviews/request-stats` | Review request statistics |
+| `POST` | `/admin/reviews/send-request` | Send a review request email to a Customer |
+
+## Store components
+
+Use these components in your MDX [Template](/concepts/templates) files.
+
+### `ReviewsSummary`
+
+Compact star rating and review count for use on product cards.
+
+<ParamField path="productId" type="string" required>
+  Product ID to fetch the rating summary for.
+</ParamField>
+
+```mdx
+<ReviewsSummary productId={product.id} />
+```
+
+---
+
+### `ProductReviews`
+
+Full reviews section with rating summary, distribution bars, review list, and a submit form. Drop this on your product detail page.
+
+<ParamField path="productId" type="string" required>
+  Product ID to display reviews for.
+</ParamField>
+
+<ParamField path="title" default='"Customer Reviews"' type="string">
+  Section heading.
+</ParamField>
+
+```mdx
+<ProductReviews productId={product.id} />
+```
+
+---
+
+### `ReviewForm`
+
+Standalone review submission form. Use this when you want to embed the form separately from the review list.
+
+```mdx
+<ReviewForm productId={product.id} />
+```
+
+---
+
+### `ReviewCard`
+
+A single review card showing author, rating, title, body, images, and helpfulness controls.
+
+```mdx
+<ReviewCard />
+```
+
+---
+
+### `StarDisplay`
+
+Read-only star rating display for a given numeric score.
+
+```mdx
+<StarDisplay />
+```
+
+---
+
+### `StarPicker`
+
+Interactive star rating input for use inside a review form.
+
+```mdx
+<StarPicker />
+```
+
+---
+
+### `DistributionBars`
+
+Horizontal bar chart showing the rating distribution (1 to 5 stars) for a product.
+
+```mdx
+<DistributionBars />
+```
+
+## Types
+
+```ts
+type ReviewStatus = "pending" | "approved" | "rejected";
+type ReportStatus = "pending" | "resolved" | "dismissed";
+type ReviewSortBy = "recent" | "oldest" | "highest" | "lowest" | "helpful";
+
+interface ReviewImage {
+  url: string;
+  caption?: string;
+}
+
+interface Review {
+  id: string;
+  productId: string;
+  customerId?: string;
+  authorName: string;
+  authorEmail: string;
+  rating: number;          // 1 to 5
+  title?: string;
+  body: string;
+  status: ReviewStatus;
+  isVerifiedPurchase: boolean;
+  helpfulCount: number;
+  images?: ReviewImage[];
+  merchantResponse?: string;
+  merchantResponseAt?: Date;
+  moderationNote?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface RatingSummary {
+  average: number;
+  count: number;
+  distribution: Record<string, number>;
+}
+
+interface ReviewReport {
+  id: string;
+  reviewId: string;
+  reporterId?: string;
+  reason: string;
+  details?: string;
+  status: ReportStatus;
+  createdAt: Date;
+}
+```
+
+<Warning>
+  Only approved reviews appear in product listings and rating summaries. The `isVerifiedPurchase` field can only be set server-side; it is always `false` for reviews submitted through the store endpoint.
+</Warning>
+
+## Related pages
+
+- [Products](/modules/products)
+- [Customers](/modules/customers)
+- [Social proof](/modules/social-proof)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

@@ -1,0 +1,294 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "aspen",
+  "name": "86d",
+  "colors": {
+    "primary": "#0086d0",
+    "light": "#00a9ff",
+    "dark": "#0071b8"
+  },
+  "fonts": {
+    "heading": {
+      "family": "Zalando Sans Expanded",
+      "source": "https://86d.app/fonts/webfonts/ZalandoSans-Expanded.woff2",
+      "format": "woff2",
+      "weight": 400
+    },
+    "body": {
+      "family": "Zalando Sans",
+      "source": "https://86d.app/fonts/webfonts/ZalandoSans-Regular.woff2",
+      "format": "woff2",
+      "weight": 400
+    }
+  },
+  "background": {
+    "color": {
+      "light": "#fdfdfd",
+      "dark": "#010103"
+    }
+  },
+  "favicon": "https://86d.app/icon/favicon.ico",
+  "logo": {
+    "light": "https://86d.app/icon?w=48&h=48",
+    "dark": "https://86d.app/icon?w=48&h=48",
+    "href": "https://86d.app"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/86d-app/86d"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/86d-app",
+      "x": "https://x.com/86d_app",
+      "linkedin": "https://www.linkedin.com/company/86d"
+    }
+  },
+  "redirects": [
+    {
+      "source": "/modules/channels",
+      "destination": "/guides/channel-integrations"
+    }
+  ],
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "index",
+              "introduction",
+              "quickstart",
+              "deployment"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/architecture",
+              "concepts/commerce-model",
+              "concepts/connections",
+              "concepts/modules",
+              "concepts/templates",
+              "concepts/storefront",
+              "concepts/admin",
+              "concepts/agentic-design"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/store-config",
+              "configuration/environment-variables",
+              "configuration/storage",
+              "configuration/authentication"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/adding-modules",
+              "guides/building-a-module",
+              "guides/customizing-templates",
+              "guides/payment-integrations",
+              "guides/channel-integrations",
+              "guides/migrating-from-shopify"
+            ]
+          },
+          {
+            "group": "CLI",
+            "pages": [
+              "cli/overview",
+              "cli/commands"
+            ]
+          },
+          {
+            "group": "Operations",
+            "pages": [
+              "operations/managed-workflows",
+              "operations/launch-evidence",
+              "operations/security",
+              "operations/testing",
+              "operations/observability",
+              "operations/troubleshooting"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "resources/glossary",
+              "resources/faq",
+              "resources/public-beta",
+              "resources/cloud-plans",
+              "resources/versioning",
+              "resources/contributing",
+              "resources/changelog",
+              "resources/mcp"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Modules",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "modules/overview"
+            ]
+          },
+          {
+            "group": "Catalog",
+            "pages": [
+              "modules/products",
+              "modules/collections",
+              "modules/brands",
+              "modules/inventory",
+              "modules/media",
+              "modules/search",
+              "modules/seo",
+              "modules/product-labels",
+              "modules/product-qa",
+              "modules/comparisons",
+              "modules/recently-viewed",
+              "modules/recommendations"
+            ]
+          },
+          {
+            "group": "Shopping",
+            "pages": [
+              "modules/cart",
+              "modules/checkout",
+              "modules/orders",
+              "modules/discounts",
+              "modules/bundles",
+              "modules/bulk-pricing",
+              "modules/quotes",
+              "modules/preorders",
+              "modules/backorders",
+              "modules/flash-sales",
+              "modules/auctions",
+              "modules/price-lists",
+              "modules/abandoned-carts"
+            ]
+          },
+          {
+            "group": "Customers",
+            "pages": [
+              "modules/customers",
+              "modules/customer-groups",
+              "modules/saved-addresses",
+              "modules/wishlist",
+              "modules/gift-registry",
+              "modules/store-credits",
+              "modules/memberships",
+              "modules/referrals"
+            ]
+          },
+          {
+            "group": "Fulfillment",
+            "pages": [
+              "modules/fulfillment",
+              "modules/shipping",
+              "modules/returns",
+              "modules/delivery-slots",
+              "modules/store-pickup",
+              "modules/store-locator",
+              "modules/digital-downloads",
+              "modules/doordash",
+              "modules/uber-direct",
+              "modules/uber-eats",
+              "modules/favor"
+            ]
+          },
+          {
+            "group": "Marketing",
+            "pages": [
+              "modules/loyalty",
+              "modules/affiliates",
+              "modules/reviews",
+              "modules/newsletter",
+              "modules/announcements",
+              "modules/social-proof",
+              "modules/social-sharing",
+              "modules/gamification",
+              "modules/product-feeds",
+              "modules/qr-code",
+              "modules/photo-booth",
+              "modules/waitlist"
+            ]
+          },
+          {
+            "group": "Content",
+            "pages": [
+              "modules/blog",
+              "modules/pages",
+              "modules/faq",
+              "modules/forms",
+              "modules/navigation",
+              "modules/redirects",
+              "modules/sitemap"
+            ]
+          },
+          {
+            "group": "Finance",
+            "pages": [
+              "modules/payments",
+              "modules/stripe",
+              "modules/paypal",
+              "modules/square",
+              "modules/braintree",
+              "modules/managed-payments",
+              "modules/giftcards",
+              "modules/invoices",
+              "modules/subscriptions",
+              "modules/multi-currency",
+              "modules/tax",
+              "modules/tipping",
+              "modules/revenue"
+            ]
+          },
+          {
+            "group": "Sales channels",
+            "pages": [
+              "modules/amazon",
+              "modules/ebay",
+              "modules/etsy",
+              "modules/walmart",
+              "modules/google-shopping",
+              "modules/instagram-shop",
+              "modules/facebook-shop",
+              "modules/pinterest-shop",
+              "modules/tiktok-shop",
+              "modules/x-shop",
+              "modules/wish",
+              "modules/toast"
+            ]
+          },
+          {
+            "group": "Operations",
+            "pages": [
+              "modules/analytics",
+              "modules/audit-log",
+              "modules/automations",
+              "modules/import-export",
+              "modules/notifications",
+              "modules/order-notes",
+              "modules/settings",
+              "modules/tickets",
+              "modules/warranties",
+              "modules/kiosk",
+              "modules/appointments",
+              "modules/gift-wrapping",
+              "modules/vendors"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

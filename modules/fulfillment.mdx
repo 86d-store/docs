@@ -1,0 +1,50 @@
+---
+title: "Fulfillment"
+description: "Evaluate the current Experimental Fulfillment records: post-purchase delivery obligations and how they relate to Orders and Shipping."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** Current Order and Shipping projections do not yet implement the complete Fulfillment boundary. Use it for local or sandbox evaluation. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Fulfillment [Module](/concepts/modules) records post-purchase delivery obligations and the source [Order](/concepts/commerce-model) lines each one covers. The current implementation models every Fulfillment as a physical shipment moving through a fixed set of statuses.
+
+See [How commerce records relate](/concepts/commerce-model) for the product contract.
+
+**Source:** [`modules/fulfillment`](https://github.com/86d-app/86d/tree/main/modules/fulfillment) · **npm:** [`@86d-app/fulfillment`](https://www.npmjs.com/package/@86d-app/fulfillment)
+
+## Installation
+
+```sh
+86d module add fulfillment
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/fulfillment` | List Fulfillment records, optionally filtered by status |
+| `POST` | `/admin/fulfillment/create` | Create a Fulfillment for selected line items |
+| `POST` | `/admin/fulfillment/:id/status` | Set the current status |
+| `POST` | `/admin/fulfillment/:id/tracking` | Add carrier and tracking details |
+| `POST` | `/admin/fulfillment/:id/cancel` | Cancel a Fulfillment |
+
+## Events
+
+| Event | When |
+| --- | --- |
+| `fulfillment.created` | Fulfillment opened |
+| `fulfillment.shipped` | Tracking added |
+| `fulfillment.delivered` | Delivery confirmed |
+
+These events reflect the current implementation. Check [cross-module communication](/concepts/architecture#how-modules-talk-to-each-other) before you rely on them for delivery guarantees.
+
+## Related pages
+
+- [Shipping](/modules/shipping)
+- [Returns](/modules/returns)
+- [Orders](/modules/orders)
+- [How commerce records relate](/concepts/commerce-model)
+- [86d glossary](/resources/glossary#fulfillment)
+- [Versioning and maturity](/resources/versioning)

@@ -1,0 +1,203 @@
+---
+title: "Discounts"
+description: "Promo codes for 86d with percentage, fixed-amount, and free-shipping types, product and category scoping, usage limits, and date ranges."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Discounts [Module](/concepts/modules) creates, validates, and applies promo codes. It has no Module dependencies and no init-time options. You manage discount rules and codes at runtime through the admin endpoints or the controller API. The [Checkout Module](/modules/checkout) picks up discounts through structural typing, so promo codes entered in `CheckoutSummary` flow through without extra wiring.
+
+**Source:** [`modules/discounts`](https://github.com/86d-app/86d/tree/main/modules/discounts) · **npm:** [`@86d-app/discounts`](https://www.npmjs.com/package/@86d-app/discounts)
+
+## Installation
+
+```sh
+npm install @86d-app/discounts
+```
+
+## Configuration
+
+The Discounts Module takes no configuration options. Initialize it with no arguments:
+
+```ts
+import discounts from "@86d-app/discounts";
+import { createModuleClient } from "@86d-app/core";
+
+const client = createModuleClient([discounts()]);
+```
+
+## Discount types
+
+| `type` | `value` field | Calculation |
+| --- | --- | --- |
+| `percentage` | `0` to `100` | `subtotal * value / 100` |
+| `fixed_amount` | cents | `min(value, subtotal)`. Never exceeds cart total. |
+| `free_shipping` | `0` | Sets `freeShipping: true` in the result; no amount deducted |
+
+## Store endpoints
+
+### `POST /discounts/validate`
+
+This endpoint checks a promo code and calculates the discount amount without applying it or incrementing any usage counters. That makes it safe to call on every cart update or preview.
+
+**Request body:**
+
+```ts
+{
+  code: string;
+  subtotal: number;         // cart subtotal in cents
+  productIds?: string[];    // for product-scoped discounts
+  categoryIds?: string[];   // for category-scoped discounts
+}
+```
+
+**Response:**
+
+```ts
+{
+  valid: boolean;
+  discountAmount: number;   // in cents; 0 for free_shipping type
+  freeShipping: boolean;
+  error?: string;           // present when valid is false
+}
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/discounts` | List all discounts (paginated) |
+| `POST` | `/admin/discounts/create` | Create a new discount rule |
+| `GET` | `/admin/discounts/:id` | Get a discount with all its codes |
+| `PUT` | `/admin/discounts/:id/update` | Update a discount rule |
+| `DELETE` | `/admin/discounts/:id/delete` | Delete a discount and all its codes |
+| `POST` | `/admin/discounts/:id/codes` | Add a promo code to a discount |
+| `DELETE` | `/admin/discounts/codes/:id/delete` | Delete a single promo code |
+
+<Warning>
+  Deleting a discount cascades: all promo codes attached to that discount are removed first, then the discount record is deleted.
+</Warning>
+
+## Components
+
+### DiscountCodeInput
+
+`DiscountCodeInput` is a promo code entry field with live validation. When a valid code is entered it shows an applied state with the discount amount, and the Shopper can remove the code.
+
+```mdx
+<DiscountCodeInput />
+```
+
+With props:
+
+```mdx
+<DiscountCodeInput
+  subtotal={cartSubtotal}
+  compact={true}
+  onApplied={(result) => console.log(result)}
+/>
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `subtotal` | `number` | `0` | Cart subtotal in cents, used for minimum amount validation |
+| `productIds` | `string[]` |  | Product IDs for product-scoped discount filtering |
+| `categoryIds` | `string[]` |  | Category IDs for category-scoped discount filtering |
+| `onApplied` | `(result: ApplyResult) => void` |  | Called when a valid code is applied |
+| `onRemoved` | `() => void` |  | Called when the applied code is removed |
+| `compact` | `boolean` | `false` | Compact inline layout |
+
+### CartDiscounts
+
+`CartDiscounts` summarizes the applied discount on the cart page: the code and the amount deducted.
+
+```mdx
+<CartDiscounts />
+```
+
+### DiscountBanner
+
+`DiscountBanner` shows active discount offers to Shoppers in a promotional banner.
+
+```mdx
+<DiscountBanner />
+```
+
+### AutoAppliedSavings
+
+`AutoAppliedSavings` shows savings applied without a promo code, such as sale prices or tiered discounts.
+
+```mdx
+<AutoAppliedSavings />
+```
+
+## Types
+
+```ts
+type DiscountType = "percentage" | "fixed_amount" | "free_shipping";
+
+type DiscountAppliesTo =
+  | "all"
+  | "specific_products"
+  | "specific_categories";
+
+interface Discount {
+  id: string;
+  name: string;
+  description?: string;
+  type: DiscountType;
+  value: number;                // percentage 0 to 100, cents, or 0 for free_shipping
+  minimumAmount?: number;       // minimum cart subtotal in cents
+  maximumUses?: number;         // null = unlimited
+  usedCount: number;
+  isActive: boolean;
+  startsAt?: Date;
+  endsAt?: Date;
+  appliesTo: DiscountAppliesTo;
+  appliesToIds: string[];       // product or category IDs when scoped
+  stackable: boolean;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface DiscountCode {
+  id: string;
+  discountId: string;
+  code: string;                 // stored uppercase
+  usedCount: number;
+  maximumUses?: number;         // null = unlimited
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ApplyResult {
+  valid: boolean;
+  discountAmount: number;       // in cents; 0 for free_shipping type
+  freeShipping: boolean;
+  discount?: Discount;
+  code?: DiscountCode;
+  error?: string;               // reason when valid is false
+}
+```
+
+## Notes
+
+**Case-insensitive codes.** Promo codes are stored and matched as uppercase. `SAVE10`, `save10`, and `Save10` all resolve to the same code.
+
+**`validateCode` vs. `applyCode`.** Use `validateCode` for previews and cart-page feedback; it never mutates state. Call `applyCode` exactly once per order at confirmation time; it increments both the code's `usedCount` and the parent discount's `usedCount`.
+
+**Checkout integration.** The Checkout Module accesses `DiscountController` through the runtime context via structural typing; no direct import is needed. The `CheckoutSummary` component handles the promo code form automatically, so you do not need to wire up `DiscountCodeInput` separately on the Checkout page.
+
+## Related pages
+
+- [Checkout](/modules/checkout) for where promo codes are applied
+- [Cart](/modules/cart) for the selection Checkout recalculates
+- [Flash sales](/modules/flash-sales) for time-limited promotions
+- [How commerce records relate](/concepts/commerce-model)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

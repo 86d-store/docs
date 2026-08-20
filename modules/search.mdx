@@ -1,0 +1,60 @@
+---
+title: "Search"
+description: "Full-text product search with fuzzy matching, faceted filtering, and pluggable backends: PostgreSQL, Algolia, or MeiliSearch."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Search [Module](/concepts/modules) runs your [Storefront](/concepts/storefront) search. A built-in PostgreSQL full-text backend works out of the box, and you can switch to the Algolia or MeiliSearch adapter when you need scale. Shoppers can filter results by price, category, brand, tags, and stock. Drop the `<SearchBar />` and `<SearchResults />` component pair into your `search/index.mdx` page.
+
+**Source:** [`modules/search`](https://github.com/86d-app/86d/tree/main/modules/search) · **npm:** [`@86d-app/search`](https://www.npmjs.com/package/@86d-app/search)
+
+## Installation
+
+```sh
+86d module add search
+```
+
+## Configuration
+
+```ts
+search({
+  backend: "postgres",         // "postgres" | "algolia" | "meilisearch"
+  algoliaAppId: "...",
+  algoliaApiKey: "...",
+  meilisearchHost: "...",
+  meilisearchApiKey: "...",
+  embeddingsProvider: "openai", // optional, for semantic search
+});
+```
+
+When `embeddingsProvider` is set and `OPENAI_API_KEY` is present, the Module computes embeddings for every product and supports semantic search. Without it, search is keyword-only.
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/search?q=&filters=` | Search products with optional facet filters |
+| `GET` | `/search/suggest?q=` | Autocomplete suggestions |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/search/reindex` | Rebuild the full search index |
+| `GET` | `/admin/search/health` | Backend health and last index time |
+
+## Components
+
+- `<SearchBar />`: navbar-friendly autocomplete bar.
+- `<SearchResults />`: full results page with facet sidebar.
+
+## Related pages
+
+- [Products](/modules/products)
+- [Recommendations](/modules/recommendations)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

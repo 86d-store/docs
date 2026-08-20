@@ -1,0 +1,56 @@
+---
+title: "Notifications"
+description: "Experimental Store Runtime notifications: in-app messages, Customer preferences, templates, and optional provider delivery."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** External delivery is not backed by a durable queue and has no general retry guarantee. Use test recipients and verify consent, provider events, failure handling, and idempotency. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Notifications [Module](/concepts/modules) stores in-app messages, [Customer](/resources/glossary#customer) preferences, and reusable templates in the [Store Runtime](/concepts/architecture). It can deliver selected messages through Resend and Twilio once you add explicit provider configuration.
+
+Store notifications belong to the Store Runtime. Alerts for [86d.app](/concepts/architecture) members use a separate managed-service channel.
+
+**Source:** [`modules/notifications`](https://github.com/86d-app/86d/tree/main/modules/notifications) · **npm:** [`@86d-app/notifications`](https://www.npmjs.com/package/@86d-app/notifications)
+
+## Installation
+
+```sh
+86d module add notifications
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/notifications` | List notification records |
+| `POST` | `/admin/notifications/create` | Create a notification for one customer |
+| `GET` | `/admin/notifications/stats` | Read notification statistics |
+| `POST` | `/admin/notifications/batch-send` | Create notifications for a bounded customer list |
+| `GET` | `/admin/notifications/templates` | List templates |
+| `POST` | `/admin/notifications/templates/create` | Create a template |
+| `POST` | `/admin/notifications/templates/send` | Create notifications from a template |
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/notifications` | List the authenticated customer's notifications |
+| `GET` | `/notifications/unread-count` | Read the unread count |
+| `POST` | `/notifications/:id/read` | Mark an owned notification as read |
+| `POST` | `/notifications/read-all` | Mark all owned notifications as read |
+| `GET` | `/notifications/preferences` | Read the customer's preferences |
+| `POST` | `/notifications/preferences/update` | Update the customer's preferences |
+
+The Module also serves provider-specific delivery-status endpoints. Keep them private until your tests cover authentication, invalid events, retries, and duplicates.
+
+## Related pages
+
+- [Newsletter](/modules/newsletter) for broadcast email
+- [Automations](/modules/automations) for event-driven actions
+- [How Connections route provider work](/concepts/connections) for secret and provider ownership
+- [Observe a Store Runtime](/operations/observability) for the line between store communications and managed-service reporting
+- [Secure a Store Runtime](/operations/security) for provider event boundaries
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

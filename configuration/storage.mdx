@@ -1,0 +1,157 @@
+---
+title: "Configure storage"
+description: "Where your Product images and documents live: the local filesystem, Vercel Blob, or an S3-compatible bucket."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+Product images, PDFs, and other media all go through one storage interface. Pick where they land with `STORAGE_CLIENT`. Object keys carry the owning Store's scope, so files from two Stores cannot collide, and the authenticated routes still do the access control.
+
+Get this wrong on a stateless host and your Product images vanish on the next deploy. It is worth two minutes.
+
+## Which one to use
+
+| `STORAGE_CLIENT` | Use it for |
+| --- | --- |
+| `local` | Docker Compose, a server you control, local development |
+| `vercel` | Vercel deployments, using Vercel Blob |
+| `s3` | AWS S3, Cloudflare R2, MinIO, Railway object storage |
+
+## Local
+
+Local storage writes to a directory on the same filesystem as the app. It is the default under `docker compose up` and needs nothing external.
+
+```bash .env
+STORAGE_CLIENT=local
+
+# Optional: defaults to ./uploads
+STORAGE_LOCAL_DIR=./uploads
+
+# Optional: controls how upload URLs are returned (see below)
+STORAGE_PUBLIC_URL_MODE=proxy
+```
+
+The Store serves those files at `GET /uploads/[...path]` with immutable cache headers. SVG files get a restrictive Content Security Policy (CSP) of `default-src 'none'; style-src 'unsafe-inline'`, because an SVG is a document that can carry script. PDFs are served as attachments rather than rendered inline.
+
+<Warning>
+  On Vercel and other stateless hosts, `local` storage is wiped on every deploy. Use `vercel` or `s3` there.
+</Warning>
+
+## Vercel Blob
+
+On Vercel, attach a Blob store to your project. Vercel injects `BLOB_READ_WRITE_TOKEN` for you.
+
+```bash .env
+STORAGE_CLIENT=vercel
+
+# Set automatically by Vercel: do not set manually
+BLOB_READ_WRITE_TOKEN=vercel_blob_token_here
+```
+
+<Tip>
+  Do not set `BLOB_READ_WRITE_TOKEN` by hand. Linking a Blob store in the Vercel dashboard adds it to your deployment environment.
+</Tip>
+
+## S3-compatible
+
+The `s3` provider covers AWS S3, Cloudflare R2, MinIO, and Railway. Other S3-compatible endpoints may work. Upload a file, reload the page, and confirm the image renders before you trust one.
+
+```bash .env
+STORAGE_CLIENT=s3
+
+S3_ENDPOINT=https://bucket_endpoint_here
+S3_BUCKET=store_assets
+S3_REGION=region_here
+S3_ACCESS_KEY=access_key_here
+S3_SECRET_KEY=secret_key_here
+```
+
+<AccordionGroup>
+  <Accordion title="MinIO (Docker Compose)">
+    The bundled `docker-compose.yml` already runs MinIO:
+
+    ```bash .env
+    STORAGE_CLIENT=s3
+    S3_ENDPOINT=http://minio:9000
+    S3_BUCKET=86d
+    S3_REGION=us-east-1
+    STORAGE_PUBLIC_URL_MODE=proxy
+    ```
+
+    Set `STORAGE_PUBLIC_URL_MODE=proxy` so upload URLs point at the Store at `/uploads/...`. The MinIO container hostname does not resolve in a browser.
+  </Accordion>
+
+  <Accordion title="Cloudflare R2">
+    R2 speaks the S3 API. Your endpoint is in the R2 dashboard under bucket settings.
+
+    ```bash .env
+    STORAGE_CLIENT=s3
+    S3_ENDPOINT=https://account_identifier_here.r2.cloudflarestorage.com
+    S3_BUCKET=store_assets
+    S3_REGION=auto
+    S3_ACCESS_KEY=r2_access_key_here
+    S3_SECRET_KEY=r2_secret_key_here
+    ```
+  </Accordion>
+
+  <Accordion title="Railway object storage">
+    Railway uses virtual-hosted-style URLs, so add `S3_VIRTUAL_HOSTED_STYLE=true` to the standard S3 variables.
+
+    ```bash .env
+    STORAGE_CLIENT=s3
+    S3_ENDPOINT=https://bucket_name_here.railway.app
+    S3_BUCKET=bucket_name_here
+    S3_REGION=us-east-1
+    S3_ACCESS_KEY=access_key_here
+    S3_SECRET_KEY=secret_key_here
+    S3_VIRTUAL_HOSTED_STYLE=true
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Serving from your own domain
+
+`STORAGE_PUBLIC_URL_MODE` decides what URL the upload API hands back. It applies to `local` and `s3`.
+
+| Value | What you get |
+| --- | --- |
+| `direct` | The raw bucket or filesystem URL, for example `http://minio:9000/86d/stores/...`. This is the default |
+| `proxy` | A same-origin URL, for example `/uploads/stores/...`. The Store fetches the file and re-serves it |
+
+Reach for `proxy` when MinIO is inside Docker Compose and the browser cannot reach the bucket, when you want every image served from your own domain, or when the bucket is private and access control belongs in the application.
+
+```bash .env
+STORAGE_PUBLIC_URL_MODE=proxy
+```
+
+## Limits and accepted types
+
+Every upload goes through `POST /api/upload`, which is admin-only.
+
+| File type | Max size | Formats |
+| --- | --- | --- |
+| Images | 4.5 MB | JPEG, PNG, WebP, GIF, SVG |
+| Documents | 10 MB | PDF |
+
+Files are validated against their magic bytes, so a fake `Content-Type` header changes nothing. SVGs are additionally scanned for embedded scripts, event handlers, and `javascript:` URIs, and a file that fails returns `400`.
+
+## Where files land
+
+Uploads are stored at `stores/{storeId}/{uuid}` under the configured storage root. That `storeId` segment is what keeps one Store from reading or deleting another Store's files.
+
+```text
+stores/
+  a1b2c3d4-e5f6-7890-abcd-ef1234567890/
+    08f1a2b3-c4d5-6789-ef01-234567890abc   ← product image
+    1e2f3a4b-5c6d-7e8f-9012-3456789abcde   ← PDF attachment
+```
+
+## Related pages
+
+- [Environment variables](/configuration/environment-variables)
+- [Deployment and hosting](/deployment)
+- [Secure a Store Runtime](/operations/security)
+- [Store Admin](/concepts/admin) for the upload endpoint
+- [Troubleshooting](/operations/troubleshooting)

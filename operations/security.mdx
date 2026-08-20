@@ -1,0 +1,129 @@
+---
+title: "Secure a Store Runtime"
+description: "The boundaries that hold a Store together: authentication, secrets, uploads, provider events, and Store isolation."
+sidebarTitle: "Security model"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+You own the [Store Runtime](/concepts/architecture), which means you own its security posture too. This page covers the boundaries the code enforces, the ones you have to enforce yourself, and a checklist to work through before anyone but you can reach the Store.
+
+## Authentication
+
+- Set `BETTER_AUTH_SECRET` to a cryptographically random value. Production rejects a missing, default, short, or low-entropy secret and refuses to boot.
+- Set `BETTER_AUTH_URL` to the Store's public URL.
+- Replace the seeded [Store Admin](/concepts/admin) password. It is published in these docs.
+- Test account recovery before you depend on passwords. There is currently no password-reset flow, so find that out now rather than from a locked-out customer.
+- Keep the 86d.app OAuth client secret separate from any workload credential. They authenticate different kinds of thing and neither substitutes for the other.
+
+Generate a secret with:
+
+```bash
+openssl rand -base64 32
+```
+
+See [Authentication](/configuration/authentication) for how sessions and single sign-on behave today.
+
+## Store Admin
+
+Store Admin is at `/admin` and needs an authenticated admin session. Unauthenticated requests redirect to sign-in.
+
+Admin endpoints take identity and Store scope from the session, never from the request body. If you write an endpoint that trusts a `storeId` or a `userId` a caller supplied, you have written an authorization bypass.
+
+## API rate limits
+
+The runtime applies four limits by route class:
+
+| Surface | Limit | Counted per |
+| --- | --- | --- |
+| General Module API | 2,000 requests per minute | IP address |
+| Sensitive public endpoints | 10 requests per 10 minutes | IP address |
+| Store Admin API | 300 requests per minute | Signed-in user |
+| Provider webhooks | 600 requests per minute | Source IP address |
+
+Sensitive covers newsletter subscribe and unsubscribe, Checkout requests, Checkout sessions, and payment intents. A limited request returns `429` with `Retry-After` and `X-RateLimit-Reset`.
+
+Rate limiting is one control. It is not authorization, and it is not abuse protection.
+
+## File uploads
+
+`POST /api/upload` requires Store Admin access. Uploads are checked against magic bytes, size limits, and risky SVG content.
+
+Object keys carry Store scope, and a path prefix is not authorization. Check Store ownership on every read, write, and delete. See [Configure storage](/configuration/storage).
+
+## Provider events
+
+Every provider authenticates its events differently, and this is where integrations get compromised. A live endpoint has to:
+
+- reject an event whose verification is missing or invalid
+- keep the exact body format the provider signs, byte for byte
+- scope the event to one Store and one [Connection](/concepts/connections)
+- deduplicate repeats
+- apply state changes idempotently
+- survive out-of-order delivery
+
+Payment and channel Integrations are all still at sandbox stage. Follow [Set up a payment provider](/guides/payment-integrations) and [How Connections route provider work](/concepts/connections).
+
+## Store isolation
+
+One Store Runtime, one commerce database, no exceptions. The managed service is still being built, so read its release guidance before relying on a managed isolation claim.
+
+Inside a Store Runtime:
+
+- take [Customer](/modules/customers) and Store identity from the authenticated context
+- scope every query and mutation to its owner
+- reach data through [`ModuleDataService`](/resources/glossary#moduledataservice)
+- grant cross-Module reads only through column-projected published views (target); production storage is still JSON `ModuleData`
+
+See [Store isolation](/concepts/architecture#one-store-one-database).
+
+## Secrets stay on the server
+
+These never appear in source control, browser code, logs, model output, [Templates](/concepts/templates), or `config.json`:
+
+- the auth secret and OAuth client secrets
+- database credentials
+- provider private keys and OAuth tokens
+- provider event-verification secrets
+- managed workload credentials
+
+A public client identifier can go in browser configuration when the provider documents it as publishable. When you are unsure, it is not publishable.
+
+## Database access
+
+The Store Runtime uses Prisma and PostgreSQL. Generated queries are parameterized, which handles the common injection paths. Raw-query call sites still need reading by a person.
+
+Modules get scoped access through `ModuleDataService`. That is a technical boundary, not an authorization one: it does not check whether the current session owns the record you are about to update.
+
+## Before anyone else can reach it
+
+1. Generate a fresh `BETTER_AUTH_SECRET`.
+2. Replace the seeded Store Admin credentials.
+3. Set `APP_URL` and `BETTER_AUTH_URL` to the real public URL.
+4. Configure one sandbox provider and its verification values.
+5. Run `86d doctor` and clear every failure.
+6. Point diagnostics at a project you control.
+7. Test invalid provider events, retries, refunds, and Store boundaries.
+8. Read [Versioning and maturity](/resources/versioning) for everything you enabled.
+
+<Warning>
+  Finishing that list does not make this release safe for real money. No Checkout, Payment, tax, Shipping, Inventory, Order, or notification path has recorded evidence yet.
+</Warning>
+
+## Reporting a vulnerability
+
+Report it privately through [GitHub Security Advisories](https://github.com/86d-app/86d/security/advisories). Keep secrets, personal data, and working exploit detail out of public issues.
+
+Ordinary setup failures belong in [Troubleshooting](/operations/troubleshooting).
+
+## Related pages
+
+- [Authentication](/configuration/authentication)
+- [Configure storage](/configuration/storage)
+- [Set up a payment provider](/guides/payment-integrations)
+- [How Connections route provider work](/concepts/connections)
+- [How 86d separates product authority](/concepts/architecture)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

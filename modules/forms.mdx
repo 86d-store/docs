@@ -1,0 +1,45 @@
+---
+title: "Forms"
+description: "Custom form builder for 86d: contact, wholesale, returns intake, anything. Submissions are validated, stored, and can trigger notifications."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Forms [Module](/concepts/modules) lets you build custom forms with text, textarea, select, file-upload, and email fields. It validates submissions on the server, stores them in the database, and can trigger notifications or [Webhook](/resources/glossary#webhook) deliveries.
+
+**Source:** [`modules/forms`](https://github.com/86d-app/86d/tree/main/modules/forms) · **npm:** [`@86d-app/forms`](https://www.npmjs.com/package/@86d-app/forms)
+
+## Installation
+
+```sh
+86d module add forms
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/forms/:slug` | Get a form's schema |
+| `POST` | `/forms/:slug/submit` | Submit |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/forms` | Create a form |
+| `GET` | `/admin/forms/:id/submissions` | View submissions |
+
+## Components
+
+- `<Form slug={slug} />`: renders the form by slug.
+
+## Related pages
+
+- [Notifications](/modules/notifications)
+- [Pages](/modules/pages)
+- [Storefront](/concepts/storefront)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

@@ -1,0 +1,254 @@
+---
+title: "Media"
+description: "Reference for @86d-app/media: digital assets with folder organization, tagging, bulk operations, and Storefront display components."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Media [Module](/concepts/modules) is your store's digital asset manager. You upload images, videos, and other files through the shared upload endpoint, then organize them into folders, tag them, and display them on the [Storefront](/concepts/storefront) with the Module's image, gallery, and video components. Store endpoints are read-only; every create, update, and delete operation requires admin access.
+
+**Source:** [`modules/media`](https://github.com/86d-app/86d/tree/main/modules/media) · **npm:** [`@86d-app/media`](https://www.npmjs.com/package/@86d-app/media)
+
+## Installation
+
+<CodeGroup>
+
+```sh npm
+npm install @86d-app/media
+```
+
+```sh pnpm
+pnpm add @86d-app/media
+```
+
+</CodeGroup>
+
+Then register the Module in your store's `config.json`:
+
+```json
+{
+  "modules": ["media"],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+## Configuration
+
+```ts
+import media from "@86d-app/media";
+
+const module = media({
+  maxFileSize: "10485760",
+  allowedMimeTypes: "image/png,image/jpeg,image/webp,video/mp4",
+});
+```
+
+<ParamField body="maxFileSize" default='"10485760"' type="string">
+  Maximum file size in bytes. Defaults to 10 MB (10485760). This value is a string for module config compatibility.
+</ParamField>
+
+<ParamField body="allowedMimeTypes" type="string">
+  Comma-separated list of allowed MIME types. Defaults to all types when omitted. Example: `"image/png,image/jpeg,image/webp,video/mp4"`.
+</ParamField>
+
+## File upload
+
+Upload files through the shared [Store Runtime](/concepts/architecture) upload endpoint, not through the Media Module's own endpoints. The upload endpoint is admin-only.
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/api/upload` | Upload a file (admin only) |
+| `DELETE` | `/api/upload` | Delete an uploaded file (admin only) |
+
+**Supported file types and size limits:**
+
+| Type | Formats | Max size |
+| --- | --- | --- |
+| Images | JPEG, PNG, WebP, GIF, SVG | 4.5 MB |
+| Documents | PDF | 10 MB |
+| Video | MP4 and other types per `allowedMimeTypes` | Per `maxFileSize` config |
+
+After uploading, create an asset record via the admin API to register the file URL in the media library.
+
+## Store endpoints
+
+Store endpoints are read-only and publicly accessible.
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/media` | List assets, filterable by folder, MIME type, and tag |
+| `GET` | `/media/:id` | Get a single asset by ID |
+
+## Admin endpoints
+
+Admin endpoints require authentication.
+
+### Assets
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/media` | List all assets, filterable by folder, MIME type, tag, and search query |
+| `POST` | `/admin/media/create` | Create a new asset record |
+| `GET` | `/admin/media/:id` | Get an asset by ID |
+| `PUT` | `/admin/media/:id/update` | Update asset metadata (name, alt text, tags, folder) |
+| `DELETE` | `/admin/media/:id/delete` | Delete an asset |
+| `POST` | `/admin/media/bulk-delete` | Bulk-delete multiple assets by ID |
+| `POST` | `/admin/media/move` | Move assets to a different folder |
+| `GET` | `/admin/media/stats` | Get media library statistics |
+
+### Folders
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/media/folders` | List folders, filterable by `parentId` |
+| `POST` | `/admin/media/folders/create` | Create a new folder |
+| `PUT` | `/admin/media/folders/:id` | Rename a folder |
+| `DELETE` | `/admin/media/folders/:id/delete` | Delete a folder |
+
+## Components
+
+Add these components to your MDX [Template](/concepts/templates) files. The `media` Module must be listed in `config.json`.
+
+### `ImageDisplay`
+
+Displays a single image asset by ID. Fetches the asset, renders it with proper alt text, and optionally shows a caption.
+
+<ParamField body="id" type="string" required>
+  Asset ID to display.
+</ParamField>
+
+<ParamField body="className" type="string">
+  CSS class applied to the container element.
+</ParamField>
+
+<ParamField body="showCaption" default="false" type="boolean">
+  When `true`, renders the asset name as a caption below the image.
+</ParamField>
+
+```mdx
+<ImageDisplay id="asset-123" />
+
+<ImageDisplay id="asset-123" showCaption />
+
+<ImageDisplay id="hero-banner" className="aspect-[21/9] w-full" />
+```
+
+Use `ImageDisplay` for hero images, content blocks, or anywhere you need to render a single managed image.
+
+---
+
+### `MediaGallery`
+
+Filterable grid of media assets. Images render as thumbnails, videos show a poster frame with a play overlay, and other file types display a label. Supports pagination and item selection. Fetches its own data.
+
+<ParamField body="folder" type="string">
+  Filter assets by folder ID.
+</ParamField>
+
+<ParamField body="type" type="string">
+  Filter by type: `"image"`, `"video"`, or any MIME type prefix (e.g. `"image/png"`).
+</ParamField>
+
+<ParamField body="tag" type="string">
+  Filter assets by a single tag.
+</ParamField>
+
+<ParamField body="pageSize" default="12" type="number">
+  Number of items per page.
+</ParamField>
+
+```mdx
+<MediaGallery />
+
+<MediaGallery type="image" pageSize={8} />
+
+<MediaGallery folder="hero-banners" tag="featured" />
+```
+
+Use `MediaGallery` on gallery pages, lookbook sections, or anywhere you want a browsable media grid.
+
+---
+
+### `VideoPlayer`
+
+Embedded HTML5 video player. Fetches a video asset by ID and renders it with native browser controls.
+
+<ParamField body="id" type="string" required>
+  Asset ID of the video to play.
+</ParamField>
+
+<ParamField body="autoPlay" default="false" type="boolean">
+  Auto-play the video (muted) when it becomes visible in the viewport.
+</ParamField>
+
+<ParamField body="loop" default="false" type="boolean">
+  Loop playback continuously.
+</ParamField>
+
+<ParamField body="className" type="string">
+  CSS class applied to the container element.
+</ParamField>
+
+```mdx
+<VideoPlayer id="promo-video" />
+
+<VideoPlayer id="product-demo" autoPlay loop />
+
+<VideoPlayer id="tutorial" className="max-w-2xl mx-auto" />
+```
+
+Use `VideoPlayer` for product demo videos, promotional content, or tutorial sections.
+
+## Types
+
+```ts
+interface Asset {
+  id: string;
+  name: string;
+  altText?: string;
+  url: string;
+  mimeType: string;
+  size: number;                // in bytes
+  width?: number;
+  height?: number;
+  folder?: string;
+  tags: string[];
+  metadata: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface Folder {
+  id: string;
+  name: string;
+  parentId?: string;           // Supports nested folder hierarchies
+  createdAt: Date;
+}
+
+interface MediaStats {
+  totalAssets: number;
+  totalSize: number;           // in bytes
+  byMimeType: Record<string, number>;
+  byFolder: Record<string, number>;
+}
+```
+
+## Notes
+
+- Folders support nesting via `parentId`. Use `GET /admin/media/folders?parentId=folder_id_here` to list a folder's children.
+- Tags are stored as a JSON string array. You can filter by one tag at a time using the `tag` query parameter.
+- `bulkDelete` and `moveAssets` accept arrays of asset IDs, so one call can delete or move a whole batch.
+- `getStats()` returns totals broken down by MIME type and folder, useful for storage reporting.
+
+## Related pages
+
+- [Products](/modules/products)
+- [Templates](/concepts/templates)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

@@ -1,0 +1,51 @@
+---
+title: "Wishlist"
+description: "Save and track favorite products in 86d. Wishlists per Customer, with shareable links and back-in-stock notifications."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Wishlist [Module](/concepts/modules) lets [Shoppers](/resources/glossary#shopper) save products for later. Each wishlist belongs to one [Customer](/resources/glossary#customer), can be shared through a public link, and can trigger a notification when a saved item drops in price or restocks.
+
+**Source:** [`modules/wishlist`](https://github.com/86d-app/86d/tree/main/modules/wishlist) · **npm:** [`@86d-app/wishlist`](https://www.npmjs.com/package/@86d-app/wishlist)
+
+## Installation
+
+```sh
+86d module add wishlist
+```
+
+## Configuration
+
+```ts
+wishlist({
+  notifyOnPriceDrop: "true",
+  notifyOnRestock: "true",
+  publicShareEnabled: "true",
+});
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/wishlist/me` | Get the customer's wishlist |
+| `POST` | `/wishlist/me/items` | Add an item |
+| `DELETE` | `/wishlist/me/items/:id` | Remove an item |
+| `GET` | `/wishlist/share/:token` | Public read of a shared wishlist |
+
+## Components
+
+- `<WishlistButton productId={id} />`: heart toggle on product cards.
+- `<WishlistPage />`: Customer self-service wishlist view.
+
+## Related pages
+
+- [Customers](/modules/customers)
+- [Notifications](/modules/notifications)
+- [Gift registry](/modules/gift-registry)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

@@ -1,0 +1,48 @@
+---
+title: "Auctions"
+description: "Time-limited product auctions with live bidding for 86d. Reserve prices, automatic bid increments, and winner notifications."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Auctions [Module](/concepts/modules) turns selected products into time-limited auctions. [Customers](/resources/glossary#customer) place bids; the Module enforces the minimum bid increment, holds reserve prices, and notifies the winner when the auction closes. On confirmation, the winning bid becomes an [Order](/concepts/commerce-model).
+
+**Source:** [`modules/auctions`](https://github.com/86d-app/86d/tree/main/modules/auctions) · **npm:** [`@86d-app/auctions`](https://www.npmjs.com/package/@86d-app/auctions)
+
+## Installation
+
+```sh
+86d module add auctions
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/auctions` | Active auctions |
+| `GET` | `/auctions/:id` | Auction detail |
+| `POST` | `/auctions/:id/bid` | Place a bid |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/auctions` | Create an auction |
+| `POST` | `/admin/auctions/:id/end` | Force-close |
+
+## Components
+
+- `<AuctionDetail id={id} />`
+- `<BidForm auctionId={id} />`
+- `<LiveBidFeed auctionId={id} />`
+
+## Related pages
+
+- [Notifications](/modules/notifications)
+- [Orders](/modules/orders)
+- [How commerce records relate](/concepts/commerce-model)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

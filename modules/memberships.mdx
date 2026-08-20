@@ -1,0 +1,48 @@
+---
+title: "Memberships"
+description: "Paid membership plans in 86d. Gate products, content, and discounts behind a recurring fee."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Memberships [Module](/concepts/modules) sells access plans rather than physical products. Members pay a recurring fee for gated catalog items, member-only pricing, and exclusive content. Recurring billing runs through `@86d-app/payments` and `@86d-app/subscriptions`.
+
+**Source:** [`modules/memberships`](https://github.com/86d-app/86d/tree/main/modules/memberships) · **npm:** [`@86d-app/memberships`](https://www.npmjs.com/package/@86d-app/memberships)
+
+## Installation
+
+```sh
+86d module add memberships
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/memberships/plans` | Available plans |
+| `POST` | `/memberships/subscribe` | Subscribe to a plan |
+| `GET` | `/memberships/me` | Active membership and benefits |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/memberships/plans` | Create a plan |
+| `GET` | `/admin/memberships/members` | List members |
+| `POST` | `/admin/memberships/:id/cancel` | Cancel a membership |
+
+## Components
+
+- `<MembershipPlans />`
+- `<MembershipBadge />`
+
+## Related pages
+
+- [Subscriptions](/modules/subscriptions)
+- [Payments](/modules/payments)
+- [Customer groups](/modules/customer-groups)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

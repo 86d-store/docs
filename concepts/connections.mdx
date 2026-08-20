@@ -1,0 +1,71 @@
+---
+title: "How Connections route provider work"
+description: "The difference between an Integration and a Connection, why every provider operation is bound to one, and how current Integrations are configured today."
+sidebarTitle: "Provider Connections"
+---
+
+<Warning>
+  **In development.** Persistent Connection records and immutable routing are the target contract, not shipped behavior. Current [Store Runtime](/concepts/architecture) Integrations use server environment variables. Follow each Integration's own page for setup that works today.
+</Warning>
+
+An [Integration](/resources/glossary#integration) is the code that talks to an outside company. A [Connection](/resources/glossary#connection) is the specific account that code is allowed to use. One is software you install. The other is a relationship you configure, and it is the thing that can expire, get revoked, or stop working at three in the morning.
+
+## Integration, Connection, Payment option
+
+| Concept | What it does |
+| --- | --- |
+| **Integration** | Makes the provider calls, handles their events, implements the capability contract |
+| **Connection** | Records the provider, owner, scope, mode, health, and a server-side reference to the secret |
+| **Payment Connection** | Binds one Shopper [Payment](/modules/payments), and every operation that follows it, to one approved provider relationship |
+| **Payment option** | What a Shopper sees at [Checkout](/modules/checkout): card, Apple Pay, Google Pay, PayPal |
+
+One Integration can serve several Connections, and one Connection can carry several approved capabilities. A single Stripe Integration, two Stripe accounts, two Connections.
+
+## Scope decides the owner
+
+| Connection scope | Who owns it |
+| --- | --- |
+| Store-scoped third-party Integration | The Store Runtime |
+| Business-scoped managed service | The [Control Plane](/concepts/architecture) |
+| Standalone Store provider | That Store Runtime, locally |
+
+Sharing an interface does not move authority. Whichever plane owns the Connection is the one that authorizes the operation and keeps the audit record.
+
+## Every operation gets bound to one
+
+A provider-backed operation follows the same five steps:
+
+1. Pick an active Connection with the right scope and capability.
+2. Authorize the operation against that Connection.
+3. Write that Connection's identifier onto the record the operation produced.
+4. Send refunds, disputes, [webhooks](/resources/glossary#webhook), cancellations, and other reversals back through the same Connection.
+5. Stop and ask for attention when that Connection cannot continue.
+
+Step five is the one that matters. The runtime will not retry through a different provider, because a refund issued through a processor that never took the money is not a refund. Reauthorizing can repair a broken Connection. Moving live operations to a different provider is an explicit migration both providers support, never a fallback.
+
+## Secrets stay on the server
+
+Browsers and agents get an opaque Connection reference and a health status. That is enough to use a Connection and not enough to steal one. Provider keys, OAuth tokens, webhook signing secrets, and managed [workload credentials](/resources/glossary#workload-credential) stay in server-side storage.
+
+If you are self-hosting today, keep provider secrets in the server environment. Never put them in `config.json`, in a `NEXT_PUBLIC_` variable, in a [Template](/concepts/templates), in logs, or anywhere a model can read them back.
+
+## Before you widen testing on an Integration
+
+Work through this list with a sandbox account before you let real money near it:
+
+1. Use the provider's sandbox or test mode.
+2. Turn on whatever event verification the provider offers, and confirm an unsigned event is rejected.
+3. Try invalid credentials and missing scopes. Read what the Store does.
+4. Send the same event twice and interrupt a request mid-flight. Confirm nothing duplicates.
+5. Refund something and confirm the refund went through the original provider.
+6. Check the Integration's [maturity evidence](/resources/versioning).
+
+## Related pages
+
+- [Set up a payment provider](/guides/payment-integrations)
+- [Connect a sales channel](/guides/channel-integrations)
+- [How commerce records relate](/concepts/commerce-model)
+- [How 86d separates product authority](/concepts/architecture)
+- [Secure a Store Runtime](/operations/security)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

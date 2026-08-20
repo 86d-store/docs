@@ -1,0 +1,65 @@
+---
+title: "How commerce records relate"
+description: "What Cart, Checkout, Order, Payment, Fulfillment, and Shipping each prove, and what none of them prove."
+sidebarTitle: "Commerce model"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+A purchase leaves behind several records, and most commerce bugs come from treating one of them as proof of another. A paid [Order](/modules/orders) is not a shipped Order. A bought label is not a delivered [Parcel](/modules/shipping). 86d keeps these separate on purpose, and this page is the map.
+
+Trace a purchase in this order: [Cart](/modules/cart), then [Checkout](/modules/checkout), then Order. [Payment](/modules/payments), [Fulfillment](/modules/fulfillment), and [Shipping](/modules/shipping) sit beside the Order rather than replacing it.
+
+## What each record proves
+
+| Record | What it owns | What it does not prove |
+| --- | --- | --- |
+| **Cart** | A Shopper's current selection, still changeable | An accepted price, available Inventory, or an Order |
+| **Checkout Request** | A non-binding record of what a Shopper wanted and what they were shown, saved when a required decision was unavailable | An Order, a reservation, a price guarantee, or a Payment |
+| **Checkout** | A fresh server calculation and the Shopper's acceptance of it | That the provider settled, or that anything shipped |
+| **Order** | The commercial agreement: accepted lines, quantities, prices, totals | That the Payment settled or that delivery happened |
+| **Payment** | One Shopper-facing attempt, its authorization, capture, refund, and dispute state | The Order itself, or the provider's settlement ledger |
+| **Fulfillment** | One delivery obligation covering zero or more Order lines | A Parcel, a label, or a carrier scan |
+| **Shipping** | Parcels, rates, labels, postage, adjustments, tracking | That the Order is closed |
+
+## Checkout recalculates the money
+
+Checkout is where the Store decides what a purchase actually costs, and it works out every one of these on the server:
+
+- Product and Variant identity
+- price, discounts, and [Loyalty](/modules/loyalty) redemption
+- [Inventory](/modules/inventory) availability and reservations
+- Shipping options and cost
+- tax treatment and amount
+- which Payment Connection handles the charge, and what the provider answered
+
+A browser can ask for a price and display one. It cannot set one. The same goes for an agent: it can propose a Cart, and the server still prices it.
+
+When a required decision is missing, Checkout stops rather than guessing. If tax or a Shipping quote cannot be resolved, the Store can save a non-binding [Checkout Request](/resources/glossary#checkout-request) instead: it holds what the Shopper asked for and the estimate they saw, stores no card details, reserves no stock, and creates no Order. When the Store can fulfill it, Checkout runs the numbers again and the Shopper accepts the new offer or walks away.
+
+## A refund goes back the way it came
+
+A Payment records which [Payment Connection](/concepts/connections) took the money. Refunds, disputes, and every later provider operation go back through that same Connection. If it has been revoked or is unhealthy, the operation stops and asks for attention. 86d does not reroute a refund through a different processor, because the money is not there.
+
+Provider events have to be authenticated, scoped to the right Store, and deduplicated before they are allowed to change a Payment or an Order.
+
+## Delivery does not close an Order
+
+One Order can have several Fulfillments. One Fulfillment can need several Parcels. A Fulfillment can also cover zero Order lines, which is how an Order-level obligation like a service call or a gift note gets tracked without claiming that any item shipped.
+
+Buying a label means the Parcel is pre-transit. Nothing has moved. Delivering one Parcel closes that Parcel, not the Order.
+
+An Order closes when its commercial, Payment, dispute, and Fulfillment obligations are all terminal. Someone with authority can close one manually, and that stays visible in the audit history with who did it and why.
+
+## Related pages
+
+- [Checkout](/modules/checkout) for the current session flow and its limits
+- [Orders](/modules/orders) for the current commercial record
+- [Payments](/modules/payments) for intents, captures, and refunds
+- [Fulfillment](/modules/fulfillment) for delivery obligations
+- [Shipping](/modules/shipping) for zones, rates, and labels
+- [Tax](/modules/tax) for how a tax decision is reached
+- [How 86d separates product authority](/concepts/architecture)
+- [Glossary](/resources/glossary)

@@ -1,0 +1,36 @@
+---
+title: "Redirects"
+description: "Manage permanent and temporary URL redirects for an 86d Storefront, exact or pattern-based, so SEO survives URL changes."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Redirects [Module](/concepts/modules) manages 301 and 302 redirects from old URLs to new ones. Use it when you migrate from another platform, restructure URLs, or retire product pages.
+
+**Source:** [`modules/redirects`](https://github.com/86d-app/86d/tree/main/modules/redirects) · **npm:** [`@86d-app/redirects`](https://www.npmjs.com/package/@86d-app/redirects)
+
+## Installation
+
+```sh
+86d module add redirects
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/redirects` | List |
+| `POST` | `/admin/redirects` | Create |
+| `PUT` | `/admin/redirects/:id` | Update |
+| `DELETE` | `/admin/redirects/:id` | Delete |
+
+## Related pages
+
+- [SEO](/modules/seo)
+- [Sitemap](/modules/sitemap)
+- [Evaluate a Shopify migration](/guides/migrating-from-shopify)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

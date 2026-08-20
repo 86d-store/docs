@@ -1,0 +1,35 @@
+---
+title: "Etsy"
+description: "Etsy shop sync for 86d. Push listings, manage variations, and pull Etsy Orders into your 86d Order queue."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Etsy [Module](/concepts/modules) syncs your catalog to your Etsy shop through the Etsy v3 API. It manages listing variations and inventory, and pulls Etsy [Orders](/concepts/commerce-model) into `@86d-app/orders` with `channel: "etsy"`.
+
+**Source:** [`modules/etsy`](https://github.com/86d-app/86d/tree/main/modules/etsy) · **npm:** [`@86d-app/etsy`](https://www.npmjs.com/package/@86d-app/etsy)
+
+## Installation
+
+```sh
+86d module add etsy
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/etsy/listings` | List Etsy listings |
+| `POST` | `/admin/etsy/listings/sync` | Push catalog |
+
+## Related pages
+
+- [Products](/modules/products)
+- [Orders](/modules/orders)
+- [Connect a sales channel](/guides/channel-integrations)
+- [How Connections route provider work](/concepts/connections)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

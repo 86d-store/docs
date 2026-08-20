@@ -1,0 +1,76 @@
+---
+title: "Inventory"
+description: "Reference for @86d-app/Inventory: stock records, reservations, adjustment endpoints, events, and components."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Inventory [Module](/concepts/modules) tracks stock for products and variants: current levels, reservations during [Checkout](/concepts/commerce-model), manual adjustments, and low-stock reporting. Browser input never changes Inventory. Stock moves through server-side commerce operations.
+
+<Warning>
+  The Products package still stores its own Inventory fields, and cross-Module events are not a durable outbox. Verify which record is authoritative, and how retries and oversell behave, before you connect Inventory to live Checkout or Orders.
+</Warning>
+
+**Source:** [`modules/inventory`](https://github.com/86d-app/86d/tree/main/modules/inventory) · **npm:** [`@86d-app/inventory`](https://www.npmjs.com/package/@86d-app/inventory)
+
+## Installation
+
+```sh
+86d module add inventory
+```
+
+## Configuration
+
+```ts
+inventory({
+  lowStockThreshold: "5",        // default low-stock alert threshold
+  reservationTtl: "1800000",     // 30 minutes, in ms
+  allowNegativeStock: "false",   // when "false", reject orders that would oversell
+});
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/inventory/:productId` | Public inventory level for a product |
+| `POST` | `/inventory/reserve` | Reserve stock during Checkout |
+| `POST` | `/inventory/release` | Release a reservation |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/inventory` | List inventory across all products |
+| `POST` | `/admin/inventory/:productId/adjust` | Manual adjustment (+/-) with reason |
+| `GET` | `/admin/inventory/low-stock` | Items below `lowStockThreshold` |
+| `GET` | `/admin/inventory/audit-log` | Inventory change history |
+
+## Events
+
+| Event | When |
+| --- | --- |
+| `inventory.adjusted` | Manual adjustment recorded |
+| `inventory.low-stock` | A SKU crosses below threshold |
+| `inventory.out-of-stock` | A SKU hits zero |
+
+Stock also decrements when the Orders Module records `order.placed`.
+
+## Components
+
+- `<StockBadge inventory={n} />`: [Storefront](/concepts/storefront) badge ("In stock", "Only X left", "Out of stock").
+- `<InventoryWidget />`: inline [Store Admin](/concepts/admin) widget for adjusting stock.
+
+## Related pages
+
+- [Products](/modules/products)
+- [Orders](/modules/orders)
+- [Backorders](/modules/backorders)
+- [Preorders](/modules/preorders)
+- [How commerce records relate](/concepts/commerce-model)
+- [How 86d separates product authority](/concepts/architecture#how-modules-talk-to-each-other)
+- [86d glossary](/resources/glossary#inventory)
+- [Versioning and maturity](/resources/versioning)

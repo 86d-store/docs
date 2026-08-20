@@ -1,0 +1,108 @@
+---
+title: "Use the 86d CLI"
+description: "One tool for setting up a Store, managing Modules and Templates, running code generation, and finding out why nothing works."
+sidebarTitle: "CLI overview"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+The `86d` CLI is how you work with a [Store Runtime](/concepts/architecture) on your own machine. It sets up a new Store, starts the dev server, manages [Modules](/concepts/modules) and [Templates](/concepts/templates), runs code generation, and tells you what is broken when something is.
+
+## Install it
+
+```sh
+npm install -g 86d
+```
+
+<Tip>
+  Inside the monorepo you can skip the global install:
+
+  ```sh
+  bun run 86d <command>
+  ```
+</Tip>
+
+## What it covers
+
+- **Setting up**: `86d init` writes your environment file, installs dependencies, migrates, and seeds in one pass.
+- **Running**: `86d dev` starts the Next.js dev server after checking the database is actually reachable.
+- **Modules**: scaffold your own, install first-party ones, load external GitHub or npm packages, turn things on and off.
+- **Templates**: create one, install someone else's, switch which is active.
+- **Code generation**: rebuild Module imports, the API router, the registry, and component docs after a `config.json` edit.
+- **Diagnosis**: `86d doctor` runs every health check and suggests a fix for each failure.
+
+## Every command
+
+| Command | What it does |
+| --- | --- |
+| `86d dev` | Start the dev server |
+| `86d init [--yes]` | Set up a local Store: environment, dependencies, migrations, seed |
+| `86d status` | Show project health and configuration |
+| `86d doctor` | Diagnose problems and suggest fixes |
+| `86d module create <name>` | Scaffold a new Module |
+| `86d module add <specifier>` | Add a Module from the registry, GitHub, or npm |
+| `86d module update [name]` | Check installed Modules against the registry |
+| `86d module list` | List local Modules |
+| `86d module search [query]` | Search the registry |
+| `86d module info <name>` | Show one Module's details |
+| `86d module enable <name>` | Turn a Module on in the active Template |
+| `86d module disable <name>` | Turn one off |
+| `86d template create <name>` | Copy `brisa` into a new Template |
+| `86d template add <specifier>` | Add a Template from GitHub or npm |
+| `86d template remove <name>` | Delete an installed Template |
+| `86d template activate <name>` | Switch which Template is active |
+| `86d template list` | List Templates |
+| `86d generate` | Run every generator |
+| `86d generate modules` | Module imports and the API router only |
+| `86d generate registry` | `registry.json` only |
+| `86d generate components` | Component documentation only |
+
+Flags, arguments, and specifier grammar are in the [command reference](/cli/commands).
+
+## The loop you will use most
+
+```sh
+# Set up: .env, dependencies, migrations, demo data
+86d init
+
+# Confirm nothing is broken before you start
+86d doctor
+
+# Run it
+86d dev
+
+# Scaffold something of your own
+86d module create loyalty-points
+
+# Turn it on in the active Template
+86d module enable loyalty-points
+
+# Wire it in
+86d generate
+```
+
+## Adding a Module
+
+A short name resolves from the first-party registry. GitHub and npm specifiers pull in external code:
+
+```sh
+86d module add reviews
+86d module add @86d-app/reviews
+86d module add github:owner/repo/modules/loyalty
+86d module add npm:@acme/commerce-module
+```
+
+The CLI downloads the Module, installs its dependencies, enables it in the active Template, and tells you to run `86d generate`.
+
+Read external code before you install it. `add` fetches whatever you point it at and runs it inside your Store. It is not a curated marketplace and nothing reviews the package on your behalf.
+
+## Related pages
+
+- [Command reference](/cli/commands)
+- [Add a Module](/guides/adding-modules)
+- [Build a custom Module](/guides/building-a-module)
+- [How Modules package Store capabilities](/concepts/modules)
+- [Quickstart](/quickstart)
+- [Versioning and maturity](/resources/versioning)

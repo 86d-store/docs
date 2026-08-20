@@ -1,0 +1,47 @@
+---
+title: "Product Q&A"
+description: "Customer-submitted questions and answers attached to products. Moderated, threaded, and surfaced on product detail pages."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Product Q&A [Module](/concepts/modules) lets [Shoppers](/resources/glossary#shopper) ask questions on product pages, and lets you (and other Shoppers, if you allow it) post answers. Questions go through a moderation queue. The `<ProductQA productId={id} />` component renders the Q&A section on product detail pages.
+
+**Source:** [`modules/product-qa`](https://github.com/86d-app/86d/tree/main/modules/product-qa) · **npm:** [`@86d-app/product-qa`](https://www.npmjs.com/package/@86d-app/product-qa)
+
+## Installation
+
+```sh
+86d module add product-qa
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/product-qa/questions` | Submit a question |
+| `GET` | `/product-qa/products/:productId` | List approved Q&A for a product |
+| `POST` | `/product-qa/questions/:id/answer` | Submit a customer answer |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/product-qa` | Moderation queue |
+| `PUT` | `/admin/product-qa/:id/approve` | Approve a question or answer |
+| `PUT` | `/admin/product-qa/:id/reject` | Reject a question or answer |
+| `POST` | `/admin/product-qa/:id/respond` | Post a merchant response |
+
+## Components
+
+- `<ProductQA productId={id} />`: full Q&A section for product detail pages.
+
+## Related pages
+
+- [Reviews](/modules/reviews)
+- [Products](/modules/products)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

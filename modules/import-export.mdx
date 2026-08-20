@@ -1,0 +1,35 @@
+---
+title: "Import / export"
+description: "Bulk import and export of catalog and Customer data for 86d via CSV and JSON."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Import / Export [Module](/concepts/modules) moves catalog and [Customer](/resources/glossary#customer) data in bulk. It accepts CSV and JSON on import and exports the same data in either format. Use it for migrations, supplier feed ingestion, and ad-hoc data work.
+
+**Source:** [`modules/import-export`](https://github.com/86d-app/86d/tree/main/modules/import-export) · **npm:** [`@86d-app/import-export`](https://www.npmjs.com/package/@86d-app/import-export)
+
+## Installation
+
+```sh
+86d module add import-export
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/import` | Import (specify entity type) |
+| `GET` | `/admin/export?type=` | Export |
+| `GET` | `/admin/import/:id/status` | Job status for a long-running import |
+
+## Related pages
+
+- [Evaluate a Shopify migration](/guides/migrating-from-shopify) for a complete migration walkthrough
+- [Products](/modules/products) for the catalog you import into
+- [Customers](/modules/customers) for Customer records
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

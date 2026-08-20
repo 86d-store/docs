@@ -1,0 +1,42 @@
+---
+title: "Saved addresses"
+description: "Customer address book for 86d. Each Customer keeps multiple shipping and billing addresses with a default for fast Checkout."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Saved Addresses [Module](/concepts/modules) stores multiple shipping and billing addresses per [Customer](/resources/glossary#customer), with a default for each. The [Checkout Module](/modules/checkout) reads them through the addresses contract to pre-fill Checkout forms.
+
+**Source:** [`modules/saved-addresses`](https://github.com/86d-app/86d/tree/main/modules/saved-addresses) · **npm:** [`@86d-app/saved-addresses`](https://www.npmjs.com/package/@86d-app/saved-addresses)
+
+## Installation
+
+```sh
+86d module add saved-addresses
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/addresses/me` | List addresses |
+| `POST` | `/addresses/me` | Add an address |
+| `PUT` | `/addresses/me/:id` | Update |
+| `DELETE` | `/addresses/me/:id` | Delete |
+| `POST` | `/addresses/me/:id/set-default` | Mark as default |
+
+## Components
+
+- `<AddressBook />`: full self-service address book.
+- `<AddressPicker />`: dropdown for choosing a saved address at Checkout.
+
+## Related pages
+
+- [Customers](/modules/customers)
+- [Checkout](/modules/checkout)
+- [How commerce records relate](/concepts/commerce-model)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

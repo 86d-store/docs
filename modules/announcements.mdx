@@ -1,0 +1,40 @@
+---
+title: "Announcements"
+description: "Site-wide announcement bars and popup notices with scheduling, targeting, and dismissal rules."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Announcements [Module](/concepts/modules) shows banners and popups across the [Storefront](/concepts/storefront). Each announcement has a schedule with a start and an end, targeting rules for geography and Customer group, and a dismissal policy.
+
+**Source:** [`modules/announcements`](https://github.com/86d-app/86d/tree/main/modules/announcements) · **npm:** [`@86d-app/announcements`](https://www.npmjs.com/package/@86d-app/announcements)
+
+## Installation
+
+```sh
+86d module add announcements
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/announcements` | Create an announcement |
+| `PUT` | `/admin/announcements/:id` | Update an announcement |
+
+## Components
+
+Use these components in your MDX [Template](/concepts/templates) files.
+
+- `<AnnouncementBar />`
+- `<AnnouncementModal />`
+
+## Related pages
+
+- [Customer groups](/modules/customer-groups) for announcement targeting
+- [Storefront](/concepts/storefront)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

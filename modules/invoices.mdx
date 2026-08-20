@@ -1,0 +1,43 @@
+---
+title: "Invoices"
+description: "Invoice lifecycle for 86d: draft, sent, paid, partial, overdue. Issue invoices to B2B Customers with payment terms and credit notes."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Invoices [Module](/concepts/modules) manages an invoice lifecycle separate from [Order](/concepts/commerce-model) receipts. Use it for B2B selling: extended payment terms (Net 30, Net 60), credit notes, partial payments, and an aging report.
+
+**Source:** [`modules/invoices`](https://github.com/86d-app/86d/tree/main/modules/invoices) · **npm:** [`@86d-app/invoices`](https://www.npmjs.com/package/@86d-app/invoices)
+
+## Installation
+
+```sh
+86d module add invoices
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/orders/me/:id/invoice` | Get invoice for an order |
+| `GET` | `/orders/me/:id/invoice/pdf` | Download as PDF |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/invoices` | List with status and aging filters |
+| `POST` | `/admin/invoices/:id/send` | Email the invoice |
+| `POST` | `/admin/invoices/:id/credit-note` | Issue a credit note |
+
+## Related pages
+
+- [Orders](/modules/orders)
+- [Quotes](/modules/quotes)
+- [Customers](/modules/customers)
+- [How commerce records relate](/concepts/commerce-model)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

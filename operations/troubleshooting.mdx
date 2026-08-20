@@ -1,0 +1,156 @@
+---
+title: "Troubleshooting"
+description: "The failures that come up most: database errors, code generation, missing components, rejected webhooks, and what each one is actually telling you."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+<Tip>
+  Run `86d doctor` before anything else. It checks Node, Bun, dependencies, the active [Template](/concepts/templates), [Module](/concepts/modules) integrity, environment variables, database connectivity, generation scripts, and TypeScript config, and prints a `Fix:` line for every failure.
+
+  ```bash
+  86d doctor
+  ```
+</Tip>
+
+If `doctor` is green and something is still wrong, the symptoms below are the ones that come up most.
+
+## DATABASE_URL is not set
+
+The [Store Runtime](/concepts/architecture) boots without a database, and then every endpoint that needs data fails. That combination makes the symptom look unrelated to the cause. Set both in `.env`:
+
+```bash .env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/86d
+DATABASE_URL_UNPOOLED=postgresql://postgres:postgres@localhost:5432/86d
+```
+
+On Neon, `DATABASE_URL` is the pooled string and `DATABASE_URL_UNPOOLED` is the direct one. Under Docker Compose, both point at `postgres:5432`.
+
+## Database is not reachable
+
+The TCP check in `86d dev` and `86d init` failed. Either the database is down or the host in `DATABASE_URL` is wrong.
+
+- **Local Postgres**: `pg_isready -h localhost -p 5432`
+- **Docker Compose**: `docker compose ps postgres` should say healthy
+- **Neon or Railway**: check the project is awake and the connection string has not rotated
+
+## A Module component renders as text
+
+`<ProductGrid />` shows up as literal text, or the page errors with "component not found".
+
+Regenerate and restart:
+
+```bash
+86d generate
+bun run dev
+```
+
+If that does not fix it, the Module is probably not actually enabled. Check that it is named explicitly in your active Template's `config.json`. A `"*"` wildcard, or a missing `modules` field, discovers Modules without admitting Experimental ones, and every first-party Module is Experimental. You also need `advanced.version: 1` with `allowExperimentalModules: true`.
+
+## Module is enabled in Template but not found
+
+`86d doctor` says this when `config.json` names a Module with no folder under `modules/`. Either install it:
+
+```bash
+86d module add X
+```
+
+or take it out of `config.json` and run `86d generate`.
+
+## Code generation fails
+
+`86d generate` almost always fails for one of three reasons:
+
+- a Module whose `src/index.ts` has no default factory export
+- a Module whose `package.json` `name` does not match its directory. First-party Modules must be `@86d-app/<dir>`
+- a circular `requires` between two Modules
+
+The generator names the Module at fault. Read its output before changing anything.
+
+## Stripe webhooks return 401
+
+Stripe rejects with `401` when the signing secret is wrong, when the signed body changed in transit, or when the timestamp is outside the replay window. In that order of likelihood:
+
+- `STRIPE_WEBHOOK_SECRET` has to be the secret for the endpoint that is receiving the event, on the deployment that is receiving it. Test and live secrets differ, and so do secrets per endpoint.
+- Check that no reverse proxy is rewriting the body. The handler reads the raw bytes before any JSON parsing, and reformatting the JSON invalidates the signature.
+- Events older than 5 minutes are rejected as replays. Resend from the Stripe CLI to get a current signature.
+
+PayPal, Square, and Braintree verify differently and none of them share Stripe's timestamp rule. See [Set up a payment provider](/guides/payment-integrations).
+
+## Could not find active Template config.json
+
+The CLI works out which Template is active from the `template/*` path alias in `apps/store/tsconfig.json`. Hand-edit that alias into something other than `../../templates/<name>/` and the CLI stops being able to find anything.
+
+Fix it by re-activating:
+
+```bash
+86d template activate brisa
+```
+
+That rewrites the alias to a working value.
+
+## Production rejects BETTER_AUTH_SECRET
+
+Production refuses to start when the secret is missing, under 32 characters, a known default, or too predictable to pass the entropy check. Generate a real one:
+
+```bash
+openssl rand -base64 32
+```
+
+Paste the output into the root `.env` and restart. `86d init` does this for you on first run.
+
+## 86d.app sign-in callbacks fail
+
+Single sign-on only turns on when both OAuth client values are set. Then, in order:
+
+- `BETTER_AUTH_URL` has to be the Store's public URL.
+- `86D_API_URL` has to reach a [Control Plane](/concepts/architecture) serving valid OpenID discovery metadata.
+- `86D_ADMIN_OAUTH_CLIENT_ID` and `86D_ADMIN_OAUTH_CLIENT_SECRET` have to belong to the same OAuth client.
+- The returned profile needs the `admin` role or the `store:admin` scope.
+- `86D_WORKLOAD_CREDENTIAL` is not a substitute. It authenticates a machine, and no machine credential can authenticate a person.
+- Do not debug the Google, X, Slack, Shopify, Apple, or Facebook variables. The auth package does not read them, so nothing you set there has any effect.
+
+See [Authentication](/configuration/authentication) and [managed identity](/concepts/architecture#managed-identity).
+
+## Uploads fail in production
+
+- `local` storage on a serverless host does not persist. Files written to disk are gone on the next request. Switch `STORAGE_CLIENT` to `vercel` with a Blob store attached, or to `s3`.
+- With MinIO inside Docker, set `STORAGE_PUBLIC_URL_MODE=proxy`. Otherwise upload URLs point at a container hostname a browser cannot resolve.
+
+See [Configure storage](/configuration/storage).
+
+## TypeScript errors after an upgrade
+
+Clean install first:
+
+```bash
+bun install
+86d generate
+bun run typecheck
+```
+
+If it still complains about generated files, delete them and regenerate:
+
+```bash
+rm -rf apps/store/lib/generated
+86d generate
+```
+
+## Still stuck
+
+1. Run `86d doctor` and copy the whole output.
+2. Copy the error verbatim, the command that produced it, and the page or endpoint involved.
+3. Open an issue at [github.com/86d-app/86d/issues](https://github.com/86d-app/86d/issues).
+
+Reports that come in more than once get added to this page.
+
+## Related pages
+
+- [Authentication](/configuration/authentication)
+- [Configure storage](/configuration/storage)
+- [Set up a payment provider](/guides/payment-integrations)
+- [Test the Store Runtime](/operations/testing)
+- [Secure a Store Runtime](/operations/security)
+- [CLI overview](/cli/overview)

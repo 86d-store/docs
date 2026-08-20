@@ -1,0 +1,117 @@
+---
+title: "86d Cloud plans"
+description: "What 86d Cloud will cost: the trial, Launch, Premium, Enterprise, what is metered on top, and what happens if you stop paying."
+sidebarTitle: "86d Cloud plans"
+---
+
+<Warning>
+  **In development.** This is the planned offer, not an active one. Signing up today does not start a trial or create a paid entitlement. Funding, entitlement assignment, billing transitions, and lifecycle enforcement are not finished end to end.
+</Warning>
+
+Self-hosting 86d.store is free and always will be. [86d Cloud](/resources/glossary#86d-cloud) is for when you would rather not be the person who gets paged.
+
+The bill has two parts, and 86d shows both rather than blending them: a flat management fee for operating the service, and metered usage passed through at what it costs. Nothing hides inside an "at cost" line, because the management fee is named right next to it.
+
+## The trial
+
+You do not need a [Billing profile](/resources/glossary#billing-profile) to sign up, create a [Business](/resources/glossary#business), add [Members](/resources/glossary#member), or create a Store record. Those are workspace access, not billing.
+
+The trial attaches when your [Launch reservation](/resources/glossary#launch-reservation) completes its first successful provision. Creating a Store record starts nothing.
+
+| Term | Planned |
+| --- | --- |
+| Duration | 30 days |
+| [Promotional Credit](/resources/glossary#promotional-credit) | $5 of eligible managed usage |
+| Management fee | $0 for the 30 days |
+| Payment method | Not required to start |
+| Eligibility | One verified owner holds one Launch reservation, reassignable until the first successful Launch provision |
+
+The $5 covers eligible Cloud infrastructure, managed email, and managed AI. It cannot become cash, cannot pay for Shopper payments, and cannot create a second trial. Unused credit expires at the original deadline.
+
+Adding money during the trial does not end it early. If credit and [Purchased Funds](/resources/glossary#purchased-funds) together cannot cover a finalized charge, the Store is suspended, and funding it restores it without moving the deadline.
+
+At day 30 a funded Store moves to paid Launch and an unfunded one is suspended. A suspension nobody resolves leads to destruction 30 days later, and destruction does not generate a new trial or new credit.
+
+## The plans
+
+| Plan | Management price | What you get |
+| --- | ---: | --- |
+| **Launch** | $1 per Active Store per month, for 12 consecutive months | The complete standard Cloud product |
+| **Premium** | $20 per Active Store per month | The complete standard Cloud product |
+| **Enterprise** | Negotiated | The standard product plus negotiated scale, support, SLA, security, networking, or operations |
+
+Launch and Premium are the same product. Launch is not a crippled tier: role-based access control, branded [Templates](/concepts/templates), and every core capability are in both. There is no per-seat charge.
+
+Infrastructure and metered services are billed separately from the management price, and so is any payment fee. Each has its own basis and its own ledger entry.
+
+## What is metered on top
+
+| Item | Price |
+| --- | --- |
+| Infrastructure: compute, memory, storage, network, database, builds | At provider cost, attributed to your Store |
+| Managed email | $1 per 1,000 outbound recipients. Each `To`, `CC`, and `BCC` counts |
+| Managed AI | A versioned rate that names the upstream cost and 86d's charge separately |
+
+A send the provider accepted still counts if it bounces later. A failure before acceptance does not count. Retrying an idempotent send does not duplicate the charge.
+
+You can also bring your own AI provider key and pay that provider directly instead.
+
+Taking payments through [86d Payments](/guides/payment-integrations) carries its own all-in fee, settled with your Shopper payments rather than appearing on the Cloud bill. Using it does not waive the management fee.
+
+## How Launch eligibility works
+
+One verified owner, one Launch reservation. It is assigned to your first Store and stays movable until a Launch provision consumes it. None of these mint another one:
+
+- creating another Business or Store
+- accepting an invitation to someone else's Business
+- deleting or replacing the original Store
+- destroying an unfunded free deployment
+
+A provisioning failure that was 86d's fault does not consume it.
+
+The 12-month clock starts when that Store first goes from trialing to paid Active. It runs continuously through a pause or a suspension, and it cannot move to another Store. 86d Console shows the exact date and time you will move to Premium, in your own timezone, before you are ever charged for it and on every statement afterward.
+
+## Active, and what changes it
+
+A Store is **Active** when its [Managed Deployment](/resources/glossary#managed-deployment) is available for use and is not paused, suspended, or destroyed. Traffic, sales volume, password protection, and the host idling a container to zero do not change that.
+
+**Pause** is something you ask for. Commerce goes unavailable on the same domain, your data stays, management renewals stop, storage keeps metering, and your remaining prepaid days freeze rather than evaporate. Pause on day 7, resume two weeks later, and the period end moves two weeks out.
+
+**Suspension** is what happens when a charge fails. It is a different lifecycle with a different cause and a different way out.
+
+## Money in, money out
+
+[86d Balance](/resources/glossary#86d-balance) belongs to the Business. Each Store draws from a [Store allocation](/resources/glossary#store-allocation) assigned out of it. There is no second wallet, and one Store cannot spend another Store's allocation by accident. A delinquent Store can be suspended without touching a funded Store in the same Business.
+
+Credits with the earliest expiry are spent first. Purchased Funds do not expire. When a Business closes and every obligation has settled, unused Purchased Funds go back to the funding method they came from. Promotional Credit expires under its own terms and is not refundable.
+
+Balance is for 86d services. It is not withdrawable cash, not transferable to another person, and never holds your Shopper proceeds.
+
+## If a payment fails
+
+| Day | What happens |
+| ---: | --- |
+| 0 | You are notified. The failed charge stays pending and metering continues |
+| 0 to 15 | A 15-day grace period, with notices at 15 and 10 days remaining and daily during the last five |
+| 15 | Funding is rechecked. If it is still unresolved, the pending management charge is cancelled and the Store is suspended. Finalized infrastructure and usage charges remain due |
+| 15 to 45 | The Store is retained and export stays available |
+| 45 | Funding is rechecked once more, then the Store is destroyed |
+
+Suspension disables commerce on your existing domain. It does not reassign the domain to anyone. Restoring requires paying every finalized charge and funding a new management month.
+
+At destruction, the deployment and recoverable Store data are removed. What is kept is the expired Store record, its lifecycle dates, the reason, and whatever billing, dispute, compliance, or security records are required. No shadow copy of your Store is retained.
+
+## Deleting a Store yourself
+
+A Store record with no deployment can be deleted immediately. There is nothing to recover because nothing was created.
+
+A provisioned Store goes through the confirmed destruction Workflow. Finalized charges stay due, prepaid management fee and Promotional Credit are not refunded, and a consumed Launch stays consumed.
+
+## Related pages
+
+- [Public Beta status](/resources/public-beta)
+- [Set up a payment provider](/guides/payment-integrations)
+- [How 86d separates product authority](/concepts/architecture)
+- [What launch evidence means](/operations/launch-evidence)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary#86d-cloud)

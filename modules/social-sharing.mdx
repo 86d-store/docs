@@ -1,0 +1,33 @@
+---
+title: "Social sharing"
+description: "Share buttons for X, Facebook, Pinterest, WhatsApp, email, and copy-link, with share events for attribution."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Social Sharing [Module](/concepts/modules) adds share buttons for X, Facebook, Pinterest, WhatsApp, email, and copy-link. Each share emits a `social.shared` event so you can attribute traffic.
+
+**Source:** [`modules/social-sharing`](https://github.com/86d-app/86d/tree/main/modules/social-sharing) · **npm:** [`@86d-app/social-sharing`](https://www.npmjs.com/package/@86d-app/social-sharing)
+
+## Installation
+
+```sh
+86d module add social-sharing
+```
+
+## Components
+
+Use these components in your MDX [Template](/concepts/templates) files.
+
+- `<ShareButtons url={url} />`
+- `<CopyLinkButton url={url} />`
+
+## Related pages
+
+- [SEO](/modules/seo) for the Open Graph tags that drive share previews
+- [Storefront Analytics](/modules/analytics)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

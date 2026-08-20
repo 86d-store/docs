@@ -1,0 +1,170 @@
+---
+title: "Deployment and hosting"
+description: "Put a Store Runtime on Railway, on Vercel with Neon, or on your own Docker host, and know what to check before you point a domain at it."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+86d.store ships with a `Dockerfile` and a `docker-compose.yml`, and it runs on Railway or Vercel without modification. Pick the tab that matches where you want it. All three paths are you hosting a [Store Runtime](/concepts/architecture) yourself, which means you also own the database, the backups, and the uptime.
+
+A deployment created through [86d.app](/introduction) is a different arrangement: 86d provisions the machines, runs the deployment, and bills you as a [Managed Deployment](/resources/glossary#86d-cloud). See [86d Cloud plans](/resources/cloud-plans).
+
+<Tabs>
+  <Tab title="Docker (self-hosted)">
+    Compose starts PostgreSQL 16, MinIO object storage, and the Store app. Copy the environment template:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Generate an auth secret:
+
+    ```bash
+    openssl rand -base64 32
+    ```
+
+    Put the printed value into `.env`, replacing the placeholder:
+
+    ```bash .env
+    BETTER_AUTH_SECRET=replace_with_generated_value
+    ```
+
+    Then start it:
+
+    ```bash
+    docker compose up
+    ```
+
+    First boot waits for PostgreSQL, runs every migration, seeds demo data with [Store Admin](/concepts/admin) credentials, and starts the Next.js server on port 3000. Four services come up:
+
+    | Service | Default port |
+    | --- | --- |
+    | Store app | 3000 |
+    | PostgreSQL | 5432 |
+    | MinIO API | 9000 |
+    | MinIO Console | 9001 |
+
+    Compose sets `NODE_ENV=production`. In production the runtime rejects a placeholder secret, a known default, anything shorter than 32 characters, and anything with too little entropy, so the app will not start until you paste a real value. Paste the output of `openssl`, not the command itself.
+
+    Uploads go to MinIO by default and are served from your own origin at `/uploads/...`, so the bucket never has to be public.
+
+    Port conflicts are overridable:
+
+    ```bash
+    POSTGRES_PUBLISH_PORT=5433 \
+    STORE_PUBLISH_PORT=3001 \
+    MINIO_API_PUBLISH_PORT=9002 \
+    MINIO_CONSOLE_PUBLISH_PORT=9003 \
+    docker compose up
+    ```
+  </Tab>
+
+  <Tab title="Railway">
+    Railway runs the Store as a container and gives you managed PostgreSQL. Use the **Deploy on Railway** button on the [GitHub repository](https://github.com/86d-app/86d).
+
+    Two variables are required:
+
+    | Variable | Where it comes from |
+    | --- | --- |
+    | `DATABASE_URL` | Filled in by Railway when you attach a PostgreSQL service |
+    | `BETTER_AUTH_SECRET` | You generate it with `openssl rand -base64 32` |
+
+    Set `BETTER_AUTH_SECRET` under **Variables** before the first deploy, or the container will not boot.
+
+    For uploads, add a Railway object storage bucket and set:
+
+    ```bash
+    STORAGE_CLIENT=s3
+    S3_ENDPOINT=https://railway-bucket-endpoint.example
+    S3_BUCKET=store-assets
+    S3_ACCESS_KEY=your_access_key_here
+    S3_SECRET_KEY=your_secret_key_here
+    S3_VIRTUAL_HOSTED_STYLE=true
+    ```
+
+    <Tip>
+      Railway sets `RAILWAY_PUBLIC_DOMAIN` at runtime, so you can write `APP_URL=https://$RAILWAY_PUBLIC_DOMAIN` instead of hardcoding the hostname.
+    </Tip>
+  </Tab>
+
+  <Tab title="Vercel and Neon">
+    Vercel hosts the Next.js app and Neon supplies PostgreSQL. Use the **Deploy on Vercel** button on the [GitHub repository](https://github.com/86d-app/86d).
+
+    | Variable | Value |
+    | --- | --- |
+    | `DATABASE_URL` | Neon pooled connection string |
+    | `DATABASE_URL_UNPOOLED` | Neon direct connection string, used for migrations |
+    | `BETTER_AUTH_SECRET` | `openssl rand -base64 32` |
+    | `STORAGE_CLIENT` | `vercel` |
+    | `BLOB_READ_WRITE_TOKEN` | From your Vercel Blob store |
+    | `VERCEL_BLOB_STORAGE_HOSTNAME` | Your Blob store's public hostname |
+
+    <Info>
+      Neon hands you two connection strings. The pooled one is for the app and the direct one is for migrations. Using the pooled string for migrations fails in ways that are hard to read, so set both.
+    </Info>
+  </Tab>
+</Tabs>
+
+## Variables you will actually set
+
+The full list is in [Environment variables](/configuration/environment-variables) and in `.env.example`. These are the ones every deployment needs:
+
+| Variable | Required | What it does |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `DATABASE_URL_UNPOOLED` | Yes | Direct connection string, used for migrations |
+| `BETTER_AUTH_SECRET` | Yes | Signs sessions. Generate with `openssl rand -base64 32` |
+| `STORE_ID` | Recommended | Data isolation boundary for a standalone Store. Defaults to a fixed development UUID if unset |
+| `STORAGE_CLIENT` | No | `local`, `vercel`, or `s3`. Defaults to `local` |
+| `APP_URL` | No | Your Store's public URL, for example `https://example.com` |
+
+### Values 86d Cloud supplies
+
+A [Managed Deployment](/resources/glossary#86d-cloud) receives `86D_STORE_ID`, `86D_API_URL`, and `86D_WORKLOAD_CREDENTIAL` together. The runtime trades the opaque credential at the [Control Plane](/concepts/architecture) for short-lived, Store-scoped access before it fetches any managed configuration. The credential can be rotated and revoked, it carries no provider secrets, and it cannot authenticate a person.
+
+Do not set these on a Store you host yourself. Standalone Stores use `STORE_ID` for local data isolation and read their configuration from the active [Template](/concepts/templates).
+
+Human sign-in to a managed Store Admin uses a separate pair, `86D_ADMIN_OAUTH_CLIENT_ID` and `86D_ADMIN_OAUTH_CLIENT_SECRET`. Keep every machine credential and client secret out of browser code, logs, agent output, Templates, and Store Admin settings. See [managed identity](/concepts/architecture#managed-identity).
+
+## Where uploaded files go
+
+`STORAGE_CLIENT` decides where Product images, PDFs, and other uploads live.
+
+| Value | Use it for | Also set |
+| --- | --- | --- |
+| `local` | Local development, self-hosted Docker | `STORAGE_LOCAL_DIR` (default `./uploads`) |
+| `vercel` | Vercel deployments | `BLOB_READ_WRITE_TOKEN`, `VERCEL_BLOB_STORAGE_HOSTNAME` |
+| `s3` | MinIO, AWS S3, Cloudflare R2, Railway buckets | `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` |
+
+<Warning>
+  `local` writes to the container filesystem. On Vercel and other stateless hosts every deploy wipes it, which means your Product images disappear. Use `vercel` or `s3` there.
+</Warning>
+
+[Configure storage](/configuration/storage) has the per-provider detail.
+
+## Before you point a domain at it
+
+Work through this list after the first deploy and before anyone can reach the [Storefront](/concepts/storefront):
+
+- Replace the seeded Store Admin password
+- Confirm `BETTER_AUTH_SECRET` is a random value, not the placeholder
+- Set `APP_URL` to the public domain
+- Configure one sandbox payment provider and its webhook verification values, per [Payment integrations](/guides/payment-integrations)
+- Upload a Product image in Store Admin to prove storage works
+- Run [`86d doctor`](/cli/commands#86d-doctor) and clear every failure
+
+<Warning>
+  Finishing that list does not make this release safe for real money. No [Checkout](/concepts/commerce-model), [Payment](/modules/payments), tax, [Shipping](/modules/shipping), [Inventory](/modules/inventory), or webhook path has recorded evidence yet. Read [Versioning and maturity](/resources/versioning) before you accept an Order from a stranger.
+</Warning>
+
+## Related pages
+
+- [Environment variables](/configuration/environment-variables)
+- [Configure storage](/configuration/storage)
+- [Authentication](/configuration/authentication)
+- [Secure a Store Runtime](/operations/security)
+- [Test the Store Runtime](/operations/testing)
+- [Troubleshooting](/operations/troubleshooting)
+- [Glossary](/resources/glossary)

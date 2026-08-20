@@ -1,0 +1,113 @@
+---
+title: "Versioning and maturity"
+description: "What Stable, Beta, Experimental, and Deprecated actually mean here, and what none of them can be inferred from."
+---
+
+<Warning>
+  **In development.** All 101 first-party entries in `registry.json` publish as Experimental, and every `maturityEvidence` array is empty. Nothing has earned Stable.
+</Warning>
+
+Version numbers lie about readiness. A package at `2.4.1` might be battle-tested or might be three people's weekend. So 86d does not attach readiness to a version number. It attaches it to evidence, per capability, and publishes what that evidence is.
+
+If you are an agent: treat Stable as a claim backed by a record, not as something to infer from a package existing, a version incrementing, or a demo working.
+
+## How versions work
+
+Every published package in the 86d.store repository shares one version. The [Store Runtime](/concepts/architecture), the CLI, shared packages, and all first-party [Modules](/concepts/modules) move together.
+
+- A patch fixes behavior without intentionally changing a public contract.
+- A pre-1.0 minor may include a breaking change, documented in the migration notes.
+- A Changeset records a new Module or a breaking public API change.
+
+The current version starts with `0.0`. That means active development. It does not mean everything is broken, and it does not mean anything is ready.
+
+## The four maturity levels
+
+Maturity belongs to one versioned [Feature](/resources/glossary#feature) or [Integration](/concepts/connections). Never to the repository.
+
+| Level | How it enables | What it means |
+| --- | --- | --- |
+| **Stable** | Ordinary configuration | Contract, failure behavior, tests, documentation, and required production evidence all agree |
+| **Beta** | One warning the first time | Usable and bounded, with evidence or compatibility work still outstanding |
+| **Experimental** | Explicit advanced opt-in | Design or operating risk may change substantially |
+| **Deprecated** | Cannot be newly enabled | A supported path off it exists, and removal is planned |
+
+## Things that do not prove Stable
+
+Each of these gets mistaken for readiness, and none of them is:
+
+- the Module exists in `modules/` or on npm
+- the registry has an integrity hash for it
+- [Store Admin](/concepts/admin) renders a configuration page for it
+- a provider answered a sandbox request
+- unit tests cover the happy path
+- nobody has changed it in a while
+
+A provider-backed Integration additionally needs verified event authentication, idempotent retry behavior, explicit [Connection](/concepts/connections) routing, real failure handling, and the production evidence for that capability. See [What launch evidence means](/operations/launch-evidence).
+
+## What the registry publishes
+
+Each first-party entry records:
+
+- its maturity, and whatever evidence backs it
+- compatible Store Runtime and Module contract versions
+- the pinned source commit
+- hashes of the package manifest and the complete Module subtree
+- declared capabilities and durable events
+
+An entry with no maturity metadata is treated as Experimental. An integrity hash proves the content is what it says it is. It proves nothing about whether the content is any good.
+
+## How maturity gates admission
+
+The resolver applies maturity before any code generation happens:
+
+- An Experimental Module has to be named in the `modules` array, with `advanced.version` set to `1` and `allowExperimentalModules` set to `true`.
+- An omitted `modules` field, or `"*"`, discovers Modules and admits no Experimental ones.
+- A Deprecated Module cannot be newly enabled.
+- A Stable Module, once any exists, enables through ordinary configuration.
+
+The advanced flag cannot rescue a wildcard. See [turning on an Experimental Module](/configuration/store-config#turning-on-an-experimental-module).
+
+**Managed admission is not maturity promotion.** 86d Console admits a curated default Module set at provision without upgrading those Modules past Experimental. Registry maturity still governs what evidence each capability claims.
+
+## Deprecation
+
+A supported transition goes in this order:
+
+1. Publish the replacement and the migration notes.
+2. Mark the old surface Deprecated in types, registry metadata, and these docs.
+3. Stop new enablement by default.
+4. Remove it, in a release allowed to carry the break.
+
+A security defect can force a faster path. When that happens the release notes say what the risk is and what you have to do.
+
+## What a breaking release tells you
+
+Migration notes for a breaking release identify:
+
+- database migrations
+- renamed or removed environment variables
+- changed Template or Module options
+- changed endpoints, types, or [Commands](/concepts/agentic-design)
+- credentials that need rotating, or providers that need reconfiguring
+- what cannot be rolled back
+
+Read the [changelog](/resources/changelog) before updating. Run the health checks after installing and before deploying.
+
+## Using this in production today
+
+Do not run your primary revenue on 86d yet. That is not modesty; no capability has production evidence, and several money paths deliberately fail closed rather than guess.
+
+If you are evaluating, evaluate the complete path you intend to use, including every provider it touches and every way it can fail. Use sandboxes. Keep a way back.
+
+[Public Beta status](/resources/public-beta) covers the difference between open access, capability maturity, and a marketed launch.
+
+## Related pages
+
+- [Changelog](/resources/changelog)
+- [Module catalog](/modules/overview)
+- [How Connections route provider work](/concepts/connections)
+- [How commerce records relate](/concepts/commerce-model)
+- [Public Beta status](/resources/public-beta)
+- [What launch evidence means](/operations/launch-evidence)
+- [Glossary](/resources/glossary#capability-maturity)

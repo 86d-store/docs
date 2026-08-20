@@ -1,0 +1,103 @@
+---
+title: "Common questions"
+description: "Short answers about licensing, cost, hosting, maturity, Modules, payments, and what agents can and cannot do."
+sidebarTitle: "FAQ"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+## Can I run a real store on this?
+
+Not yet, and not as a general claim about the product. Every capability earns [Stable](/resources/glossary#capability-maturity) on its own, through its contract, its failure behavior, its tests, its documentation, and production evidence. None has.
+
+See [Public Beta status](/resources/public-beta) and [Versioning and maturity](/resources/versioning).
+
+## What is the difference between 86d.store and 86d.app?
+
+**86d.store** is the open-source [Store Runtime](/concepts/architecture): a [Storefront](/concepts/storefront), a [Store Admin](/concepts/admin), your Features and Integrations, and one Store's commerce data. You run it.
+
+**86d.app** is the optional managed product that runs it for you, plus billing, provider onboarding, and agent access. [86d Console](/resources/glossary#86d-console) is the interface you sign in to. The [Control Plane](/concepts/architecture) is the authority behind it.
+
+See [What is 86d?](/introduction).
+
+## What is the license?
+
+86d.store, including all 101 first-party [Modules](/concepts/modules), is [MIT-licensed](https://github.com/86d-app/86d/blob/main/LICENSE). Use it, change it, host it, sell what it sells, fork it. 86d.app is a separate proprietary service you can ignore entirely.
+
+## What does it cost?
+
+Self-hosting costs you nothing in license fees. You pay for your own server, database, and providers, the same as any software you run.
+
+[86d Cloud](/resources/cloud-plans) is the managed option: a planned 30-day trial with $5 credit, then Launch at $1 per Active Store per month for twelve months, or Premium at $20 per Active Store per month, plus metered infrastructure and services. Enterprise is negotiated. That offer is not activatable yet.
+
+## Can I run it without an 86d account?
+
+Yes. A standalone Store Runtime reads local configuration, uses infrastructure and credentials you control, and never calls 86d. No [86d Account](/resources/glossary#86d-account) is involved.
+
+## Where can I host it?
+
+Anywhere that runs a Next.js application and PostgreSQL. These docs cover Docker Compose, Railway, and Vercel with Neon.
+
+See [Deployment and hosting](/deployment).
+
+## Can two Stores share a deployment or a database?
+
+No, and this is a hard boundary rather than a recommendation. One Store Runtime, one commerce database, per Store. That is what keeps your data portable and one Store's problem from becoming another's.
+
+See [Store isolation](/concepts/architecture#one-store-one-database).
+
+## Feature, Integration, Module, Connection: what is the difference?
+
+- A **[Feature](/resources/glossary#feature)** is something your Store does.
+- An **[Integration](/concepts/connections)** is something your Store does with an outside company.
+- A **[Module](/concepts/modules)** is the package that delivers either one.
+- A **[Connection](/concepts/connections)** is the specific provider account an Integration is configured to use.
+
+## Does everything in the catalog work?
+
+No. The catalog is a list of packages, not a list of promises. Every entry is currently Experimental with no recorded evidence. Read the Module's page, its source, its tests, and how it behaves when a provider is down before you enable it.
+
+See the [Module catalog](/modules/overview).
+
+## Can I use something other than PostgreSQL?
+
+Not with a supported adapter today. The Store Runtime uses Prisma and PostgreSQL.
+
+## How do payments work right now?
+
+You bring your own Stripe, PayPal, Square, or Braintree account, and the [Module](/concepts/modules) for it connects that account to your Store. 86d charges you nothing per Checkout on this model, and it is sandbox-only for now.
+
+[86d Payments](/resources/glossary#86d-payments), where 86d handles onboarding and settlement at one all-in rate, is a separate thing that does not exist yet.
+
+See [Set up a payment provider](/guides/payment-integrations).
+
+## Can an agent run my Store?
+
+Not yet. The [Docs MCP server](/resources/mcp) is read-only: it searches and reads these pages and cannot see or change a Store. Authorized product operations through Remote OAuth MCP are still being built.
+
+See [How agents work with 86d](/concepts/agentic-design).
+
+## How do I update?
+
+Read the release and migration notes first, then update dependencies, run migrations, regenerate, and run the health checks before you deploy anything.
+
+See [Versioning and maturity](/resources/versioning) and the [changelog](/resources/changelog).
+
+## Where do I report something broken?
+
+Ordinary bugs go to [GitHub Issues](https://github.com/86d-app/86d/issues). Anything security-relevant goes privately through [GitHub Security Advisories](https://github.com/86d-app/86d/security/advisories), not a public issue.
+
+## How do I contribute?
+
+[Contributing](/resources/contributing) covers the workflow, the health gates, and the bar for a pull request.
+
+## Related pages
+
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)
+- [Deployment and hosting](/deployment)
+- [How 86d separates product authority](/concepts/architecture)
+- [What is 86d?](/introduction)
+- [How agents work with 86d](/concepts/agentic-design)

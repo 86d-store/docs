@@ -1,0 +1,197 @@
+---
+title: "Newsletters"
+description: "Manage an email subscriber list with subscribe, unsubscribe, and resubscribe flows, subscriber tagging, and idempotent double-opt-in."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Newsletter [Module](/concepts/modules) manages your email subscriber database: the full subscribe, unsubscribe, and resubscribe lifecycle, with tagging and source attribution. It does not send emails itself. Connect an email provider such as [Resend](https://resend.com) by listening to the `newsletter.subscribed` event and using `RESEND_API_KEY` in your [Integration](/concepts/connections) code.
+
+**Source:** [`modules/newsletter`](https://github.com/86d-app/86d/tree/main/modules/newsletter) · **npm:** [`@86d-app/newsletter`](https://www.npmjs.com/package/@86d-app/newsletter)
+
+## Installation
+
+```sh
+npm install @86d-app/newsletter
+```
+
+Add the Module to your store configuration:
+
+```ts
+import newsletter from "@86d-app/newsletter";
+import { createModuleClient } from "@86d-app/core";
+
+const client = createModuleClient([
+  newsletter({
+    allowResubscribe: "true",
+  }),
+]);
+```
+
+## Configuration
+
+<ParamField path="allowResubscribe" default='"true"' type="string">
+  When `"true"`, previously unsubscribed (or bounced) addresses can resubscribe. Set to `"false"` to prevent resubscription; calls to `POST /newsletter/subscribe` for an unsubscribed address return the subscriber unchanged.
+</ParamField>
+
+## Subscriber lifecycle
+
+```text
+subscribe()      → active
+unsubscribe()    → unsubscribed  (sets unsubscribedAt timestamp)
+resubscribe()    → active        (clears unsubscribedAt, preserves original subscribedAt)
+```
+
+`subscribe()` is **idempotent**: calling it for an already-active address returns the existing subscriber unchanged. For an unsubscribed or bounced address, it reactivates the record while preserving the original `subscribedAt` date.
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/newsletter/subscribe` | Subscribe an email address |
+| `POST` | `/newsletter/unsubscribe` | Unsubscribe an email address |
+
+### Subscribe (`POST /newsletter/subscribe`)
+
+```json
+{
+  "email": "subscriber_contact_here",
+  "source": "footer-form",
+  "tags": ["launch-announcement"]
+}
+```
+
+All fields except `email` are optional. Use `source` to track where signups originate, for example `"footer-form"`, `"checkout-upsell"`, or `"product-page"`. Tags are stored as a JSON array; use them to filter subscribers in [Store Admin](/concepts/admin).
+
+### Unsubscribe (`POST /newsletter/unsubscribe`)
+
+```json
+{
+  "email": "subscriber_contact_here"
+}
+```
+
+The endpoint sets the subscriber's status to `unsubscribed` and records an `unsubscribedAt` timestamp.
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/newsletter` | List subscribers (filter: `status`, `tag`; paginate: `page`, `limit`) |
+| `DELETE` | `/admin/newsletter/:id/delete` | Permanently delete a subscriber |
+
+### Query parameters for `GET /admin/newsletter`
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `status` | `string` |  | Filter by `active`, `unsubscribed`, or `bounced` |
+| `tag` | `string` |  | Filter by a specific tag |
+| `page` | `number` | `1` | Page number (1-indexed) |
+| `limit` | `number` | `50` | Results per page (max 100) |
+
+## Events
+
+| Event | Trigger | Payload |
+| --- | --- | --- |
+| `newsletter.subscribed` | New subscriber added or reactivated | `subscriberId`, `email`, `source` |
+| `newsletter.unsubscribed` | Subscriber opts out | `subscriberId`, `email` |
+| `newsletter.campaign.sent` | Campaign sent to subscriber list | `campaignId`, `subject`, `recipientCount` |
+
+Listen to `newsletter.subscribed` to forward new signups to an external email provider:
+
+```ts
+module.on("newsletter.subscribed", async ({ email, source }) => {
+  await resend.contacts.create({
+    email,
+    audienceId: process.env.RESEND_AUDIENCE_ID,
+  });
+});
+```
+
+## Store components
+
+Use these components in your MDX [Template](/concepts/templates) files.
+
+### `NewsletterForm`
+
+A full email subscription form with optional name fields and customizable copy.
+
+<ParamField path="showName" default="false" type="boolean">
+  Show first and last name input fields alongside the email field.
+</ParamField>
+
+<ParamField path="source" type="string">
+  Attribution source recorded on the subscriber (for example `"footer-form"`).
+</ParamField>
+
+<ParamField path="title" default='"Subscribe to our newsletter"' type="string">
+  Form heading text.
+</ParamField>
+
+<ParamField path="description" default='"Get the latest updates..."' type="string">
+  Descriptive text displayed below the heading.
+</ParamField>
+
+<ParamField path="compact" default="false" type="boolean">
+  Render the form in a compact inline layout.
+</ParamField>
+
+```mdx
+<NewsletterForm
+  showName={true}
+  source="footer"
+  title="Stay in the loop"
+  compact={true}
+/>
+```
+
+---
+
+### `NewsletterInline`
+
+Inline newsletter signup intended for embedding in blog posts or product pages. Accepts the same props as `NewsletterForm`. Use `compact={true}` for inline placement.
+
+```mdx
+<NewsletterInline compact={true} source="product-page" />
+```
+
+---
+
+### `NewsletterUnsubscribe`
+
+A self-service unsubscribe form for use on your unsubscribe page, typically linked from email footers.
+
+```mdx
+<NewsletterUnsubscribe />
+```
+
+## Types
+
+```ts
+type SubscriberStatus = "active" | "unsubscribed" | "bounced";
+
+interface Subscriber {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  status: SubscriberStatus;
+  source?: string;
+  tags: string[];
+  metadata: Record<string, unknown>;
+  subscribedAt: Date;
+  unsubscribedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+## Related pages
+
+- [Notifications](/modules/notifications)
+- [Customers](/modules/customers)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

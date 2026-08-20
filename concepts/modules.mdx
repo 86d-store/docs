@@ -1,0 +1,136 @@
+---
+title: "How Modules package Store capabilities"
+description: "The difference between a Feature, an Integration, and a Module, and how to turn one on without breaking your Store."
+sidebarTitle: "Modules"
+---
+
+<Warning>
+  **In development.** Every Module in the catalog currently publishes as Experimental with no recorded evidence. See [maturity levels](/resources/versioning) before you enable one on a Store that matters.
+</Warning>
+
+Your Store does not come with everything switched on. You pick what it does by enabling [Modules](/resources/glossary#module), and a Module you never enable costs you nothing: no routes, no tables, no admin pages, no attack surface.
+
+If you are deciding what to turn on, start at the [Module catalog](/modules/overview). If you are writing one, start at [Build a custom Module](/guides/building-a-module).
+
+## Three words, three layers
+
+| Term | What it means |
+| --- | --- |
+| **Feature** | Something your Store does. Products, Loyalty, Discounts |
+| **Integration** | Something your Store does with an outside company. Stripe, EasyPost, Meta |
+| **Module** | The package that delivers either one. The word you need when installing or upgrading |
+| **[Connection](/concepts/connections)** | The configured provider account an Integration uses |
+
+A merchant thinks in Features and Integrations. A Module is how those arrive.
+
+## What a Module can add
+
+Enabling one Module can give your Store:
+
+- public Store endpoints under `/api/...`
+- authenticated [Store Admin](/concepts/admin) endpoints under `/api/admin/...`
+- [Storefront](/concepts/storefront) React components you can drop into MDX
+- Store Admin pages, placed in the sidebar automatically
+- database schema and controller behavior
+- declared requirements on, and exports to, other Modules
+
+First-party Modules live under the `@86d-app` npm scope, with source in `modules/` in the [public repository](https://github.com/86d-app/86d).
+
+<Warning>
+  A package being in the repository, the registry, or npm says nothing about whether it works. Read its reference page, its source, its tests, and how it behaves when a provider is down before you enable it.
+</Warning>
+
+## Turn one on
+
+Your active [Template](/concepts/templates)'s `config.json` holds the list:
+
+```json templates/brisa/config.json
+{
+  "modules": [
+    "@86d-app/products",
+    "@86d-app/collections",
+    "@86d-app/blog"
+  ],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+<Steps>
+  <Step title="Read the page first">
+    Open the Module's page in the [catalog](/modules/overview). Check what it depends on and what it does when something fails.
+  </Step>
+  <Step title="Add the package name">
+    Put the exact npm package name in the active Template's `modules` array.
+  </Step>
+  <Step title="Regenerate">
+    ```bash
+    86d generate
+    ```
+
+    The generator installs anything missing and writes the static Module and component imports.
+  </Step>
+  <Step title="Prove it works">
+    Run the affected tests, open the Storefront and Store Admin pages it added, and check its failure states, not only its happy path.
+  </Step>
+</Steps>
+
+Every first-party registry entry currently publishes as Experimental, so the resolver needs both an explicit package list and `advanced.version: 1` with `allowExperimentalModules: true`. Writing `"modules": "*"`, or leaving `modules` out entirely, discovers entries but admits no Experimental code even with the flag set.
+
+## Use a Module's components
+
+Enabled Storefront components are registered for MDX, so they need no import:
+
+```mdx
+<FeaturedProducts limit={4} />
+
+<CollectionGrid featured />
+```
+
+## Declared binding and storage
+
+Every edge between Modules is declared when the Store is provisioned. Nothing discovers another Module at request time. That graph is the audit surface: an unsatisfied edge fails the build instead of degrading silently.
+
+**Current storage:** each Module's entities live as JSON documents in a shared `ModuleData` table. Production reads and writes go through [`ModuleDataService`](/resources/glossary#moduledataservice).
+
+**In development:** Modules declare Zod shapes with a column registry (`col`). The Store Runtime compiles those declarations into Postgres DDL. On disposable databases only, compiled tables can hold a **shadow copy** of JSON data for backfill reports and dual-read tests. Backfill defects are operator reports — they do not surface as merchant errors. Do not apply compiled DDL to a Store with merchant data.
+
+Storage tiers (chosen per table, not per Module):
+
+| Tier | What the Store creates |
+| --- | --- |
+| **None** | Nothing. Common for Integrations such as Stripe |
+| **Config** | Rows in `core.module_config` |
+| **Extension** | Typed columns on a core table |
+| **Own** | A `mod_<moduleId>` schema and its tables |
+
+## Isolation (target)
+
+Database isolation is the enforceable boundary: each Module runs under its own Postgres role with access to its schema and column-projected views published to it. An unpublished column is unreachable, not filtered.
+
+In-process JavaScript isolation is not claimed. Modules share one event loop. Cross-Module decisions use typed capabilities; cross-Module reads use published views, not direct table access.
+
+Today the runtime still uses legacy `requires` and `exports` metadata plus an in-memory event path while the contract migrates. See [cross-Module communication](/concepts/architecture#how-modules-talk-to-each-other).
+
+## External Modules
+
+The CLI resolves compatible npm and GitHub specifiers:
+
+```bash
+86d module add npm:package_name_here
+86d module add github:owner_name_here/repository_name_here/modules/module_name_here
+```
+
+External code runs inside your Store Runtime with the same access your own code has. Pin a version or a commit, read the whole source, check compatibility, and look at install scripts before enabling it. The first-party registry is a manifest, not a trust service: there is no review process, no ranking, and no badge behind it.
+
+## Related pages
+
+- [Module catalog](/modules/overview)
+- [Add a Module](/guides/adding-modules)
+- [Build a custom Module](/guides/building-a-module)
+- [Templates](/concepts/templates)
+- [CLI command reference](/cli/commands)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

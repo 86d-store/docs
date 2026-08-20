@@ -1,0 +1,46 @@
+---
+title: "Recently viewed"
+description: "Show Shoppers the products they viewed recently in a horizontal carousel, tracked per browser and per Customer."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Recently Viewed [Module](/concepts/modules) records every product detail page a [Shopper](/resources/glossary#shopper) visits and shows those products in a carousel. State is stored per browser for [Guests](/resources/glossary#guest) and merged into the [Customer](/resources/glossary#customer) record on sign-in.
+
+**Source:** [`modules/recently-viewed`](https://github.com/86d-app/86d/tree/main/modules/recently-viewed) · **npm:** [`@86d-app/recently-viewed`](https://www.npmjs.com/package/@86d-app/recently-viewed)
+
+## Installation
+
+```sh
+86d module add recently-viewed
+```
+
+## Configuration
+
+```ts
+recentlyViewed({
+  maxItems: "20",
+  retentionDays: "30",
+});
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/recently-viewed/track` | Record a view |
+| `GET` | `/recently-viewed/me` | Get the current Shopper's list |
+
+## Components
+
+- `<RecentlyViewed />`: horizontal carousel; fetches its own data.
+
+## Related pages
+
+- [Recommendations](/modules/recommendations)
+- [Products](/modules/products)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

@@ -1,0 +1,39 @@
+---
+title: "Square"
+description: "Evaluate the Experimental Square Integration for 86d.store: the Payments API, refunds, and signed webhooks."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** Use sandbox credentials. Keep its event endpoint private until provider verification, retries, and duplicate events pass your tests. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Square [Module](/concepts/modules) implements the current `PaymentProvider` interface from the [Payments Module](/modules/payments) using the Square Payments API. Its [Webhook](/resources/glossary#webhook) uses Square's notification URL and request-body signature scheme.
+
+**Source:** [`modules/square`](https://github.com/86d-app/86d/tree/main/modules/square) · **npm:** [`@86d-app/square`](https://www.npmjs.com/package/@86d-app/square)
+
+## Installation
+
+```sh
+86d module add square payments
+```
+
+## Configuration
+
+Add the Module to `config.json`, then set the `SQUARE_*` environment variables. Do not put the access token in source or `config.json`. See [Environment variables](/configuration/environment-variables).
+
+## Webhook setup
+
+In the [Square Developer dashboard](https://developer.squareup.com/apps), open your application, go to **Webhooks**, and create a subscription for `payment.created` and `payment.updated` pointing at:
+
+```text
+POST https://your-store.com/api/square/webhook
+```
+
+## Related pages
+
+- [Payments](/modules/payments)
+- [Set up a payment provider](/guides/payment-integrations)
+- [How Connections route provider work](/concepts/connections)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

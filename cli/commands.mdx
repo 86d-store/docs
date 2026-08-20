@@ -1,0 +1,286 @@
+---
+title: "CLI command reference"
+description: "Every 86d CLI command with its flags, arguments, aliases, specifier grammar, and what it actually does."
+sidebarTitle: "Command reference"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+Seven top-level commands: `dev`, `init`, `status`, `doctor`, `module`, `template`, and `generate`. Each section below covers one. For the shape of a normal working session, see the [CLI overview](/cli/overview).
+
+Several subcommands accept an alias: `add` also answers to `install`, `update` to `upgrade`, `list` to `ls`, `activate` to `use`, `remove` to `rm`, and `components` to `component-docs`.
+
+## `86d dev`
+
+Starts the Next.js dev server. It loads `.env`, `.env.local`, and `.env.development.local` in that precedence order, checks that `DATABASE_URL` is set and reachable, then runs `turbo run dev --filter=store`.
+
+```sh
+86d dev
+```
+
+**Flags**
+
+| Flag | What it does |
+| --- | --- |
+| `--port N` | Listen on port `N` instead of 3000 |
+
+**Example**
+
+```sh
+86d dev --port 3001
+```
+
+## `86d init`
+
+Sets up a local Store. It:
+
+- creates `.env` from the root `.env.example` if one is missing
+- replaces the `BETTER_AUTH_SECRET` placeholder with a random 32-byte value
+- installs dependencies with `bun install`
+- runs code generation
+- offers to run database migrations, when `DATABASE_URL` is set and reachable
+- offers to seed demo data, on the same condition
+
+Run interactively, it asks before migrating and before seeding, and prompts for the [Store Admin](/concepts/admin) email and password. In a non-TTY environment such as CI, database setup is skipped because there is nobody to answer.
+
+**Flags**
+
+| Flag | What it does |
+| --- | --- |
+| `--yes`, `-y` | Answer yes to everything and use the default credentials |
+
+<CodeGroup>
+
+```sh Interactive
+86d init
+```
+
+```sh Non-interactive (CI)
+86d init --yes
+```
+
+</CodeGroup>
+
+## `86d status`
+
+Prints a summary: root directory, active [Template](/concepts/templates), which [Modules](/concepts/modules) are on and off, environment variable status, dependency state.
+
+```sh
+86d status
+```
+
+Worth running right after `86d init`.
+
+## `86d doctor`
+
+A deeper diagnostic. Each check reports pass, warn, or fail, and every failure comes with a suggested fix:
+
+- Node.js version: 23, 24, or 25
+- Bun is installed
+- project root and `turbo.json`
+- dependencies and lockfile
+- active Template and whether its `config.json` parses
+- Module integrity: each has `package.json` and `src/index.ts`, and every enabled Module exists
+- required environment variables: `DATABASE_URL`, `STORE_ID`, `BETTER_AUTH_SECRET`
+- optional ones: `RESEND_API_KEY`, `NEXT_PUBLIC_STORE_URL`, `NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID`
+- database connectivity, by opening a TCP connection to the host and port in `DATABASE_URL`
+- code-generation scripts are present
+- TypeScript configs are present
+
+```sh
+86d doctor
+```
+
+<Note>
+  `doctor` requires `STORE_ID` even on a Store you host yourself. That is a CLI limitation, not a [Control Plane](/concepts/architecture) requirement. Setting it is harmless and worth doing anyway on any deployment you intend to keep. See [environment variables](/configuration/environment-variables).
+</Note>
+
+Reach for `doctor` when something is wrong and you do not know what.
+
+## `86d module create <name>`
+
+Scaffolds a Module at `modules/<name>/`: entry point, schema, Store and admin endpoints, components, and a starter test.
+
+```sh
+86d module create loyalty-points
+```
+
+Then wire it in:
+
+1. Run `86d module enable <name>`, or add `"@86d-app/<name>"` to your active Template's `config.json` by hand.
+2. Run `86d generate`.
+
+## `86d module add <specifier>`
+
+Installs a Module from the registry, a GitHub repository, or npm. The CLI downloads it to `modules/<name>/`, fetches its dependencies, runs `bun install`, and enables it in the active Template.
+
+**Specifier grammar**
+
+| Specifier | Meaning |
+| --- | --- |
+| `products` | First-party Module, short name |
+| `@86d-app/products` | First-party Module, full name |
+| `github:owner/repo` | The whole repository as one Module |
+| `github:owner/repo/modules/name` | One Module inside a repository |
+| `github:owner/repo#branch` | A specific branch or tag |
+| `npm:@scope/package` | An npm package |
+
+**Examples**
+
+```sh
+86d module add products
+86d module add github:owner/repo/modules/loyalty
+86d module add npm:@acme/commerce-module
+```
+
+Run `86d generate` afterward, or the Module is downloaded and doing nothing.
+
+## `86d module update [name]`
+
+Compares each installed Module against the registry by version and integrity hash, then lists what has an update. Pass a name to check one.
+
+```sh
+86d module update            # check everything
+86d module update reviews    # check one
+```
+
+It reports; it does not apply. Re-run `86d module add <name>` for anything you want updated.
+
+## `86d module list`
+
+Lists every Module in `modules/` with its version and category, and marks which ship Store components or admin endpoints.
+
+```sh
+86d module list
+86d module ls
+```
+
+## `86d module search [query]`
+
+Searches the registry by name, description, or category. A green dot means you already have it locally.
+
+```sh
+86d module search           # everything
+86d module search payment   # filter
+```
+
+## `86d module info <name>`
+
+Shows a Module's version, category, declared `id`, Store and admin endpoint counts, the actual endpoint paths, whether it has components on either side, and whether it ships tests. For a Module in the registry but not installed, you get the registry summary and how to install it.
+
+```sh
+86d module info loyalty-points
+```
+
+## `86d module enable <name>`
+
+Enables a Module in your active Template's `config.json`. If that file uses `"modules": "*"`, this command does nothing, and the wildcard admits no Experimental Modules either. Convert `modules` to an explicit list and add the versioned advanced opt-in.
+
+```sh
+86d module enable loyalty-points
+```
+
+## `86d module disable <name>`
+
+Disables a Module in your active Template's `config.json`. If that file uses `"modules": "*"`, this converts it to an explicit list with the named Module left out.
+
+```sh
+86d module disable loyalty-points
+```
+
+## `86d template create <name>`
+
+Copies `brisa` to `templates/<name>/` and updates `theme` and `name` in the new `config.json`. This is the starting point for your own design.
+
+```sh
+86d template create minimal
+```
+
+## `86d template add <specifier>`
+
+Adds a [Template](/concepts/templates) from GitHub or npm.
+
+**Specifier grammar**
+
+| Specifier | Meaning |
+| --- | --- |
+| `github:owner/repo` | The repository root is the Template |
+| `github:owner/repo/templates/x` | One Template inside a repository |
+| `github:owner/repo#branch` | A specific branch or tag |
+| `npm:@scope/store-template` | An npm package |
+
+**Examples**
+
+```sh
+86d template add github:owner/repo/templates/custom
+86d template add npm:@acme/store-template
+```
+
+The command fails if the downloaded Template has no `config.json`, and the Template has to ship an explicit `modules` array. The CLI writes no placeholder for you. Copy the shape of `templates/brisa/config.json`.
+
+## `86d template remove <name>`
+
+Deletes a Template from `templates/`. The CLI refuses to remove `brisa` or whichever Template is currently active. Switch first with `86d template activate`.
+
+```sh
+86d template remove my-custom-theme
+```
+
+## `86d template list`
+
+Lists your Templates, with the active one marked.
+
+```sh
+86d template list
+86d template ls
+```
+
+## `86d template activate <name>`
+
+Switches which Template your Store uses, by rewriting the `template/*` path alias in `apps/store/tsconfig.json`.
+
+```sh
+86d template activate minimal
+```
+
+## `86d generate`
+
+Runs every generator: the registry [manifest](/resources/glossary#manifest), Module imports and the API router, and component documentation. Run it after any `config.json` change.
+
+```sh
+86d generate
+```
+
+**Sub-commands**
+
+| Command | What it regenerates |
+| --- | --- |
+| `86d generate modules` | Module imports and the API router |
+| `86d generate registry` | `registry.json` |
+| `86d generate components` | Component documentation |
+
+<CodeGroup>
+
+```sh All generators
+86d generate
+```
+
+```sh Module imports only
+86d generate modules
+```
+
+```sh Component docs only
+86d generate components
+```
+
+</CodeGroup>
+
+## Related pages
+
+- [CLI overview](/cli/overview)
+- [`config.json` reference](/configuration/store-config)
+- [Add a Module](/guides/adding-modules)
+- [Build a custom Module](/guides/building-a-module)
+- [How Modules package Store capabilities](/concepts/modules)

@@ -1,0 +1,35 @@
+---
+title: "Automations"
+description: "Rule-based automation for 86d: trigger actions on events, like sending an email when an Order ships or tagging a Customer at a spend threshold."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Automations [Module](/concepts/modules) is a rule engine: when a trigger fires and its conditions match, the rule runs its actions. Triggers are domain events that other Modules emit, such as `order.placed` or `customer.created`. Actions can send an email, tag a [Customer](/resources/glossary#customer), issue store credit, or call an external webhook.
+
+**Source:** [`modules/automations`](https://github.com/86d-app/86d/tree/main/modules/automations) · **npm:** [`@86d-app/automations`](https://www.npmjs.com/package/@86d-app/automations)
+
+## Installation
+
+```sh
+86d module add automations
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/automations` | List rules |
+| `POST` | `/admin/automations` | Create a rule |
+| `GET` | `/admin/automations/:id/runs` | Execution history |
+
+## Related pages
+
+- [Notifications](/modules/notifications) for store messages and provider delivery
+- [Audit log](/modules/audit-log) for recorded administrative actions
+- [How Modules package Store capabilities](/concepts/modules) for the technical packaging model
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

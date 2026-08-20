@@ -1,0 +1,48 @@
+---
+title: "Bundles"
+description: "Sell discounted product bundles in 86d. Combine multiple products at a fixed price or a percentage off the sum of components."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Bundles [Module](/concepts/modules) groups multiple products into a single SKU sold at a discount. You can price a bundle at a fixed amount or at a percentage off the sum of its components. Selling a bundle deducts [Inventory](/modules/inventory) from each component, and bundle availability follows whichever component has the least stock.
+
+**Source:** [`modules/bundles`](https://github.com/86d-app/86d/tree/main/modules/bundles) · **npm:** [`@86d-app/bundles`](https://www.npmjs.com/package/@86d-app/bundles)
+
+## Installation
+
+```sh
+86d module add bundles
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/bundles` | List active bundles |
+| `GET` | `/bundles/:slug` | Get a bundle with its components |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/bundles` | List bundles |
+| `POST` | `/admin/bundles` | Create |
+| `PUT` | `/admin/bundles/:id` | Update |
+| `DELETE` | `/admin/bundles/:id` | Delete |
+
+## Components
+
+- `<BundleCard bundle={...} />`
+- `<BundleDetail slug={...} />`
+
+## Related pages
+
+- [Products](/modules/products)
+- [Inventory](/modules/inventory)
+- [Discounts](/modules/discounts)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

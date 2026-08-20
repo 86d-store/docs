@@ -1,0 +1,42 @@
+---
+title: "Gift registry"
+description: "Customer-created registries for weddings, birthdays, and milestones. Friends and family see what is wanted and what is already purchased."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Gift Registry [Module](/concepts/modules) lets [Customers](/resources/glossary#customer) build registries for weddings, babies, birthdays, and other milestones. Each registry has a public share link. Gift-givers see what the owner wants and what has already been bought, and quantity tracking prevents duplicate gifts.
+
+**Source:** [`modules/gift-registry`](https://github.com/86d-app/86d/tree/main/modules/gift-registry) · **npm:** [`@86d-app/gift-registry`](https://www.npmjs.com/package/@86d-app/gift-registry)
+
+## Installation
+
+```sh
+86d module add gift-registry
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/registries/me` | List the customer's registries |
+| `POST` | `/registries/me` | Create a registry |
+| `POST` | `/registries/me/:id/items` | Add an item |
+| `GET` | `/registries/share/:token` | Public registry view |
+
+## Components
+
+- `<RegistryDashboard />`
+- `<RegistryView token={token} />`
+- `<AddToRegistryButton productId={id} />`
+
+## Related pages
+
+- [Wishlist](/modules/wishlist)
+- [Customers](/modules/customers)
+- [Storefront](/concepts/storefront)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

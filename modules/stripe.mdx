@@ -1,0 +1,200 @@
+---
+title: "Stripe"
+description: "Evaluate the Experimental Stripe Integration for 86d.store: PaymentIntents, refunds, and webhook verification."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** Use test credentials. Keep its event endpoint private until provider verification, retries, and duplicate events pass your tests. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Stripe [Module](/concepts/modules) implements the current `PaymentProvider` interface from the [Payments Module](/modules/payments) using the Stripe REST API. When you configure a signing secret, it verifies Stripe's timestamped HMAC-SHA256 [Webhook](/resources/glossary#webhook) signatures.
+
+**Source:** [`modules/stripe`](https://github.com/86d-app/86d/tree/main/modules/stripe) · **npm:** [`@86d-app/stripe`](https://www.npmjs.com/package/@86d-app/stripe)
+
+## Installation
+
+```sh
+npm install @86d-app/stripe @86d-app/payments
+```
+
+Register both Modules in `config.json`:
+
+```json
+{
+  "modules": ["@86d-app/payments", "@86d-app/stripe"],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in the server environment. The generator passes those values to the current provider factory. Do not put secret keys in source, `config.json`, browser variables, or [Store Admin](/concepts/admin) fields.
+
+## Configuration
+
+<ParamField path="apiKey" type="string" required>
+  Your Stripe test secret. Keep it in the server environment.
+</ParamField>
+
+<ParamField path="webhookSecret" type="string">
+  Stripe test-event signing secret. When provided, incoming requests use Stripe's HMAC-SHA256 verification and timestamp tolerance.
+</ParamField>
+
+## PaymentProvider API
+
+`StripePaymentProvider` implements the `PaymentProvider` interface. Use it directly when you need to create or manage payment intents in server-side code.
+
+### `createIntent`
+
+Creates a Stripe PaymentIntent and returns a `clientSecret` in `providerMetadata`. Pass `amount` in the smallest currency unit (cents for USD).
+
+```ts
+const apiKey = process.env.STRIPE_SECRET_KEY;
+if (!apiKey) throw new Error("STRIPE_SECRET_KEY is required");
+const provider = new StripePaymentProvider(apiKey);
+
+const intent = await provider.createIntent({
+  amount: 2500,      // $25.00
+  currency: "usd",
+});
+// {
+//   providerIntentId: "pi_1234567890123",
+//   status: "pending",
+//   providerMetadata: { clientSecret: "pi_1234567890123_secret_1234567890123" }
+// }
+```
+
+### `confirmIntent`
+
+Confirms a PaymentIntent after the [Shopper](/resources/glossary#shopper) completes payment on the client side.
+
+```ts
+await provider.confirmIntent("pi_1234567890123");
+```
+
+### `cancelIntent`
+
+Cancels an uncaptured PaymentIntent.
+
+```ts
+await provider.cancelIntent("pi_1234567890123");
+```
+
+### `createRefund`
+
+Issues a full or partial refund. Omit `amount` for a full refund.
+
+```ts
+await provider.createRefund({
+  providerIntentId: "pi_1234567890123",
+  amount: 1000,                       // $10.00 partial refund
+  reason: "requested_by_customer",
+});
+```
+
+### Status mapping
+
+| Stripe status | Mapped status |
+| --- | --- |
+| `succeeded` | `succeeded` |
+| `canceled` | `cancelled` |
+| `processing`, `requires_capture` | `processing` |
+| `requires_payment_method`, `requires_confirmation`, `requires_action` | `pending` |
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/stripe/webhook` | Receive and verify Stripe webhook events |
+
+## Webhook setup
+
+<Steps>
+  <Step title="Set the environment variable">
+    Add your webhook signing secret to your environment:
+
+    ```text
+    STRIPE_WEBHOOK_SECRET=stripe_webhook_secret_here
+    ```
+  </Step>
+  <Step title="Register your endpoint in Stripe">
+    In the [Stripe dashboard](https://dashboard.stripe.com/webhooks), add a new endpoint:
+
+    ```text
+    https://yourdomain.com/api/stripe/webhook
+    ```
+  </Step>
+  <Step title="Select events to listen to">
+    Enable at minimum:
+
+    - `payment_intent.succeeded`
+    - `payment_intent.payment_failed`
+    - `charge.refunded`
+  </Step>
+</Steps>
+
+### How signature verification works
+
+The webhook endpoint reads the raw request body before JSON parsing (required for HMAC integrity), then verifies the `Stripe-Signature` header:
+
+```text
+signed_payload = event_timestamp + "." + raw_request_body
+expected_sig   = HMAC-SHA256(webhookSecret, signed_payload)
+```
+
+The endpoint compares the `v1` signature from the header in constant time to prevent timing attacks. Requests with invalid or expired signatures (older than 5 minutes) return `401`.
+
+Verification uses the Web Crypto API and needs no external dependencies.
+
+## Types
+
+```ts
+interface StripeOptions {
+  apiKey: string;
+  webhookSecret?: string;
+}
+
+interface ProviderIntentResult {
+  providerIntentId: string;
+  status: "pending" | "processing" | "succeeded" | "cancelled" | "failed";
+  providerMetadata?: Record<string, unknown>;
+}
+
+interface ProviderRefundResult {
+  providerRefundId: string;
+  status: "pending" | "succeeded" | "failed";
+  providerMetadata?: Record<string, unknown>;
+}
+```
+
+The full `PaymentProvider` interface from `@86d-app/payments`:
+
+```ts
+interface PaymentProvider {
+  createIntent(params: {
+    amount: number;
+    currency: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<ProviderIntentResult>;
+
+  confirmIntent(providerIntentId: string): Promise<ProviderIntentResult>;
+
+  cancelIntent(providerIntentId: string): Promise<ProviderIntentResult>;
+
+  createRefund(params: {
+    providerIntentId: string;
+    amount?: number;
+    reason?: string;
+  }): Promise<ProviderRefundResult>;
+}
+```
+
+## Related pages
+
+- [Payments](/modules/payments)
+- [Set up a payment provider](/guides/payment-integrations)
+- [How Connections route provider work](/concepts/connections)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

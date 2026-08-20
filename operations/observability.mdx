@@ -1,0 +1,107 @@
+---
+title: "Watch a Store Runtime"
+description: "Five different things get called analytics. Here is who owns each one, where its data goes, and which of them you can trust for revenue."
+sidebarTitle: "Observability"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+The word "analytics" covers at least five unrelated things, owned by different people and sent to different places. Conflating them is how a merchant ends up reconciling their books against a browser event. 86d names each one.
+
+## Five kinds of data
+
+| Kind | Who owns it, and why | Where it goes |
+| --- | --- | --- |
+| **Storefront Analytics** | You. Shopper behavior and commerce reporting for one Store | Your Store's database, or somewhere you chose |
+| **Third-party Analytics** | You. Selected Storefront events exported outward | Services you configured, such as Google Tag Manager or GA4 |
+| **Store Runtime diagnostics** | You. Errors, logs, traces, health, performance for one deployment | Your logs, or an error project you own |
+| **Managed Runtime Diagnostics** | 86d, only when you explicitly turn it on. Bounded errors and health | A disclosed 86d operational project |
+| **86d Observability** | 86d. The health of 86d.app itself | 86d operational systems |
+
+None of it is commerce truth. A browser event never creates or repairs an [Order](/modules/orders), a [Payment](/modules/payments), an [Inventory](/modules/inventory) count, a [Loyalty](/modules/loyalty) balance, revenue, or GMV. When a dashboard and the database disagree, the database is right.
+
+## Logs
+
+The [Store Runtime](/concepts/architecture) writes Next.js and application logs to standard output.
+
+- In Docker Compose, use `docker compose logs -f store`.
+- On Vercel, use the project's log view or `vercel logs`.
+- On Railway, use the service log view.
+
+There is no log shipper in the box. If you host it yourself, use your provider's log forwarding.
+
+## Error reporting
+
+Set a DSN and unhandled errors reach a Sentry project you control:
+
+```bash .env
+SENTRY_DSN=https://your_sentry_key_here@your_org_here.ingest.sentry.io/your_project_id_here
+NEXT_PUBLIC_SENTRY_DSN=https://your_sentry_key_here@your_org_here.ingest.sentry.io/your_project_id_here
+```
+
+The integration initializes only when the DSN exists, so leaving these unset costs you nothing. Sampling and data handling are yours to decide.
+
+<Warning>
+  `NEXT_PUBLIC_SENTRY_DSN` is public by design, and the events it sends are not. Turn on Sentry scrubbing, and keep secrets, payment credentials, and Shopper personal data out of your error context and breadcrumbs.
+</Warning>
+
+Managed Runtime Diagnostics is a separate thing, off by default, and enabled only by the exact value `managed-runtime-diagnostics-v1` in `86D_TELEMETRY`. It sends a bounded health and error contract to a disclosed 86d endpoint. It does not send Shopper behavior, commerce events, or your sales figures.
+
+## Sending events to your own tools
+
+[Third-party Analytics](/resources/glossary#third-party-analytics) pushes selected [Storefront](/concepts/storefront) events to services you picked. Set your Google Tag Manager container:
+
+```bash .env
+NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID=GTM-0000000
+```
+
+The Storefront pushes browser events to `dataLayer` when the container exists. Whether Tag Manager forwards them to GA4 or anywhere else is your configuration, not 86d's.
+
+Event names include `view_item`, `add_to_cart`, `begin_checkout`, and `purchase`. Every one of them is a report, not a record. A `purchase` event in the browser proves a script ran. It does not prove a Payment settled or an Order exists.
+
+## The Analytics Module
+
+[`@86d-app/analytics`](/modules/analytics) records Storefront Analytics events in your Store's database and renders funnel views for you.
+
+```bash
+86d module add analytics
+```
+
+It reads. It does not write commerce facts and it cannot repair one.
+
+## Audit records
+
+[`@86d-app/audit-log`](/modules/audit-log) holds administrative records for one Store Runtime.
+
+An append-oriented table is not a tamper-evident audit trail, and it is worth being precise about that with anyone who asks. A Stable audit record needs a server-authored actor, scope, target, action, outcome, and approval provenance, with access controls that have been tested. That is not where this Module is today.
+
+## Health endpoint
+
+Every Store Runtime serves one:
+
+```text
+GET /api/health
+```
+
+Use it for deployment health checks. It tells you the process is up. It does not tell you [Checkout](/modules/checkout) works, or that a provider [Integration](/concepts/connections) is reachable.
+
+## Local diagnosis
+
+`86d doctor` reports pass, warn, or fail for runtime prerequisites, environment variables, database connectivity, generated files, and TypeScript configuration.
+
+```bash
+86d doctor
+```
+
+The CLI collects no usage data. If that ever changes it will arrive with its own name, a published data contract, a named destination, and a way to turn it off.
+
+## Related pages
+
+- [Analytics](/modules/analytics)
+- [Audit log](/modules/audit-log)
+- [Secure a Store Runtime](/operations/security)
+- [How commerce records relate](/concepts/commerce-model)
+- [How 86d separates product authority](/concepts/architecture)
+- [Glossary](/resources/glossary#storefront-analytics)

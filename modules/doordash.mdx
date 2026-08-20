@@ -1,0 +1,53 @@
+---
+title: "DoorDash"
+description: "Last-mile delivery via DoorDash Drive for 86d. Quote rates, dispatch deliveries, and track status from Store Admin."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The DoorDash [Module](/concepts/modules) integrates with the DoorDash Drive API for on-demand local delivery. Your [Store](/resources/glossary#store) quotes rates at [Checkout](/concepts/commerce-model), dispatches a delivery when the [Order](/concepts/commerce-model) is placed, and receives [Webhook](/resources/glossary#webhook) updates as the courier moves through pickup and dropoff.
+
+**Source:** [`modules/doordash`](https://github.com/86d-app/86d/tree/main/modules/doordash) · **npm:** [`@86d-app/doordash`](https://www.npmjs.com/package/@86d-app/doordash)
+
+## Installation
+
+```sh
+86d module add doordash
+```
+
+## Configuration
+
+```ts
+doordash({
+  developerId: "...",
+  keyId: "...",
+  signingSecret: "...",
+  sandbox: "true",
+});
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/doordash/quote` | Quote a delivery rate |
+| `POST` | `/doordash/webhooks` | Receive delivery status webhooks |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/doordash/deliveries` | Active and completed deliveries |
+| `POST` | `/admin/doordash/deliveries/:id/cancel` | Cancel |
+
+## Related pages
+
+- [Uber Direct](/modules/uber-direct)
+- [Favor](/modules/favor)
+- [Fulfillment](/modules/fulfillment)
+- [How Connections route provider work](/concepts/connections)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

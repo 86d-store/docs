@@ -1,0 +1,40 @@
+---
+title: "Comparisons"
+description: "Side-by-side product comparison for an 86d Storefront. Shoppers add up to four products and see attribute, price, and Inventory differences in one view."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Comparisons [Module](/concepts/modules) adds side-by-side product comparison to the [Storefront](/concepts/storefront). [Shoppers](/resources/glossary#shopper) select up to four products and compare attributes, price, inventory, and ratings in one table. State persists per browser; signed-in [Customers](/resources/glossary#customer) can save a comparison set.
+
+**Source:** [`modules/comparisons`](https://github.com/86d-app/86d/tree/main/modules/comparisons) · **npm:** [`@86d-app/comparisons`](https://www.npmjs.com/package/@86d-app/comparisons)
+
+## Installation
+
+```sh
+86d module add comparisons
+```
+
+## Configuration
+
+```ts
+comparisons({
+  maxItems: "4",
+});
+```
+
+## Components
+
+- `<CompareButton productId={id} />`: per-product "Add to compare" toggle.
+- `<CompareDrawer />`: floating drawer showing currently selected items.
+- `<ComparePage />`: full side-by-side comparison view.
+
+## Related pages
+
+- [Products](/modules/products)
+- [Reviews](/modules/reviews)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

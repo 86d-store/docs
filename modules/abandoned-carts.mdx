@@ -1,0 +1,43 @@
+---
+title: "Abandoned carts"
+description: "Recover abandoned carts in 86d with scheduled reminder emails. Detects carts left idle and triggers a multi-step recovery sequence."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Abandoned Carts [Module](/concepts/modules) finds carts left idle past a threshold and starts a reminder sequence you configure. With `@86d-app/notifications` installed and a `RESEND_API_KEY` set, it sends the reminders by email. Its admin tools let you inspect recovery rates and override the reminder sequence for a single cart.
+
+**Source:** [`modules/abandoned-carts`](https://github.com/86d-app/86d/tree/main/modules/abandoned-carts) · **npm:** [`@86d-app/abandoned-carts`](https://www.npmjs.com/package/@86d-app/abandoned-carts)
+
+## Installation
+
+```sh
+86d module add abandoned-carts
+```
+
+## Configuration
+
+```ts
+abandonedCarts({
+  abandonAfterMinutes: "60",
+  reminderSchedule: "60,1440,4320",   // minutes after abandonment: 1h, 24h, 72h
+});
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/abandoned-carts` | List abandoned carts |
+| `POST` | `/admin/abandoned-carts/:id/send-now` | Send the next reminder immediately |
+
+## Related pages
+
+- [Cart](/modules/cart)
+- [Notifications](/modules/notifications)
+- [Newsletter](/modules/newsletter)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

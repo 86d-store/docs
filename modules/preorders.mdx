@@ -1,0 +1,48 @@
+---
+title: "Preorders"
+description: "Sell products before they are available for fulfillment. Capture payment up front and ship when stock arrives."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Preorders [Module](/concepts/modules) marks selected products as available for preorder during a window you configure. A [Customer](/resources/glossary#customer) can buy before [Inventory](/modules/inventory) exists: the Module flags each preorder line item, captures payment up front when you enable it, and tracks the expected ship date.
+
+**Source:** [`modules/preorders`](https://github.com/86d-app/86d/tree/main/modules/preorders) · **npm:** [`@86d-app/preorders`](https://www.npmjs.com/package/@86d-app/preorders)
+
+## Installation
+
+```sh
+86d module add preorders
+```
+
+## Configuration
+
+```ts
+preorders({
+  capturePaymentUpFront: "true",
+  defaultLeadTimeDays: "14",
+});
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/preorders` | Active preorder campaigns |
+| `POST` | `/admin/preorders` | Create a campaign |
+| `POST` | `/admin/preorders/:id/release` | Convert preorders to fulfillable orders |
+
+## Components
+
+- `<PreorderBadge productId={id} />`
+- `<PreorderCTA productId={id} />`
+
+## Related pages
+
+- [Backorders](/modules/backorders) for products that have already launched and run out of stock
+- [Inventory](/modules/inventory)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

@@ -1,0 +1,47 @@
+---
+title: "FAQ module"
+description: "Self-service knowledge base with search for an 86d Storefront. Group questions, embed them on product pages, and show them in support flows."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The FAQ [Module](/concepts/modules) manages a self-service knowledge base on your [Storefront](/concepts/storefront). You can group questions under headings such as "Shipping", "Returns", and "Account", embed them on product detail pages, or publish them as a standalone `/faq` page. Search is built in.
+
+**Source:** [`modules/faq`](https://github.com/86d-app/86d/tree/main/modules/faq) · **npm:** [`@86d-app/faq`](https://www.npmjs.com/package/@86d-app/faq)
+
+## Installation
+
+```sh
+86d module add faq
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/faq` | All approved questions, grouped |
+| `GET` | `/faq/search?q=` | Search the FAQ |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/faq` | Create |
+| `PUT` | `/admin/faq/:id` | Update |
+
+## Components
+
+- `<FaqList />`
+- `<FaqGroup slug={slug} />`
+- `<FaqSearch />`
+
+## Related pages
+
+- [Tickets](/modules/tickets)
+- [Pages](/modules/pages)
+- [Storefront](/concepts/storefront)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

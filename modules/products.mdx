@@ -1,0 +1,463 @@
+---
+title: "Products"
+description: "Reference for @86d-app/products: products, variants, categories, collection links, search, and CSV import."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Products [Module](/concepts/modules) is the catalog: products, variants, categories, collection links, search, and CSV import. Use it with [Inventory](/modules/inventory) and [Collections](/modules/collections), and treat [Checkout](/concepts/commerce-model) as the place that recalculates price and availability.
+
+<Warning>
+  This package overlaps with the Inventory and Collections modules: some records exist in more than one place today. Do not treat a duplicated field as the final authority. [Checkout](/concepts/commerce-model) must recalculate price and availability through the verified store path.
+</Warning>
+
+Current: `products.catalog.draft@1`, `review@1`, and `publish@1` run as store Commands locally. Publication records `catalog.published@1` in one owner-local transaction.
+
+Not yet: [Storefront](/concepts/storefront), search, and feed still do not read the published revision. Do not call publication Stable.
+
+**Source:** [`modules/products`](https://github.com/86d-app/86d/tree/main/modules/products) · **npm:** [`@86d-app/products`](https://www.npmjs.com/package/@86d-app/products)
+
+## Installation
+
+<CodeGroup>
+
+```sh npm
+npm install @86d-app/products
+```
+
+```sh pnpm
+pnpm add @86d-app/products
+```
+
+</CodeGroup>
+
+Then register the Module in your store's `config.json`:
+
+```json
+{
+  "modules": ["@86d-app/products"],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+## Configuration
+
+Pass options to the factory when you register the Module:
+
+```ts
+import products from "@86d-app/products";
+
+const module = products({
+  defaultPageSize: 20,
+  maxPageSize: 100,
+  trackInventory: true,
+});
+```
+
+<ParamField body="defaultPageSize" default="20" type="number">
+  Default number of products returned per page on listing endpoints.
+</ParamField>
+
+<ParamField body="maxPageSize" default="100" type="number">
+  Hard cap on `limit` query parameter. Requests above this value are clamped.
+</ParamField>
+
+<ParamField body="trackInventory" default="true" type="boolean">
+  Enable inventory tracking by default for new products. Products with `trackInventory: false` skip all inventory increment and decrement operations.
+</ParamField>
+
+## Store endpoints
+
+Store endpoints are public and return only `active` products. Use them from your [Storefront](/concepts/storefront) to browse, search, and display products.
+
+### Products
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/products` | List active products, paginated and filterable |
+| `GET` | `/products/featured` | Get featured products |
+| `GET` | `/products/:slug` | Get a single product by slug, including variants |
+| `GET` | `/products/search?q=` | Search products by name, description, or tags |
+| `GET` | `/products/store-search` | Full-text product search |
+| `GET` | `/products/related/:id` | Get related products scored by category and shared tags |
+
+**Query parameters for `GET /products`**
+
+| Param | Type | Description |
+| --- | --- | --- |
+| `page` | `number` | Page number (default `1`) |
+| `limit` | `number` | Items per page, capped at `maxPageSize` |
+| `category` | `string` | Filter by category slug |
+| `status` | `string` | Product status. The Storefront always filters to `active`. |
+| `featured` | `boolean` | Filter to featured products only |
+
+### Categories
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/categories` | List visible categories |
+| `GET` | `/categories/:slug` | Get a single category by slug |
+
+### Collections
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/collections` | List visible collections |
+| `GET` | `/collections/:slug` | Get a collection with its active products |
+
+## Admin endpoints
+
+Admin endpoints require authentication and return all product statuses (`draft`, `active`, `archived`).
+
+### Products
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/products` | Create a new product |
+| `GET` | `/admin/products/list` | List all products across all statuses |
+| `GET` | `/admin/products/:id` | Get a product by ID |
+| `PUT` | `/admin/products/:id` | Update a product |
+| `DELETE` | `/admin/products/:id` | Delete a product (cascades to variants) |
+| `POST` | `/admin/products/bulk-action` | Bulk update status or bulk delete |
+| `POST` | `/admin/products/import` | Import products from CSV data |
+
+### Variants
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/products/:productId/variants` | Add a variant to a product |
+| `PUT` | `/admin/variants/:id` | Update a variant |
+| `DELETE` | `/admin/variants/:id` | Delete a variant |
+
+### Categories
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/categories` | Create a category |
+| `GET` | `/admin/categories/list` | List all categories |
+| `PUT` | `/admin/categories/:id` | Update a category |
+| `DELETE` | `/admin/categories/:id` | Delete a category |
+
+### Collections
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/collections` | Create a collection |
+| `GET` | `/admin/collections/list` | List all collections |
+| `PUT` | `/admin/collections/:id` | Update a collection |
+| `DELETE` | `/admin/collections/:id` | Delete a collection (cascades to product links) |
+| `POST` | `/admin/collections/:id/products` | Add a product to a collection |
+| `DELETE` | `/admin/collections/:id/products/:productId` | Remove a product from a collection |
+
+## Components
+
+Add these components to your MDX [Template](/concepts/templates) files. The Module must be listed in `config.json` for the components to be available.
+
+### `ProductCard`
+
+Displays a single product card with image, name, price, discount badge, and an optional Add to Cart button.
+
+<ParamField body="product" type="Product" required>
+  A `Product` object. See the [Types](#types) section for the full shape.
+</ParamField>
+
+<ParamField body="showAddToCart" default="true" type="boolean">
+  Show the Add to Cart button on the card.
+</ParamField>
+
+```mdx
+<ProductCard product={product} />
+
+<ProductCard product={product} showAddToCart={false} />
+```
+
+---
+
+### `FeaturedProducts`
+
+Responsive grid of featured products. Fetches its own data; no props required.
+
+<ParamField body="limit" type="number">
+  Maximum number of featured products to display.
+</ParamField>
+
+<ParamField body="title" type="string">
+  Section heading rendered above the grid.
+</ParamField>
+
+```mdx
+<FeaturedProducts />
+
+<FeaturedProducts limit={4} title="Staff Picks" />
+```
+
+---
+
+### `ProductListing`
+
+Full product listing with search, category, price, stock, and tag filters, plus sorting and pagination. Fetches its own data.
+
+<ParamField body="initialCategory" type="string">
+  Pre-select a category filter on initial render.
+</ParamField>
+
+<ParamField body="initialSearch" type="string">
+  Pre-fill the search query on initial render.
+</ParamField>
+
+<ParamField body="pageSize" type="number">
+  Number of products per page.
+</ParamField>
+
+```mdx
+<ProductListing />
+
+<ProductListing initialCategory="shoes" pageSize={12} />
+```
+
+---
+
+### `ProductDetail`
+
+Full product detail page including image gallery, variant selector, pricing, inventory status, reviews, and related products. Loaded automatically by the store's `/products/:slug` catch-all route.
+
+<ParamField body="slug" type="string" required>
+  Product slug from the URL.
+</ParamField>
+
+<ParamField body="params" type="Record<string, string>" required>
+  Route params object (for example `params.slug`).
+</ParamField>
+
+---
+
+### `RelatedProducts`
+
+Horizontal grid of related products scored by shared category and tags. Fetches its own data.
+
+<ParamField body="productId" type="string" required>
+  Product ID to find related products for.
+</ParamField>
+
+<ParamField body="limit" type="number">
+  Maximum number of related products to show.
+</ParamField>
+
+<ParamField body="title" type="string">
+  Section heading.
+</ParamField>
+
+```mdx
+<RelatedProducts productId={product.id} />
+
+<RelatedProducts productId={product.id} limit={4} title="You may also like" />
+```
+
+---
+
+### `CollectionCard`
+
+Displays a single collection card with image, name, and description.
+
+<ParamField body="collection" type="CollectionCardData" required>
+  Collection object with `id`, `name`, `slug`, `description`, and `image`.
+</ParamField>
+
+```mdx
+<CollectionCard collection={collection} />
+```
+
+---
+
+### `CollectionGrid`
+
+Grid of collections with optional featured-only filtering. Fetches its own data.
+
+<ParamField body="title" type="string">
+  Section heading.
+</ParamField>
+
+<ParamField body="featured" type="boolean">
+  When `true`, only featured collections are shown.
+</ParamField>
+
+```mdx
+<CollectionGrid />
+
+<CollectionGrid title="Shop by Category" featured={true} />
+```
+
+---
+
+### `CollectionDetail`
+
+Full collection page with image, description, product count, and products grid. Loaded automatically by the store's `/collections/:slug` catch-all route.
+
+<ParamField body="slug" type="string" required>
+  Collection slug from the URL.
+</ParamField>
+
+<ParamField body="params" type="Record<string, string>" required>
+  Route params object.
+</ParamField>
+
+---
+
+### `StarDisplay`
+
+Read-only star rating display.
+
+<ParamField body="rating" type="number" required>
+  Rating value between 0 and 5.
+</ParamField>
+
+<ParamField body="size" default='"md"' type='"sm" | "md" | "lg"'>
+  Star size.
+</ParamField>
+
+```mdx
+<StarDisplay rating={4.5} />
+
+<StarDisplay rating={product.averageRating} size="sm" />
+```
+
+---
+
+### `StarPicker`
+
+Interactive star rating input for review submission.
+
+<ParamField body="value" type="number" required>
+  Current rating value.
+</ParamField>
+
+<ParamField body="onChange" type="(n: number) => void" required>
+  Callback fired when a [Shopper](/resources/glossary#shopper) selects a rating.
+</ParamField>
+
+```mdx
+<StarPicker value={rating} onChange={setRating} />
+```
+
+---
+
+### `StockBadge`
+
+Inventory status badge. Displays "Out of stock", "Only X left", or "In stock" based on the inventory count.
+
+<ParamField body="inventory" type="number" required>
+  Available inventory count.
+</ParamField>
+
+```mdx
+<StockBadge inventory={product.inventory} />
+```
+
+---
+
+### `ProductReviewsSection`
+
+Complete review section with rating summary, paginated review list, and a review submission form. Fetches its own data.
+
+<ParamField body="productId" type="string" required>
+  Product ID to show reviews for.
+</ParamField>
+
+```mdx
+<ProductReviewsSection productId={product.id} />
+```
+
+## Types
+
+```ts
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  shortDescription?: string;
+  price: number;               // in cents
+  compareAtPrice?: number;     // in cents
+  costPrice?: number;          // in cents
+  sku?: string;
+  barcode?: string;
+  inventory: number;
+  trackInventory: boolean;
+  allowBackorder: boolean;
+  status: "draft" | "active" | "archived";
+  categoryId?: string;
+  images: string[];
+  tags: string[];
+  isFeatured: boolean;
+  weight?: number;
+  weightUnit?: "kg" | "lb" | "oz" | "g";
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ProductVariant {
+  id: string;
+  productId: string;
+  name: string;
+  sku?: string;
+  price: number;               // in cents
+  compareAtPrice?: number;     // in cents
+  costPrice?: number;          // in cents
+  inventory: number;
+  options: Record<string, string>; // e.g. { size: "M", color: "Blue" }
+  images: string[];
+  position: number;
+  weight?: number;
+  weightUnit?: "kg" | "lb" | "oz" | "g";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  parentId?: string;           // Self-referential for nested categories
+  image?: string;
+  position: number;
+  isVisible: boolean;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ProductWithVariants extends Product {
+  variants: ProductVariant[];
+  category?: Category;
+}
+```
+
+<Info>
+  All price fields (`price`, `compareAtPrice`, `costPrice`) are stored and returned in **cents**. Divide by 100 to display a dollar amount. When importing products from CSV, the import pipeline converts dollar values to cents automatically.
+</Info>
+
+## Current behavior and limits
+
+- Store endpoints always filter to `status: "active"`. Admin endpoints return all statuses.
+- Deleting a category orphans its child categories and products rather than cascading; `categoryId` and `parentId` are set to `undefined`.
+- Deleting a product cascades to all its variants. Deleting a collection cascades to collection-product links.
+- `addProductToCollection` is idempotent. Adding a product already in a collection returns the existing link.
+- Inventory decrement has no floor and can go negative. Products with `trackInventory: false` skip all inventory operations.
+- Related products are scored by shared category (+10 points) and shared tags (+1 point each).
+
+## Related pages
+
+- [Inventory](/modules/inventory) for stock records
+- [Collections](/modules/collections) for merchandising groups
+- [Checkout](/modules/checkout) for the purchase path
+- [How commerce records relate](/concepts/commerce-model)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

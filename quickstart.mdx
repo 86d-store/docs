@@ -1,0 +1,164 @@
+---
+title: "Quickstart"
+description: "Get a Store Runtime running on your machine with the 86d CLI, or start the whole stack with Docker Compose."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+By the end of this page you will have a [Store Runtime](/concepts/architecture) on your machine with demo Products, a working [Storefront](/concepts/storefront), and a [Store Admin](/concepts/admin) you can sign in to. Take the CLI path if you want hot reload and direct access to the code. Take the [Docker Compose path](#start-everything-with-docker-compose) if you would rather not install PostgreSQL.
+
+<Steps>
+  <Step title="Check prerequisites">
+    Install these first:
+
+    | Tool | Minimum version |
+    | --- | --- |
+    | [Bun](https://bun.sh) | 1.3.6 |
+    | [Node.js](https://nodejs.org) | 23, 24, or 25 |
+    | [PostgreSQL](https://www.postgresql.org) | 15 |
+
+    Skip the PostgreSQL install if you plan to use [Docker Compose](#start-everything-with-docker-compose). That path brings its own database.
+  </Step>
+
+  <Step title="Clone and install">
+    Clone the monorepo and install every workspace dependency:
+
+    ```bash
+    git clone https://github.com/86d-app/86d
+    cd 86d
+    bun install
+    ```
+
+    You now have the Store app in `apps/store/`, all 101 first-party [Modules](/concepts/modules) in `modules/`, and the CLI in `packages/cli/`.
+  </Step>
+
+  <Step title="Initialize the Store">
+    One command sets up your environment, database, and demo data:
+
+    ```bash
+    bun run 86d init
+    ```
+
+    `init` copies `.env.example` to `.env`, replaces the `BETTER_AUTH_SECRET` placeholder with a random 32-byte value, installs dependencies, runs code generation, then asks whether to migrate and seed. If it cannot reach the database at `DATABASE_URL`, it skips both steps and tells you what to run afterward.
+
+    Seeding asks for a Store Admin email and password. Press Enter twice to accept `admin@example.com` and `password123`.
+
+    <Tip>
+      `bun run 86d init --yes` skips every prompt and uses the defaults. Use it in scripts and CI.
+    </Tip>
+
+    <Warning>
+      Change the seeded password before the Store is reachable from the internet. The default is published on this page, which is exactly as safe as it sounds.
+    </Warning>
+  </Step>
+
+  <Step title="Start the dev server">
+    ```bash
+    bun run dev
+    ```
+
+    Then open:
+
+    - **Storefront**: [http://localhost:3000](http://localhost:3000)
+    - **Store Admin**: [http://localhost:3000/admin](http://localhost:3000/admin)
+
+    Sign in with the credentials you set during seeding.
+  </Step>
+
+  <Step title="Turn on a Module">
+    A [Module](/concepts/modules) is off until you list it in your active [Template](/concepts/templates)'s `config.json`. Add the package name to the `modules` array:
+
+    ```json templates/brisa/config.json
+    {
+      "name": "My Store",
+      "modules": [
+        "@86d-app/cart",
+        "@86d-app/products",
+        "@86d-app/collections",
+        "@86d-app/blog"
+      ],
+      "advanced": {
+        "version": 1,
+        "allowExperimentalModules": true
+      }
+    }
+    ```
+
+    Every Module in the catalog is currently [Experimental](/resources/versioning), so `allowExperimentalModules` has to stay `true` for anything to load.
+
+    Regenerate the imports and the API router:
+
+    ```bash
+    bun run 86d generate
+    ```
+
+    The Module's components are now usable in your MDX Templates with no import statement, and any Store Admin pages it registers appear in the sidebar.
+
+    To start your own Module instead:
+
+    ```bash
+    bun run 86d module create my-feature
+    ```
+
+    That scaffolds `modules/my-feature/` with an entry point, schema, Store and admin endpoints, and component stubs. [Build a custom Module](/guides/building-a-module) walks through the rest.
+  </Step>
+</Steps>
+
+## Start everything with Docker Compose
+
+Docker Compose runs PostgreSQL, MinIO object storage, and the Store app together, so you install none of them yourself. Copy the environment template and generate an auth secret:
+
+```bash
+cp .env.example .env
+openssl rand -base64 32
+```
+
+Paste the generated value over the `BETTER_AUTH_SECRET` placeholder in `.env`. Compose sets `NODE_ENV=production`, and the runtime refuses to boot on a placeholder secret, a low-entropy secret, or anything under 32 characters. Paste the output, not the command.
+
+```bash
+docker compose up
+```
+
+First boot runs migrations and seeds demo data. Once the containers are healthy:
+
+| Service | URL |
+| --- | --- |
+| Storefront | [http://localhost:3000](http://localhost:3000) |
+| Store Admin | [http://localhost:3000/admin](http://localhost:3000/admin) |
+| MinIO API | [http://localhost:9000](http://localhost:9000) |
+| MinIO Console | [http://localhost:9001](http://localhost:9001) |
+
+<Note>
+  Compose serves uploads from your own origin at `/uploads/...` rather than the raw bucket URL, so you never have to make the MinIO bucket public to show a Product image.
+</Note>
+
+If those ports are already taken on your machine, override them:
+
+```bash
+POSTGRES_PUBLISH_PORT=5433 STORE_PUBLISH_PORT=3001 docker compose up
+```
+
+## When something goes wrong
+
+Run `86d doctor`. It checks your environment file, database reachability, generated files, and Module wiring, and it prints a suggested fix for each failure. [Troubleshooting](/operations/troubleshooting) covers the failures that need more than one command.
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Put it on a server" icon="rocket" href="/deployment">
+    Railway, Vercel with Neon, or your own Docker host.
+  </Card>
+  <Card title="Browse the catalog" icon="grid" href="/modules/overview">
+    101 Modules, what each does, and where its source lives.
+  </Card>
+</CardGroup>
+
+## Related pages
+
+- [How 86d separates product authority](/concepts/architecture)
+- [How Modules package Store capabilities](/concepts/modules)
+- [Environment variables](/configuration/environment-variables)
+- [Test the Store Runtime](/operations/testing)
+- [Glossary](/resources/glossary)

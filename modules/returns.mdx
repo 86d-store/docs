@@ -1,0 +1,45 @@
+---
+title: "Returns"
+description: "Customer return requests for 86d: refund, exchange, or store credit, approved and refunded through the Payments Module."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Returns [Module](/concepts/modules) is return merchandise authorization (RMA). A [Customer](/resources/glossary#customer) requests a return from their [Order](/concepts/commerce-model) detail page. The request then moves through `requested -> approved -> shipped_back -> received -> refunded -> completed`, or ends at `rejected`. Refunds run through the [Payments](/modules/payments) Module (`@86d-app/payments`), and an exchange creates a new Order automatically.
+
+**Source:** [`modules/returns`](https://github.com/86d-app/86d/tree/main/modules/returns) · **npm:** [`@86d-app/returns`](https://www.npmjs.com/package/@86d-app/returns)
+
+## Installation
+
+```sh
+86d module add returns
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/orders/me/:id/returns/create` | Submit a return request |
+| `GET` | `/orders/me/returns` | List the customer's returns |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/returns` | Pending and processed returns |
+| `POST` | `/admin/returns/:id/approve` | Approve |
+| `POST` | `/admin/returns/:id/reject` | Reject with reason |
+| `POST` | `/admin/returns/:id/receive` | Mark items received |
+| `POST` | `/admin/returns/:id/refund` | Issue refund (full or partial) |
+
+## Related pages
+
+- [Orders](/modules/orders)
+- [Payments](/modules/payments)
+- [Store credits](/modules/store-credits)
+- [How commerce records relate](/concepts/commerce-model)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

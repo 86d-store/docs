@@ -1,0 +1,33 @@
+---
+title: "QR code"
+description: "Generate and track QR codes for 86d. Encode product, collection, or campaign URLs and record scan attribution."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The QR Code [Module](/concepts/modules) generates QR codes for any URL on your [Store](/resources/glossary#store) and tracks scans with attribution metadata: campaign, source, and medium. Use it for in-store signage, packaging inserts, and offline campaigns.
+
+**Source:** [`modules/qr-code`](https://github.com/86d-app/86d/tree/main/modules/qr-code) · **npm:** [`@86d-app/qr-code`](https://www.npmjs.com/package/@86d-app/qr-code)
+
+## Installation
+
+```sh
+86d module add qr-code
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/qr-code` | Create a QR code |
+| `GET` | `/admin/qr-code/:id/analytics` | Scan reporting for one QR code |
+
+## Related pages
+
+- [Storefront Analytics](/modules/analytics)
+- [Products](/modules/products)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

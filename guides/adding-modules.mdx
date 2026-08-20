@@ -1,0 +1,177 @@
+---
+title: "Add a Module"
+description: "Find a Module, turn it on, pass it options, and take it back off again."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+Your Store gains a capability by enabling a [Module](/concepts/modules). Cart, Reviews, Blog, Newsletter, [Checkout](/modules/checkout): each is a separate package you list in your active [Template](/concepts/templates)'s `config.json`. Add it, run `86d generate`, and its components are usable in MDX with no imports to write.
+
+## Find one
+
+Browse the [Module catalog](/modules/overview) here, search [npm](https://www.npmjs.com/search?q=%4086d-app), or ask the CLI:
+
+```bash
+86d module search             # every Module in the registry
+86d module search payment     # filter by name, description, or category
+86d module list               # what is installed locally
+```
+
+First-party Modules are named `@86d-app/<name>`, for example `@86d-app/reviews`. Any npm package or GitHub repository that satisfies the Module contract also works.
+
+## Add one with the CLI
+
+`86d module add` downloads the Module, pulls in what it requires, runs `bun install`, and enables it in the active Template.
+
+<Warning>
+  Every first-party registry entry is Experimental. After adding one, check that `config.json` names it explicitly and carries `"advanced": { "version": 1, "allowExperimentalModules": true }`. Without that, the resolver fails closed and the Module silently does not load.
+</Warning>
+
+<Steps>
+  <Step title="Add it">
+    ```bash
+    86d module add reviews
+    ```
+
+    It takes a short name (`reviews`), a scoped name (`@86d-app/reviews`), a GitHub specifier (`github:owner/repo/modules/loyalty`), or an npm specifier (`npm:@acme/commerce-module`). The full grammar is at [`86d module add`](/cli/commands#86d-module-add-specifier).
+  </Step>
+  <Step title="Regenerate">
+    ```bash
+    86d generate
+    ```
+
+    This rewires Module imports, the API router, and the MDX component registry.
+  </Step>
+  <Step title="Use its components">
+    They are registered now. Put them anywhere in your MDX:
+
+    ```mdx products/[slug]/layout.mdx
+    <ProductDetail slug={props.slug} />
+    <ProductReviews productId={props.slug} />
+    ```
+  </Step>
+</Steps>
+
+## Add one by hand
+
+Editing `config.json` directly does the same thing. Use this when you want the change to go through code review, or when a script is doing it.
+
+<Steps>
+  <Step title="Edit config.json">
+    Append the package name to the `modules` array in your active Template:
+
+    ```json templates/<theme>/config.json
+    {
+      "modules": [
+        "@86d-app/cart",
+        "@86d-app/products",
+        "@86d-app/reviews"
+      ],
+      "advanced": {
+        "version": 1,
+        "allowExperimentalModules": true
+      }
+    }
+    ```
+  </Step>
+  <Step title="Install it, if it is not already here">
+    Workspace Modules under `modules/` are already on disk. A published npm package that is not needs installing:
+
+    ```bash
+    npm install @86d-app/reviews
+    ```
+
+  </Step>
+  <Step title="Regenerate">
+    ```bash
+    86d generate
+    ```
+
+    The generator works out which packages are local and which come from npm, installs the missing ones, and writes static imports into `modules.ts`.
+  </Step>
+</Steps>
+
+## Pass a Module its options
+
+Most Modules accept options. They go under `moduleOptions`, keyed by exact package name:
+
+```json
+{
+  "modules": [
+    "@86d-app/cart",
+    "@86d-app/reviews"
+  ],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  },
+  "moduleOptions": {
+    "@86d-app/cart": {
+      "guestCartExpiration": 604800000,
+      "maxItemsPerCart": 100
+    }
+  }
+}
+```
+
+Each Module lists its options on its own page, for example [Cart](/modules/cart), and in its npm README. A key that does not exactly match the package name is ignored, which looks identical to an option that had no effect.
+
+## External Modules
+
+The generator loads an external npm package that exports a compatible default 86d Module factory. An ordinary React or MDX component package does not satisfy that contract and will not work.
+
+<Warning>
+  External code runs inside your [Store Runtime](/concepts/architecture) with the same access your own code has, and nothing sandboxes it. Pin a version or a commit, read the source, and check compatibility before you install it. Nobody reviews the registry on your behalf.
+</Warning>
+
+```json
+{
+  "modules": [
+    "@86d-app/cart",
+    "@some-company/commerce-module"
+  ],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+`86d generate` separates workspace packages from external npm packages, installs the external dependency, and calls its default export as a Module factory.
+
+## Take one back off
+
+<Steps>
+  <Step title="Disable it">
+    ```bash
+    86d module disable reviews
+    ```
+
+    This removes the Module from `config.json`. If the file used `"modules": "*"`, the CLI converts it to an explicit list with `reviews` left out.
+  </Step>
+  <Step title="Regenerate">
+    ```bash
+    86d generate
+    ```
+
+    The Module leaves `modules.ts`, the API router, and the MDX component registry.
+  </Step>
+  <Step title="Uninstall, if you want to">
+    Leave a workspace Module in `modules/` and you can re-enable it later. An npm package you are done with can go:
+
+    ```bash
+    npm uninstall @86d-app/reviews
+    ```
+  </Step>
+</Steps>
+
+## Related pages
+
+- [Build a custom Module](/guides/building-a-module)
+- [Module catalog](/modules/overview)
+- [`config.json` reference](/configuration/store-config)
+- [How Modules package Store capabilities](/concepts/modules)
+- [CLI command reference](/cli/commands)
+- [Versioning and maturity](/resources/versioning)

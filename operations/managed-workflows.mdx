@@ -1,0 +1,67 @@
+---
+title: "Managed Workflows"
+description: "Why a managed operation finishes after you close the tab, what each Workflow state means, and what to do when one asks for attention."
+sidebarTitle: "Managed Workflows"
+---
+
+<Warning>
+  **In development.** Managed operation through 86d.app is still being built. This page describes the contract a managed [Workflow](/resources/glossary#workflow) is written against. See [maturity levels](/resources/versioning).
+</Warning>
+
+Provisioning a Store touches several systems that cannot share one database transaction. If a browser tab could cancel that halfway through, you would end up with a domain pointing at a database that no longer exists. So 86d does not let a request own the outcome.
+
+A managed operation writes a durable Workflow before the request that started it returns. The request then tries to advance it, because that is faster when it works. Whether it works or not, the Workflow finishes on its own.
+
+Close the tab. Lose your connection. The Store still gets built.
+
+## What a Workflow reports
+
+Every Workflow reports one of six states, and it reports the truth rather than the optimistic reading:
+
+| State | What it means |
+| --- | --- |
+| `pending` | Accepted, not started |
+| `running` | In progress |
+| `completed` | Every step finished, and the result is what was asked for |
+| `rolled_back` | It failed, and the compensating steps ran. You are back where you started |
+| `failed` | It failed and could not be undone. Nothing more will happen without intervention |
+| `needs_attention` | It stopped on something a person has to decide |
+
+A Workflow never reports `completed` because one external call returned `200`. Half of a provisioning run succeeding is not success, and reporting it as such is how merchants end up paying for infrastructure that was never wired up.
+
+## Reading a state as an agent
+
+If you are an agent acting on a managed Store, three rules:
+
+1. **Creating a Workflow is not completing one.** A `202` means it was accepted. Read the terminal state before you tell anyone the Store exists.
+2. **A successful provider call is not a completed Workflow.** Multi-step operations fail on step four regularly.
+3. **`needs_attention` is not a retryable error.** Retrying it does nothing. Surface the reason to a person.
+
+## When one needs attention
+
+`needs_attention` means something outside 86d's control has to change: a provider declined, a [Connection](/concepts/connections) was revoked, a domain is not verifying, a payment method was rejected. The Workflow holds its position rather than failing outright, so resolving the underlying thing lets it continue rather than starting over.
+
+The reason is shown in plain language in 86d Console. It names what to do next, not an internal error code.
+
+## Why retries are safe
+
+Every step in a managed Workflow is idempotent, and each one records the provider result it observed. That is what makes ambiguity survivable: when a call times out and 86d cannot tell whether it landed, the retry reconciles against what actually happened rather than doing it a second time.
+
+The properties this holds to:
+
+- one operation, one provider effect, however many times it is attempted
+- a retry cannot move state backward
+- two concurrent attempts cannot both settle
+- a step whose lease expires reconciles against the recorded provider result rather than guessing
+- a terminal Workflow releases its lease and reports honestly
+
+This is why you can safely retry a provisioning request that appears to have hung, and why an interrupted deploy does not leave you paying for two databases.
+
+## Related pages
+
+- [How agents work with 86d](/concepts/agentic-design)
+- [How 86d separates product authority](/concepts/architecture)
+- [What launch evidence means](/operations/launch-evidence)
+- [Watch a Store Runtime](/operations/observability)
+- [Troubleshooting](/operations/troubleshooting)
+- [Glossary](/resources/glossary)

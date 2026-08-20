@@ -1,0 +1,158 @@
+---
+title: "Rehearse a Shopify migration"
+description: "Map your Shopify data onto 86d, import a copy into a throwaway Store, and find out what does not survive the trip."
+sidebarTitle: "Migrating from Shopify"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+This is a rehearsal, not a cutover. You map each Shopify concept onto its 86d equivalent, import a copy of your data into a throwaway [Store Runtime](/concepts/architecture), and find out what breaks while your real Store keeps selling. You need a Store running locally first: the [Quickstart](/quickstart) takes about ten minutes.
+
+<Warning>
+  Do not point a domain at the result. [Checkout](/modules/checkout), [Payments](/modules/payments), tax, [Shipping](/modules/shipping), [Orders](/modules/orders), and several import targets have no evidence yet. Shopify stays authoritative for as long as this takes.
+</Warning>
+
+## What maps to what
+
+| Shopify | 86d |
+| --- | --- |
+| Store or shop | One Store, served by its own Store Runtime |
+| Theme | A [Template](/concepts/templates) under `templates/<theme>/` |
+| Liquid sections and blocks | MDX pages and [Module](/concepts/modules) components |
+| App | A Module under `modules/<name>/` |
+| Product, variant, collection | `@86d-app/products`, `@86d-app/collections` |
+| Customer, address | `@86d-app/customers`, `@86d-app/saved-addresses` |
+| Order, fulfillment, refund | `@86d-app/orders`, `@86d-app/fulfillment`, `@86d-app/payments` |
+| Discount, promotion | `@86d-app/discounts` |
+| Gift card | `@86d-app/giftcards` |
+| Pages, blog | `@86d-app/pages`, `@86d-app/blog` |
+| Shopify Markets | `@86d-app/multi-currency`, `@86d-app/tax` |
+| Shopify POS | `@86d-app/kiosk`, `@86d-app/toast` |
+| Shopify Shipping | `@86d-app/shipping`, `@86d-app/fulfillment` |
+| Shopify Payments | `@86d-app/payments` plus one provider Module you own |
+| Shopify Functions | Modules you write |
+| Webhooks | Module domain events, plus your own subscribers |
+
+## Pick your Modules
+
+Enable the ones matching what you want to test. A broad rehearsal looks like this:
+
+```json
+{
+  "modules": [
+    "@86d-app/products",
+    "@86d-app/collections",
+    "@86d-app/cart",
+    "@86d-app/checkout",
+    "@86d-app/orders",
+    "@86d-app/customers",
+    "@86d-app/saved-addresses",
+    "@86d-app/payments",
+    "@86d-app/stripe",
+    "@86d-app/discounts",
+    "@86d-app/giftcards",
+    "@86d-app/shipping",
+    "@86d-app/fulfillment",
+    "@86d-app/tax",
+    "@86d-app/seo",
+    "@86d-app/sitemap",
+    "@86d-app/redirects"
+  ],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+Run `86d generate` afterward.
+
+## Export from Shopify
+
+Shopify Admin exports CSV for the three big ones:
+
+- **Products**: Admin → Products → **Export** → All products → CSV
+- **Customers**: Admin → Customers → **Export** → CSV
+- **Orders**: Admin → Orders → **Export** → CSV
+- **Discounts and gift cards**: only through the Shopify Admin GraphQL API
+
+Media, pages, blog posts, and metafields also need the GraphQL API. Save the responses as JSON.
+
+## Transform and import
+
+[`@86d-app/import-export`](/modules/import-export) takes CSV and JSON for the entities it covers. Write a small script in whatever language you like to map the fields. The ones that bite:
+
+- Shopify `Variant Price` is dollars. 86d `price` is cents. Multiply by 100, and do it with integers.
+- Shopify `Compare At Price` maps to `compareAtPrice`, also cents.
+- Shopify `Tags` is one comma-separated string. 86d `tags` is an array.
+- Shopify product `Handle` maps to `slug`.
+- Shopify `Status` values (`active`, `draft`, `archived`) map straight across.
+
+Then call `POST /admin/products/import`, `POST /admin/collections/create`, and the rest, or wrap them in your own script.
+
+<Tip>
+  Import into a database you are willing to delete. You will run this more than once.
+</Tip>
+
+## Keep your URLs working
+
+Shopify uses `/products/<handle>`, `/collections/<handle>`, and `/pages/<handle>`. 86d uses the same shapes, so most links survive untouched. For the ones that changed:
+
+```bash
+86d module enable redirects
+```
+
+Add them in **Store Admin → Catalog → Redirects**, or through `POST /admin/redirects`.
+
+## Rebuild the theme
+
+Liquid does not convert to MDX. There is no tool for this and there is not going to be one. Pick the closest Module component for each section of your old theme, drop it into the matching MDX page, and carry over your custom HTML and CSS:
+
+| Liquid section | 86d component |
+| --- | --- |
+| `featured-collection.liquid` | `<FeaturedCollections />` |
+| `product-grid.liquid` | `<ProductGrid />` or `<FeaturedProducts />` |
+| `cart-drawer.liquid` | `<Cart />` plus `<CartButton />` |
+| `newsletter.liquid` | `<NewsletterInline />` |
+| `header.liquid` | Your `Navbar` component in the Template |
+| `footer.liquid` | Your `Footer` component |
+
+Anything without an equivalent becomes a block of React and Tailwind in the MDX file. That is a normal outcome, not a failure of the mapping.
+
+## Payments, shipping, and tax
+
+Pick one sandbox provider and follow [Set up a payment provider](/guides/payment-integrations). Do not copy live payment credentials into a rehearsal.
+
+For Shipping, compare your imported zones and rates against what the [Shipping](/modules/shipping) Module produces for the same basket. For [tax](/modules/tax), enter test registrations and then deliberately create a case the Store cannot resolve. Confirm it returns a review status rather than quietly charging zero. Silent zero tax is the failure mode that costs money nine months later.
+
+## Prove the import
+
+1. Write down the exact timestamp of your Shopify export.
+2. Import a second delta into a fresh test database.
+3. Compare counts, money totals, [Inventory](/modules/inventory), [Customer](/modules/customers) attribution, and anything that did not come across at all.
+4. Force failures in sandbox Checkout, refunds, tax, Shipping, and notifications.
+5. Export your 86d test data and restore it somewhere else, so you know you can leave.
+
+Do not touch DNS. Do not accept a real Order. A production cutover needs evidence for the exact capabilities you plan to use, and that evidence does not exist yet.
+
+## What does not come across
+
+- **Shopify Functions**: no translator exists. Rewrite them as Modules.
+- **Shop Pay**: no documented equivalent.
+- **Shopify Markets rounding rules**: enable [`@86d-app/multi-currency`](/modules/multi-currency) and set rounding per currency yourself.
+- **Theme app extensions**: rewrite them as Module [Storefront](/concepts/storefront) components and place them in MDX.
+
+## Stuck
+
+Open an issue at [github.com/86d-app/86d/issues](https://github.com/86d-app/86d/issues). Questions that come up more than once get folded back into this page.
+
+## Related pages
+
+- [Import and export](/modules/import-export)
+- [How commerce records relate](/concepts/commerce-model)
+- [How Connections route provider work](/concepts/connections)
+- [Set up a payment provider](/guides/payment-integrations)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

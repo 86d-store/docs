@@ -1,0 +1,53 @@
+---
+title: "Changelog"
+description: "Where release notes live, how to follow them, and what to do after you pull one."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+Release notes for 86d.store live on [GitHub Releases](https://github.com/86d-app/86d/releases), generated from [Changesets](https://github.com/changesets/changesets) when a release is cut. 86d is pre-1.0, so that list is sometimes empty between tags.
+
+Versions also appear on npm. The CLI is [`86d`](https://www.npmjs.com/package/86d), and first-party [Modules](/concepts/modules) use the `@86d-app` scope, for example [`@86d-app/cart`](https://www.npmjs.com/package/@86d-app/cart). Everything moves together; see [Versioning and maturity](/resources/versioning).
+
+Each release entry carries a summary of what changed, migration notes for anything breaking, and the list of packages that moved.
+
+## Following releases
+
+- **Watch the repository.** Open [github.com/86d-app/86d](https://github.com/86d-app/86d), click **Watch**, choose **Custom**, then **Releases**.
+- **Subscribe to an npm feed** from any package page.
+- Follow [@86d_app on X](https://x.com/86d_app).
+
+## After you pull one
+
+```bash
+bun install
+bun run db:migrate
+86d generate
+86d doctor
+```
+
+Read that version's release notes before you deploy. They flag required `.env` changes, removed Module options, and migrations that touch your schema.
+
+For Modules specifically:
+
+```bash
+86d module update                 # see what is outdated
+86d module add module_name_here   # apply, one at a time
+```
+
+## When a release breaks something
+
+1. Note the version you came from and the one you went to.
+2. Capture the error and the smallest reproduction you can get to.
+3. Open an issue at [github.com/86d-app/86d/issues](https://github.com/86d-app/86d/issues) tagged `regression`.
+
+Regressions get looked at before new work. The versions and a small reproduction are what make that fast.
+
+## Related pages
+
+- [Versioning and maturity](/resources/versioning)
+- [Module catalog](/modules/overview)
+- [Contributing](/resources/contributing)
+- [CLI overview](/cli/overview)

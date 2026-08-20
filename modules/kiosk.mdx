@@ -1,0 +1,29 @@
+---
+title: "Kiosk"
+description: "Turn a tablet in your shop into a self-serve ordering screen. Unverified."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+A self-serve terminal in your shop, running your own Store. The Kiosk [Module](/concepts/modules) is meant to turn a tablet into a locked-down ordering screen that resets between customers.
+
+Nothing here has been verified: device lockdown, idle reset, [Checkout](/modules/checkout), [Payment](/modules/payments), and point-of-sale behavior are all unproven. A kiosk sits in public, unattended, next to a payment terminal, so treat unverified here as meaning genuinely unverified. Read the source before you evaluate it.
+
+**Source:** [`modules/kiosk`](https://github.com/86d-app/86d/tree/main/modules/kiosk) · **npm:** [`@86d-app/kiosk`](https://www.npmjs.com/package/@86d-app/kiosk)
+
+## Installation
+
+```sh
+86d module add kiosk
+```
+
+## Related pages
+
+- [Toast POS](/modules/toast) for the restaurant point-of-sale integration
+- [Store pickup](/modules/store-pickup) for buy online, pick up in store
+- [Photo booth](/modules/photo-booth) for in-store media capture
+- [Versioning and maturity](/resources/versioning) for maturity criteria
+- [Glossary](/resources/glossary)

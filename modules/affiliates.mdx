@@ -1,0 +1,192 @@
+---
+title: "Affiliates"
+description: "Run an affiliate marketing program where partners apply, create tracking links, earn commission on referred sales, and receive payouts."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Affiliates [Module](/concepts/modules) runs an affiliate program inside your [Store](/resources/glossary#store): partners apply through your [Storefront](/concepts/storefront), you approve them with a commission rate, and they share tracking links. When a referred visitor buys, the Module records a conversion and calculates the commission. You review conversions in [Store Admin](/concepts/admin) and issue payouts up to each affiliate's available balance.
+
+## Installation
+
+```sh
+npm install @86d-app/affiliates
+```
+
+Add the Module to your store configuration:
+
+```ts
+import affiliates from "@86d-app/affiliates";
+
+export default defineStore({
+  modules: [
+    affiliates({
+      defaultCommissionRate: "10",
+      minimumPayout: "50",
+      cookieDurationDays: "30",
+    }),
+  ],
+});
+```
+
+## Configuration
+
+<ParamField path="defaultCommissionRate" default='"10"' type="string">
+  Default commission percentage applied to newly approved affiliates. For example, `"10"` means 10% of the referred [Order](/concepts/commerce-model) total.
+</ParamField>
+
+<ParamField path="minimumPayout" default='"50"' type="string">
+  Minimum payout amount in your store's currency. Affiliates cannot receive a payout below this threshold.
+</ParamField>
+
+<ParamField path="cookieDurationDays" default='"30"' type="string">
+  How long the referral tracking cookie persists (in days). Conversions attributed after this window are not credited to the affiliate.
+</ParamField>
+
+## How it works
+
+<Steps>
+  <Step title="Apply">
+    Anyone submits an application via `POST /affiliates/apply` with their name, email, and optional website. Their account starts in `pending` status.
+  </Step>
+  <Step title="Approve">
+    Review the application and approve it, optionally with a custom commission rate. The affiliate's status moves to `approved`.
+  </Step>
+  <Step title="Create tracking links">
+    Approved affiliates create tracking links via `POST /affiliates/links/create`. Each link gets a unique 10-character slug for URL tracking.
+  </Step>
+  <Step title="Track clicks">
+    When a visitor clicks an affiliate link, `POST /affiliates/track` records the click and increments both the link's click count and the affiliate's total click count.
+  </Step>
+  <Step title="Record conversions">
+    When a tracked visitor completes a purchase, the Module records a conversion and calculates commission as `orderAmount × (commissionRate / 100)`.
+  </Step>
+  <Step title="Approve conversions">
+    Review each conversion and approve it. Approval updates the affiliate's aggregate totals: conversions, revenue, and commission.
+  </Step>
+  <Step title="Issue payouts">
+    Create a payout up to the affiliate's available balance (`totalCommission − totalPaid`). Marking a payout complete updates `totalPaid`.
+  </Step>
+</Steps>
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/affiliates/apply` | Submit an affiliate application |
+| `GET` | `/affiliates/dashboard` | Affiliate self-service page |
+| `GET` | `/affiliates/my-links` | List the authenticated affiliate's tracking links |
+| `POST` | `/affiliates/links/create` | Create a new tracking link |
+| `POST` | `/affiliates/track` | Record a click on a tracking link |
+
+### Submit an application (`POST /affiliates/apply`)
+
+```json
+{
+  "name": "Editorial partner",
+  "email": "partner_contact_here",
+  "website": "https://partner.example"
+}
+```
+
+Each affiliate receives a unique 8-character tracking code on application.
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/affiliates` | List all affiliates |
+| `GET` | `/admin/affiliates/stats` | Program-wide statistics |
+| `GET` | `/admin/affiliates/:id` | Affiliate detail and current balance |
+| `POST` | `/admin/affiliates/:id/approve` | Approve an application |
+| `POST` | `/admin/affiliates/:id/reject` | Reject an application |
+| `POST` | `/admin/affiliates/:id/suspend` | Suspend an approved affiliate |
+| `POST` | `/admin/affiliates/:id/update` | Update affiliate fields |
+| `GET` | `/admin/affiliates/conversions` | List conversions |
+| `POST` | `/admin/affiliates/conversions/:id/approve` | Approve a conversion |
+| `POST` | `/admin/affiliates/conversions/:id/reject` | Reject a conversion |
+| `GET` | `/admin/affiliates/links` | List all tracking links |
+| `GET` | `/admin/affiliates/payouts` | List payouts |
+| `POST` | `/admin/affiliates/payouts/create` | Create a payout |
+| `POST` | `/admin/affiliates/payouts/:id/complete` | Mark a payout as completed |
+| `POST` | `/admin/affiliates/payouts/:id/fail` | Mark a payout as failed |
+
+<Note>
+  Payouts cannot exceed an affiliate's available balance (`totalCommission − totalPaid`). Attempting to create an overdraft returns `null` from the controller.
+</Note>
+
+## Types
+
+```ts
+type AffiliateStatus = "pending" | "approved" | "suspended" | "rejected";
+type ConversionStatus = "pending" | "approved" | "rejected";
+type PayoutStatus = "pending" | "processing" | "completed" | "failed";
+type PayoutMethod = "bank_transfer" | "paypal" | "store_credit" | "check";
+
+interface Affiliate {
+  id: string;
+  name: string;
+  email: string;
+  website?: string;
+  code: string;           // Unique 8-character tracking code
+  commissionRate: number;
+  status: AffiliateStatus;
+  totalClicks: number;
+  totalConversions: number;
+  totalRevenue: number;
+  totalCommission: number;
+  totalPaid: number;
+}
+
+interface AffiliateLink {
+  id: string;
+  affiliateId: string;
+  targetUrl: string;
+  slug: string;           // Unique 10-character URL slug
+  clicks: number;
+  conversions: number;
+  revenue: number;
+  active: boolean;
+}
+
+interface AffiliateConversion {
+  id: string;
+  affiliateId: string;
+  linkId: string;
+  orderId: string;
+  orderAmount: number;
+  commissionRate: number;
+  commissionAmount: number;
+  status: ConversionStatus;
+}
+
+interface AffiliatePayout {
+  id: string;
+  affiliateId: string;
+  amount: number;
+  method: PayoutMethod;
+  reference?: string;
+  status: PayoutStatus;
+  paidAt?: Date;
+}
+
+interface AffiliateStats {
+  totalAffiliates: number;
+  activeAffiliates: number;
+  totalClicks: number;
+  totalConversions: number;
+  totalRevenue: number;
+  totalCommissionPaid: number;
+}
+```
+
+## Related pages
+
+- [Loyalty](/modules/loyalty)
+- [Storefront Analytics](/modules/analytics)
+- [How commerce records relate](/concepts/commerce-model)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

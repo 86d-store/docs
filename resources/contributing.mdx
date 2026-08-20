@@ -1,0 +1,166 @@
+---
+title: "Contributing"
+description: "Setup, the five health gates, what a good pull request looks like, and how to publish a Module of your own."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+The codebase is built for small focused changes, and those get reviewed first. A pull request that does one thing well will move faster than one that does four things adequately.
+
+Two repositories take contributions: [86d-app/86d](https://github.com/86d-app/86d) holds the framework, meaning the Store app, all 101 [Modules](/concepts/modules), the CLI, and the shared packages. [86d-app/docs](https://github.com/86d-app/docs) holds this site.
+
+## Setting up the framework
+
+```bash
+git clone https://github.com/86d-app/86d
+cd 86d
+bun install
+86d init
+```
+
+Run `86d doctor` and clear anything it flags before you start changing things. Debugging your change and your setup at the same time is miserable.
+
+## The five health gates
+
+All five pass before a pull request merges:
+
+```bash
+bun run typecheck   # TypeScript
+bun run check       # Biome lint + format
+bun run test        # Vitest unit tests
+bun run test:e2e    # Playwright + visual snapshots
+bun run build       # Production build
+```
+
+Run them locally first. CI runs the same five, and finding out from CI is slower for everyone.
+
+## Commit messages
+
+Every repository in the 86d project uses [Conventional Commits](https://www.conventionalcommits.org/) with a **required scope**. Git hooks enforce the format locally; CI enforces it on pull requests.
+
+```
+type(scope): subject
+```
+
+**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+**Framework scopes:** `store`, `cli`, `core`, `runtime`, `sdk`, `registry`, `db`, `emails`, `env`, `lib`, `storage`, `utils`, `modules`, `ci`, `deps`, `config`, `docs`, `repo`
+
+**Docs scopes:** `site`, `concepts`, `guides`, `cli`, `modules`, `resources`, `config`, `repo`
+
+**Examples:**
+
+```
+feat(store): add checkout finalization step
+fix(modules): handle empty cart in stripe webhook
+docs(guides): add module installation steps
+chore(deps): bump turbo to 2.10.9
+```
+
+Use imperative, lowercase subject with no trailing period. Keep it under 72 characters when possible. See `CONTRIBUTING.md` in each repository for the full scope list.
+
+## What a good pull request looks like
+
+- **One change.** A bug fix, or an endpoint, or a Module, or a docs improvement. Not all four.
+- **Tests that match the change.** New endpoint means Vitest tests. UI change means updated Playwright snapshots. Bug fix means a regression test that fails without your fix.
+- **A description worth reading.** What problem this solves, why this approach, what you considered instead, and what it does not cover.
+- **A Changesets entry** for anything affecting a published package. Run `bunx changeset` and commit the file. CI rejects the pull request without one when one is needed.
+
+## Coding standards
+
+- **No `any`, `@ts-expect-error`, `@ts-ignore`, or `biome-ignore`.** Fix the type or the code underneath.
+- **No config edits to silence an error.** If a rule genuinely does not fit, raise it. Do not route around it in `tsconfig.json` or `biome.json`.
+- **Do not edit UI primitives.** Wrap or compose shadcn/ui, Base UI, Radix UI, and React Aria rather than changing their internals.
+- **Never weaken or delete a passing test** to get a change through.
+- **Biome does the formatting.** `bun biome check --write src/`.
+
+## Writing a Module
+
+```bash
+86d module create my-feature
+86d module enable my-feature
+86d generate
+bun test --filter @86d-app/my-feature
+```
+
+Before you ask for review:
+
+- a real schema, with types and relations that mean something
+- [Storefront](/concepts/storefront) and admin endpoints actually implemented, with no `TODO` bodies
+- loading, error, and empty states in every UI component
+- Vitest tests on the paths that matter, with fixtures shaped like the real provider response
+- for anything talking to an outside API: real HTTP, retries, error mapping, and webhook signature verification
+- Playwright snapshots for every new screen, light and dark, desktop and mobile
+
+See [Build a custom Module](/guides/building-a-module).
+
+Clearing this list is not the same as earning Stable. See [Versioning and maturity](/resources/versioning).
+
+## Publishing your own Module
+
+You do not have to upstream anything to publish it:
+
+1. Build with `bun run build`.
+2. Set `"private": false` and a release version in `package.json`.
+3. Add accurate package metadata and provenance.
+4. Publish: `npm publish --access public`.
+
+Then anyone installs it:
+
+```bash
+86d module add npm:@your-scope/your-module
+```
+
+The registry is first-party only. Publishing to npm does not add you to it, and it establishes nothing about compatibility.
+
+## Documentation
+
+Docs live at [`86d-app/docs`](https://github.com/86d-app/docs). Every page is `.mdx` with YAML frontmatter. Clone it and preview locally:
+
+```bash
+git clone https://github.com/86d-app/docs
+cd docs
+npm i -g mint
+mint dev
+```
+
+The bar for a docs change:
+
+- **Active voice.** "Run the command", not "the command should be run".
+- **Sentence case headings.** Defined terms keep their capitals inside one.
+- **No em dashes.** Comma, colon, semicolon, parentheses, or a new sentence.
+- **Working examples.** If you cite a command or an endpoint, paste the exact form and run it first.
+
+The full style contract, including which nouns are capitalized and how maturity is stated, is in `AGENTS.md` in that repository.
+
+## Releases
+
+Maintainers cut a release by merging the aggregated Changesets pull request CI generates. See `release` in `package.json`. Module publishes use `--provenance`, so anyone installing can verify what they got.
+
+## License
+
+86d.store is licensed under the [MIT License](https://github.com/86d-app/86d/blob/main/LICENSE). By contributing, you agree that your contributions are licensed under the same terms. 86d.app remains proprietary.
+
+## Code of conduct
+
+Be kind, assume good faith, and disagree about ideas rather than people. 86d follows the [Contributor Covenant 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
+
+## Security issues
+
+[GitHub Security Advisories](https://github.com/86d-app/86d/security/advisories), privately, not a public issue.
+
+## Getting help
+
+- [Discussions](https://github.com/86d-app/86d/discussions) for design proposals and open questions.
+- [Issues](https://github.com/86d-app/86d/issues) for bugs and feature requests.
+
+Both get triaged as they arrive. If something is urgent, say so in the first sentence rather than the fourth paragraph.
+
+## Related pages
+
+- [Build a custom Module](/guides/building-a-module)
+- [Test the Store Runtime](/operations/testing)
+- [Versioning and maturity](/resources/versioning)
+- [Changelog](/resources/changelog)

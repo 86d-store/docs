@@ -1,0 +1,222 @@
+---
+title: "Checkout"
+description: "Current Experimental Checkout sessions and components, and the limits to know before you rely on them in production."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** Session create and update exist for sandbox evaluation. Completion and live Payment stay contained. Live payment fails closed with `PAYMENT_ACTIVATION_REQUIRED`. Shopper HTTP cannot complete a live purchase. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Checkout [Module](/concepts/modules) manages the current session-based Checkout flow. Each session stores contact details, addresses, discounts, and displayed totals.
+
+See [How commerce records relate](/concepts/commerce-model) for the product boundary this Module is moving toward.
+
+**Source:** [`modules/checkout`](https://github.com/86d-app/86d/tree/main/modules/checkout) · **npm:** [`@86d-app/checkout`](https://www.npmjs.com/package/@86d-app/checkout)
+
+## Planned Checkout Request
+
+When a required decision is unavailable, the planned safe path creates a non-binding [Checkout Request](/resources/glossary#checkout-request) instead of an [Order](/concepts/commerce-model). It stores no payment credential, promises no [Inventory](/resources/glossary#inventory), and requires a fresh server calculation before purchase. This record is not part of the current module API.
+
+## Installation
+
+```sh
+npm install @86d-app/checkout
+```
+
+## Configuration
+
+```ts
+import checkout from "@86d-app/checkout";
+import { createModuleClient } from "@86d-app/core";
+
+const client = createModuleClient([
+  checkout({
+    sessionTtl: 1800000, // 30 minutes
+    currency: "USD",
+  }),
+]);
+```
+
+<ParamField path="sessionTtl" default="1800000" type="number">
+  Session time-to-live in milliseconds. Sessions that exceed this age without completing transition to `expired`. Defaults to 30 minutes (1,800,000 ms). Pass a per-session `ttl` override to `controller.create()` when you need a different window for a specific session.
+</ParamField>
+
+<ParamField path="currency" default='"USD"' type="string">
+  Default currency code applied to new Checkout sessions. Individual sessions can override this by passing `currency` to `POST /checkout/sessions`.
+</ParamField>
+
+## Session status flow
+
+| Status | Description |
+| --- | --- |
+| `pending` | Session created, awaiting customer completion |
+| `processing` | Payment is being processed |
+| `completed` | Session marked complete with an `orderId` in sandbox evaluation. This is not a live paid Order. |
+| `expired` | Session TTL elapsed before completion |
+| `abandoned` | Customer left without completing |
+
+```text
+pending → processing → completed
+pending → expired
+pending / processing → abandoned
+```
+
+Call `controller.expireStale()` periodically (for example from a cron job) to transition past-TTL `pending` sessions to `expired`.
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/checkout/sessions` | Create a new Checkout session |
+| `GET` | `/checkout/sessions/:id` | Get a session by ID |
+| `PUT` | `/checkout/sessions/:id/update` | Update addresses, shipping amount, or payment method |
+| `POST` | `/checkout/sessions/:id/discount` | Apply a discount code to the session |
+
+<Note>
+  Checkout is shopper-facing only. This Module has no admin endpoints.
+</Note>
+
+## Components
+
+### CheckoutForm
+
+`CheckoutForm` is the multi-step checkout orchestrator. It renders the active step (information, shipping, payment, or review) alongside the `CheckoutSummary` sidebar. A step indicator shows Shoppers how far along they are. If no session ID is set in `checkoutState`, the component falls back to a "Return to cart" message.
+
+```mdx
+<CheckoutForm />
+```
+
+Place this on your Checkout page. Before the component renders, set `checkoutState.sessionId` to a valid server-created session ID:
+
+```mdx
+{/* templates/<theme>/checkout.mdx */}
+<CheckoutForm />
+```
+
+### CheckoutInformation
+
+Step 1 collects the Shopper's email address and advances to the shipping step on submit.
+
+```mdx
+<CheckoutInformation />
+```
+
+`CheckoutForm` renders this automatically. Use it standalone only if you are building a fully custom checkout layout.
+
+### CheckoutShipping
+
+Step 2 collects the shipping address: first and last name, address lines, city, state, postal code, country, and phone number. On submit it advances to the payment step.
+
+```mdx
+<CheckoutShipping />
+```
+
+### CheckoutPayment
+
+Step 3 confirms the session and creates a payment intent. Its development-only completion path cannot represent live payment. With a configured sandbox provider, it renders that provider's payment UI.
+
+```mdx
+<CheckoutPayment />
+```
+
+### CheckoutReview
+
+Step 4 shows the final order summary: contact information, shipping address, line items, and totals. The review UI exists for sandbox evaluation. **Place order** does not complete a live purchase. Completion and live Payment stay contained.
+
+```mdx
+<CheckoutReview />
+```
+
+### CheckoutSummary
+
+`CheckoutSummary` is the order summary sidebar: line items, subtotal, shipping, tax, discount, and total. It includes forms for applying and removing promo codes and gift cards. `CheckoutForm` renders this sidebar automatically; you can also use it standalone in a custom layout.
+
+```mdx
+<CheckoutSummary />
+```
+
+## Types
+
+```ts
+type CheckoutStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "expired"
+  | "abandoned";
+
+interface CheckoutSession {
+  id: string;
+  cartId?: string;
+  customerId?: string;
+  guestEmail?: string;
+  status: CheckoutStatus;
+  subtotal: number;
+  taxAmount: number;
+  shippingAmount: number;
+  discountAmount: number;
+  total: number;
+  currency: string;
+  discountCode?: string;
+  shippingAddress?: CheckoutAddress;
+  billingAddress?: CheckoutAddress;
+  paymentMethod?: string;
+  orderId?: string;           // set after controller.complete() is called
+  metadata?: Record<string, unknown>;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface CheckoutAddress {
+  firstName: string;
+  lastName: string;
+  company?: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  phone?: string;
+}
+
+interface CheckoutLineItem {
+  productId: string;
+  variantId?: string;
+  name: string;
+  sku?: string;
+  price: number;    // in cents
+  quantity: number;
+}
+```
+
+## Completing a session
+
+In sandbox evaluation, an order-creation flow can link a new Order by calling `complete()`:
+
+```ts
+// Inside your order-creation flow
+const order = await orderController.create(acceptedOrderInput);
+await checkoutController.complete(sessionId, order.id);
+```
+
+This stores the `orderId` on the session. It is not a live Shopper purchase and does not authorize live Payment.
+
+## Discount integration
+
+When the Discounts Module is also enabled, promo codes work at Checkout without extra configuration. A Shopper applies a code, and the Checkout Module validates and applies it through the Discounts Module.
+
+See the [Discounts module reference](/modules/discounts) for the promo code API and the `DiscountController` interface.
+
+## Related pages
+
+- [Payments](/modules/payments)
+- [Orders](/modules/orders)
+- [Tax](/modules/tax)
+- [Shipping](/modules/shipping)
+- [How commerce records relate](/concepts/commerce-model)
+- [How Connections route provider work](/concepts/connections)
+- [86d glossary](/resources/glossary#checkout)
+- [Versioning and maturity](/resources/versioning)

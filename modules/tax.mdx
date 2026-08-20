@@ -1,0 +1,90 @@
+---
+title: "Tax"
+description: "Charge sales tax without a paid provider: current rate records, and the registration-keyed model that replaces them."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This is not an authoritative live Checkout decision. The current calculator does not yet distinguish every defensible zero-tax result from incomplete configuration. See [maturity levels](/resources/versioning).
+</Warning>
+
+The current Tax [Module](/concepts/modules) stores merchant-entered rates, nexus records, categories, and exemptions. From those records it calculates the matching amounts: percentage, fixed, compound, inclusive, and category-specific.
+
+**Source:** [`modules/tax`](https://github.com/86d-app/86d/tree/main/modules/tax) · **npm:** [`@86d-app/tax`](https://www.npmjs.com/package/@86d-app/tax)
+
+## Installation
+
+```sh
+86d module add tax
+```
+
+## Current configuration
+
+Use [Store Admin](/concepts/admin) or the administrative endpoints to create effective rates and nexus records. The current module also accepts `TAXJAR_API_KEY` and `TAXJAR_SANDBOX` for its TaxJar provider path. It does not implement Avalara.
+
+<Warning>
+  A provider package does not make the complete Checkout tax path Stable. Use its sandbox and verify nexus, product treatment, provider failure, and adjustments.
+</Warning>
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/tax/nexus` | List configured nexus records |
+| `POST` | `/admin/tax/nexus/create` | Create a nexus record |
+| `POST` | `/tax/calculate` | Calculate current tax for an address and lines |
+| `GET` | `/tax/rates` | Return rates matching a storefront address |
+
+## Where this is going
+
+Tax is a free capability that runs inside your own [Store Runtime](/concepts/architecture). No paid provider is required to charge tax correctly, and none of your sales data has to leave your Store to work out a rate.
+
+### Configuration is keyed on registrations, not rates
+
+You will not switch tax on state by state. You attest to the states where you actually hold a permit, and those resolve to `COLLECT`. Every state you have not attested to resolves to `NO_NEXUS` and produces no tax line at all.
+
+That direction matters: collecting tax in a state you are not registered in means holding money you have no way to remit. The Feature will not let you do it by accident.
+
+### Each registration states its sourcing rule
+
+The rate depends on which address governs the sale, and states disagree about which one that is.
+
+| Sourcing | Rate comes from |
+| --- | --- |
+| Destination | The delivery address |
+| Origin | Your own location |
+
+Several states are hybrid. Texas sources an online order to the delivery address and a counter sale to the place of business. So sourcing is a property of each registration, not one setting for your whole Store.
+
+### Decisions are explicit
+
+A jurisdiction resolves to `COLLECT`, `NO_NEXUS`, `MARKETPLACE_COLLECTED`, or `BLOCKED`.
+
+A quote returns `CALCULATED`, `NO_NEXUS`, `EXEMPT`, `MARKETPLACE_COLLECTED`, or `REVIEW_REQUIRED`, along with the policy and data versions it used.
+
+Missing configuration, stale rate data, an unknown product treatment, an address that cannot be resolved, or a failed optional provider all produce `REVIEW_REQUIRED`. None of them produces a zero.
+
+That is the whole point. A silent zero looks identical to a legitimate exemption right up until an audit, so [Checkout](/modules/checkout) will stop, or save a non-binding [Checkout Request](/resources/glossary#checkout-request), rather than guess.
+
+### Where rates come from
+
+Three sources sit behind one capability, in order of trust:
+
+1. **A state's own published rate file.** Authoritative and free.
+2. **The Streamlined Sales Tax pool.** The same thing for member states, in one standard format.
+3. **Rates you supply yourself,** for a state that publishes nothing convenient.
+
+Merchant-supplied data carries lower trust than a state's own file even when both key on ZIP code, because the state stands behind its boundary mapping and you do not.
+
+A third-party provider such as TaxJar stays an optional [Integration](/concepts/connections) you bring and pay for, behind this same capability. Swapping providers is an adapter change, not a migration.
+
+### What stays yours
+
+86d does not determine your nexus, file your returns, or remit anything. Registering, filing, and remitting are yours. This Feature calculates from rules you approved and tells you when it cannot.
+
+## Related pages
+
+- [Checkout](/modules/checkout)
+- [Shipping](/modules/shipping)
+- [Orders](/modules/orders)
+- [How commerce records relate](/concepts/commerce-model)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

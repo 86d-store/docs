@@ -1,0 +1,69 @@
+---
+title: "Public Beta status"
+description: "What is open to try, what is deliberately blocked, and why open signup does not mean production-ready."
+sidebarTitle: "Public Beta status"
+---
+
+<Warning>
+  **In development.** Signup is open. That is a decision about access, not a claim about readiness. See [maturity levels](/resources/versioning).
+</Warning>
+
+86d is in Public Beta, which means anyone can register and evaluate it without asking permission or joining a list. It does not mean any [Feature](/resources/glossary#feature), [Integration](/concepts/connections), or [Module](/concepts/modules) is ready for real money.
+
+Those two things get conflated constantly. Keeping them apart is the point of this page.
+
+## Three separate things
+
+| | What it means |
+| --- | --- |
+| **Public Beta access** | You can register and evaluate what is available. No waitlist. It says nothing about the trial being active or a capability being ready |
+| **Capability maturity** | Each versioned capability earns Experimental, Beta, Stable, or Deprecated on its own evidence |
+| **Marketed launch** | The complete merchant path has passed its production checks and external approvals |
+
+Public Beta can run for a long time before a marketed launch. One capability reaching Stable makes no other capability Stable.
+
+## Where each surface stands
+
+| Surface | Status | What that means for you |
+| --- | --- | --- |
+| Registration and 86d Console | Public Beta | Managed lifecycle and billing behave as in-development wherever the interface says so |
+| 86d Cloud offer | In development | The plan catalog and Balance exist. The published trial and plans cannot be activated yet |
+| First-party Modules | Experimental | All 101 registry entries need explicit naming and an advanced opt-in |
+| Third-party payment providers | Experimental | Sandbox accounts only. Verify signed events, retries, and server-owned totals yourself |
+| 86d Payments | In development | No live activation until provider approval, complete operations, and production evidence exist |
+| Remote OAuth MCP | In development | The [Docs MCP server](/resources/mcp) is read-only and cannot touch a Store |
+
+See [86d Cloud plans](/resources/cloud-plans), [Set up a payment provider](/guides/payment-integrations), and [How agents work with 86d](/concepts/agentic-design).
+
+## What stays blocked, on purpose
+
+Some paths fail closed rather than working badly. A live path is blocked while any required step can:
+
+- accept a provider event that is unsigned or otherwise unauthenticated
+- trust a money value that came from a Shopper's browser
+- skip a required tax decision or Shipping quote
+- report success while a required provider is unreachable, or while the outcome is genuinely unknown
+- repeat an Order, Payment, label, notification, or ledger entry after a retry
+
+Preview, sandbox operation, and non-binding [Checkout Requests](/resources/glossary#checkout-request) stay available where they are implemented. None of that makes anything Stable.
+
+Open signup is not permission to expose a known-unsafe money path. When a defect in that list is found, the capability goes back behind the wall until it is fixed and tested, whatever that costs.
+
+## Before you enable something
+
+1. Check its maturity and how it gets admitted.
+2. Check which providers it needs and in which mode.
+3. Read its authentication, webhook, retry, and failure behavior.
+4. Look for its test and production evidence.
+5. Have a way to recover the Store and its data.
+
+Every first-party Module currently publishes as Experimental with no recorded evidence, so step four has one answer today. [Versioning and maturity](/resources/versioning) has the exact admission rules.
+
+## Related pages
+
+- [Versioning and maturity](/resources/versioning)
+- [86d Cloud plans](/resources/cloud-plans)
+- [What launch evidence means](/operations/launch-evidence)
+- [How 86d separates product authority](/concepts/architecture)
+- [Set up a payment provider](/guides/payment-integrations)
+- [How agents work with 86d](/concepts/agentic-design)

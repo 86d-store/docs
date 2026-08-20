@@ -1,0 +1,125 @@
+---
+title: "Store Admin"
+description: "The merchant interface inside one Store Runtime at /admin, how enabled Modules add pages to it, and what its API expects."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+[Store Admin](/resources/glossary#store-admin) is where you run one Store. It lives at `/admin` inside the [Store Runtime](/concepts/architecture) itself, which means it works whether or not you use the managed product, and it keeps working if 86d.app is down.
+
+Do not confuse it with [86d Console](/resources/glossary#86d-console). Console is where you manage Businesses, Store records, billing, and deployments across the managed product. Store Admin is where you manage the actual Store: Products, Orders, Customers, content. Different surfaces, different authorities, both yours.
+
+An unauthenticated request to `/admin` redirects to `/auth/signin`.
+
+## Signing in
+
+If you seeded demo data, use the credentials you set during `86d init`. The defaults are `admin@example.com` and `password123`.
+
+<Warning>
+  Change that password before the Store is reachable from the internet. The default is printed in these docs, which is exactly as safe as it sounds.
+</Warning>
+
+## The sidebar builds itself
+
+Navigation has two levels. Nine top-level groups are fixed; the subgroups under them come from whatever [Modules](/concepts/modules) you enabled.
+
+| Group | Example subgroups |
+| --- | --- |
+| **Catalog** | Products, Categories, Collections, Brands |
+| **Sales** | Orders, Cart, Billing, Scheduling, Promotions, Add-ons |
+| **Customers** | Customer list, Groups, Saved addresses |
+| **Fulfillment** | Shipping, Returns, Delivery slots, Pickups |
+| **Marketing** | Newsletter, Blog, Affiliates, Loyalty, Referrals |
+| **Content** | Publishing, Knowledge, Site |
+| **Finance** | Gateways, Configuration |
+| **Support** | Helpdesk, Messaging |
+| **System** | Monitoring, Tools |
+
+Each Module declares the `group` and optional `subgroup` its pages belong to, and the sidebar registry places them. `@86d-app/orders` lands under **Sales → Orders**. `@86d-app/blog` lands under **Marketing → Publishing**. There is no navigation config file for you to maintain, and no way for two Modules to fight over a slot.
+
+The page you are on expands its parent group and subgroup, so you always know where you are.
+
+<Info>
+  Group and subgroup collapse states persist in `localStorage` under `86d-admin-sidebar-collapsed`, so your sidebar survives reloads and browser restarts.
+</Info>
+
+## Uploading files
+
+Product images, blog media, and other assets go through one endpoint:
+
+```text
+POST /api/upload
+```
+
+<AccordionGroup>
+  <Accordion title="Accepted file types">
+    | Type | Formats |
+    | --- | --- |
+    | Images | JPEG, PNG, WebP, GIF, SVG |
+    | Documents | PDF |
+  </Accordion>
+
+  <Accordion title="Size limits">
+    | Type | Limit |
+    | --- | --- |
+    | Images | 4.5 MB |
+    | PDFs | 10 MB |
+  </Accordion>
+
+  <Accordion title="What gets checked">
+    Every file is validated against its magic bytes, so renaming a script to `.png` does not get it past the door. SVG files are additionally scanned for embedded scripts, event handlers, and `javascript:` URIs before they are accepted.
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  Upload and delete are both admin-only, and delete checks Store isolation, so one Store cannot remove another Store's files. Unauthenticated requests are rejected outright.
+</Warning>
+
+## Admin API limits
+
+Admin endpoints under `/api/admin/...` allow **300 requests per minute per signed-in user**. That is higher than the public limit because a merchant clicking through screens is not a scraper.
+
+Going over returns HTTP `429` with `Retry-After` and `X-RateLimit-Reset` headers, and this body:
+
+```json
+{
+  "error": {
+    "code": "TOO_MANY_REQUESTS",
+    "message": "Rate limit exceeded. Please slow down."
+  }
+}
+```
+
+Every admin error uses that same `{ error: { code, message } }` envelope. If you are writing an agent against Store Admin, branch on `error.code`, not on the message text.
+
+## Getting oriented
+
+<Steps>
+  <Step title="Sign in">
+    Go to `/admin`. If you are not authenticated you land on `/auth/signin`.
+  </Step>
+  <Step title="Read the overview">
+    The home screen pulls stat cards from `/api/admin/products` and `/api/admin/categories`, so it shows what your enabled Modules actually know.
+  </Step>
+  <Step title="Find a Module's pages">
+    Use the two-level sidebar. Expand a group, then pick a subgroup or page.
+  </Step>
+  <Step title="Manage Products">
+    Under **Catalog**, the Products section handles search, status filtering, pagination, create, edit, and delete. Slugs generate themselves.
+  </Step>
+</Steps>
+
+<Tip>
+  On a phone the sidebar collapses into a menu with the same two-level structure. Nothing is hidden on mobile that is available on desktop.
+</Tip>
+
+## Related pages
+
+- [Authentication](/configuration/authentication) for sessions, roles, and managed sign-in
+- [Secure a Store Runtime](/operations/security)
+- [How Modules package Store capabilities](/concepts/modules)
+- [Storefront](/concepts/storefront) for the Shopper side
+- [How 86d separates product authority](/concepts/architecture)
+- [Glossary](/resources/glossary)

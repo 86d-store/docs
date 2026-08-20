@@ -1,0 +1,89 @@
+---
+title: "Connect a sales channel"
+description: "Work out how much a channel actually commits you to, then test the operations that category demands before you rely on it."
+sidebarTitle: "Channel integrations"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+Selling somewhere else is not one decision. A Pinterest link that sends Shoppers to your [Storefront](/concepts/storefront) commits you to almost nothing. A marketplace that lists your catalog, takes the money, and promises a delivery date commits you to keeping two systems agreeing about stock forever. Same word, wildly different risk.
+
+Work out which category you are in first. Then test what that category requires.
+
+## Six categories
+
+| Category | What it does | What you have to prove |
+| --- | --- | --- |
+| Discovery | Sends Shoppers to your Storefront | Links resolve, campaign attribution is right, disclosure is present |
+| Publishing | Posts content you wrote | Review before posting, provider authorization, retry, audit trail |
+| Product feed | Exports catalog facts you approved | Versioning, regeneration, pause, validation, visible failures |
+| Marketplace | Lists, sells, and fulfills on another platform | Listings, [Inventory](/modules/inventory), [Orders](/modules/orders), refunds, [Fulfillment](/modules/fulfillment), provider events, reconciliation |
+| Delivery | Satisfies a physical Fulfillment | Quote, dispatch, cancellation, tracking, adjustment, proof of delivery |
+| Point of sale | Runs in-person commerce | Catalog, Inventory, [Payment](/modules/payments), Order, and what happens when the terminal goes offline |
+
+One provider offering four products does not mean one evaluation. Test each capability separately.
+
+## Authority does not move
+
+A channel [Integration](/concepts/connections) can read and write, and it never becomes the authority for anything:
+
+- Products owns your catalog facts
+- Inventory owns what is available
+- Order owns the commercial agreement
+- Fulfillment owns delivery obligations
+- [Shipping](/modules/shipping) owns Parcels and tracking
+- A Payment routes through the Connection recorded on it
+
+If a marketplace says you sold three and your Inventory says you have five, your Inventory is what the next Shopper sees. Reconciliation is a real job, not a setting.
+
+Credentials belong in server-side storage. Today Integrations read provider-specific environment variables; persistent, scoped [Connection records](/concepts/connections) are still being built.
+
+## Read the Module first
+
+Confirm the [Module](/concepts/modules) exists in the [first-party registry](https://github.com/86d-app/86d/blob/main/apps/registry/registry.json), then check:
+
+- which provider API version it targets, and how it authenticates
+- which scopes it needs, and whether the provider has to approve your account first
+- what it actually implements, and what it openly does not
+- whether provider events are authenticated and deduplicated
+- how it behaves on retry after an ambiguous write
+- whether its tests use realistic provider fixtures or hand-written happy paths
+- what it depends on: Products, Inventory, Orders, Fulfillment, Shipping
+
+The [Module catalog](/modules/overview) links every first-party package and its source.
+
+## Install one
+
+Only the one you are evaluating:
+
+```bash
+86d module add ebay
+86d generate
+```
+
+Use a provider test account wherever one exists. Secrets go in the server environment, never in `config.json`, a [Template](/concepts/templates), a log, or a browser variable.
+
+## Break it on purpose
+
+Write down what you expect, then cause each of these and see what actually happens:
+
+1. credentials that are invalid or revoked
+2. a missing permission scope
+3. the same provider event delivered twice
+4. a timeout right after a write, when you cannot tell whether it landed
+5. an Inventory update that arrives out of order
+6. an Order cancelled after part of it already shipped
+7. a refund the provider reverses later
+
+Until every one of those leaves your Store's records correct and shows you a state you can recover from, the Integration is not ready, whatever the sandbox says.
+
+## Related pages
+
+- [How Connections route provider work](/concepts/connections)
+- [How commerce records relate](/concepts/commerce-model)
+- [Module catalog](/modules/overview)
+- [Versioning and maturity](/resources/versioning)
+- [Secure a Store Runtime](/operations/security)
+- [Glossary](/resources/glossary#channel)

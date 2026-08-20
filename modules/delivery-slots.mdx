@@ -1,0 +1,42 @@
+---
+title: "Delivery slots"
+description: "Scheduled delivery time windows for 86d. Restrict capacity per slot and let Shoppers pick a slot at Checkout."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Delivery Slots [Module](/concepts/modules) lets a [Shopper](/resources/glossary#shopper) pick a scheduled delivery window at [Checkout](/concepts/commerce-model). Each slot has a date, a time range, and a capacity; once capacity fills, the slot becomes unavailable. Grocery stores, florists, and other local-delivery businesses are the typical fit.
+
+**Source:** [`modules/delivery-slots`](https://github.com/86d-app/86d/tree/main/modules/delivery-slots) · **npm:** [`@86d-app/delivery-slots`](https://www.npmjs.com/package/@86d-app/delivery-slots)
+
+## Installation
+
+```sh
+86d module add delivery-slots
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/delivery-slots?date=` | Available slots for a given date |
+| `POST` | `/delivery-slots/:id/reserve` | Reserve a slot during Checkout |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/delivery-slots/templates` | Define recurring slot templates |
+| `GET` | `/admin/delivery-slots` | View capacity and reservations |
+
+## Related pages
+
+- [Store pickup](/modules/store-pickup)
+- [Shipping](/modules/shipping)
+- [Checkout](/modules/checkout)
+- [How commerce records relate](/concepts/commerce-model)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

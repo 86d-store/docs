@@ -1,0 +1,39 @@
+---
+title: "Braintree"
+description: "Evaluate the Experimental Braintree Integration for 86d.store: GraphQL and REST APIs, refunds, and webhook notifications."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** Use sandbox credentials and verify authorization, settlement, refund, invalid-signature, and duplicate-event behavior before wider testing. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Braintree [Module](/concepts/modules) implements the current `PaymentProvider` interface from the [Payments Module](/modules/payments) using Braintree's GraphQL and REST APIs. Its [Webhook](/resources/glossary#webhook) handles Braintree's `bt_signature` and `bt_payload` notification format.
+
+**Source:** [`modules/braintree`](https://github.com/86d-app/86d/tree/main/modules/braintree) · **npm:** [`@86d-app/braintree`](https://www.npmjs.com/package/@86d-app/braintree)
+
+## Installation
+
+```sh
+86d module add braintree payments
+```
+
+## Configuration
+
+Add the Module to `config.json`, then set the `BRAINTREE_*` environment variables. Do not put the private key in source or `config.json`. See [Environment variables](/configuration/environment-variables).
+
+## Webhook setup
+
+In the [Braintree Control Panel](https://www.braintreegateway.com/login), go to **Settings -> Webhooks** and create a webhook for `transaction_settled` and `transaction_settlement_declined` pointing at:
+
+```text
+POST https://your-store.com/api/braintree/webhook
+```
+
+## Related pages
+
+- [Payments](/modules/payments)
+- [Set up a payment provider](/guides/payment-integrations)
+- [How Connections route provider work](/concepts/connections)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

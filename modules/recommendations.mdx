@@ -1,0 +1,50 @@
+---
+title: "Recommendations"
+description: "Personalized product recommendations powered by OpenAI, Gemini, or OpenRouter, with a rule-based fallback when no AI key is configured."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Recommendations [Module](/concepts/modules) suggests products tailored to each [Shopper](/resources/glossary#shopper). With an LLM key configured (`OPENAI_API_KEY`, `GEMINI_API_KEY`, or `OPENROUTER_API_KEY`), recommendations come from embeddings plus the Shopper's recently viewed products and [Order](/concepts/commerce-model) history. The [Search](/modules/search) Module shares the embeddings backend when both Modules are configured. Without a key, the Module falls back to rules: shared category, shared tags, and co-purchase frequency.
+
+**Source:** [`modules/recommendations`](https://github.com/86d-app/86d/tree/main/modules/recommendations) · **npm:** [`@86d-app/recommendations`](https://www.npmjs.com/package/@86d-app/recommendations)
+
+## Installation
+
+```sh
+86d module add recommendations
+```
+
+## Configuration
+
+```ts
+recommendations({
+  provider: "openai",       // "openai" | "gemini" | "openrouter" | "rule-based"
+  model: "gpt-4o-mini",
+  cacheMinutes: "60",
+});
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/recommendations/for-product/:id` | "Customers also liked" for a product |
+| `GET` | `/recommendations/for-customer` | Personalized for the authenticated Shopper |
+| `GET` | `/recommendations/trending` | Trending products globally |
+
+## Components
+
+- `<ProductRecommendations productId={id} />`: drop on product detail pages.
+- `<PersonalizedShelf />`: home or account-page shelf.
+- `<TrendingProducts />`: editorial shelf.
+
+## Related pages
+
+- [Recently viewed](/modules/recently-viewed)
+- [Search](/modules/search)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

@@ -1,0 +1,42 @@
+---
+title: "Revenue"
+description: "Current Experimental reporting over local Payment intents, with Store Admin statistics, transaction lists, and CSV export."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module does not aggregate provider settlements, payouts, complete Order revenue, channels, or product performance. Its output is a projection of current Payment intent records and is not a settlement or accounting ledger. See [maturity levels](/resources/versioning).
+</Warning>
+
+The current Revenue [Module](/concepts/modules) reads local [Payment](/concepts/commerce-model) intents through the [Payments](/modules/payments) controller. It calculates volume, count, average value, status counts, and basic refund figures for a date range. You can also page through transaction records and export them as CSV.
+
+**Source:** [`modules/revenue`](https://github.com/86d-app/86d/tree/main/modules/revenue) · **npm:** [`@86d-app/revenue`](https://www.npmjs.com/package/@86d-app/revenue)
+
+## Installation
+
+```sh
+86d module add revenue
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/revenue/stats` | Payment-intent statistics for a date range |
+| `GET` | `/admin/revenue/transactions` | Paginated transaction ledger |
+| `GET` | `/admin/revenue/export` | CSV export of filtered Payment intents |
+
+## Store endpoint
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/revenue/transactions` | List the authenticated Customer's Payment intent records |
+
+## Related pages
+
+- [Payments](/modules/payments)
+- [Orders](/modules/orders)
+- [Storefront Analytics](/modules/analytics)
+- [Audit log](/modules/audit-log)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

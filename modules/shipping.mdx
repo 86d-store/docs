@@ -1,0 +1,49 @@
+---
+title: "Shipping"
+description: "Evaluate current Experimental Shipping zones, rate records, and live-carrier code."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module does not establish a complete production path for quotes, labels, refunds, tracking, and postage adjustments. Use it for local or sandbox evaluation. See [maturity levels](/resources/versioning).
+</Warning>
+
+The current Shipping [Module](/concepts/modules) lets you configure zones and their rates: flat, weight-based, price-based, or live-carrier. [Checkout](/concepts/commerce-model) can request matching rates during a purchase.
+
+See [How commerce records relate](/concepts/commerce-model) for the Shipping and Fulfillment boundary.
+
+**Source:** [`modules/shipping`](https://github.com/86d-app/86d/tree/main/modules/shipping) · **npm:** [`@86d-app/shipping`](https://www.npmjs.com/package/@86d-app/shipping)
+
+## Installation
+
+```sh
+86d module add shipping
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/shipping/calculate` | Calculate configured rates for a destination and Order values |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/shipping/zones` | List zones |
+| `POST` | `/admin/shipping/zones/create` | Create a zone |
+| `POST` | `/admin/shipping/zones/:id/rates/add` | Add a rate to a zone |
+
+## Live carrier rates
+
+The repository contains provider code for live rate evaluation. Quotes exist for USPS Priority Mail evaluation. Label purchase, `buyShipment`, mutating webhooks, and refunds remain unavailable. Use sandbox credentials only: a provider package or a successful API response does not establish Stable behavior for quoting, label purchase, refunds, tracking, webhooks, or postage adjustments.
+
+## Related pages
+
+- [Fulfillment](/modules/fulfillment)
+- [Checkout](/modules/checkout)
+- [Tax](/modules/tax)
+- [How commerce records relate](/concepts/commerce-model)
+- [How Connections route provider work](/concepts/connections)
+- [86d glossary](/resources/glossary#shipping)
+- [Versioning and maturity](/resources/versioning)

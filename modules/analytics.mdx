@@ -1,0 +1,37 @@
+---
+title: "Storefront Analytics"
+description: "Merchant-owned Storefront event projections for funnel, product, search, and revenue reporting in the Store Runtime."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** Browser events are reporting input, never commerce truth. They cannot create or change GMV, revenue, Inventory, Loyalty, Payment, Checkout, or Order facts. Build authoritative reports from the server-side domains that own those facts. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Storefront Analytics [Module](/concepts/modules) records browser events in the [Store Runtime](/concepts/architecture) database: page views, product views, add-to-cart actions, [Checkout](/concepts/commerce-model) starts, and reported purchases. It builds merchant-owned funnel, product, search, and revenue projections from those events and can feed your [Third-party Analytics](/resources/glossary#third-party-analytics) Integrations.
+
+This Module is Experimental. It is separate from [86d Observability](/resources/glossary#86d-observability), which covers 86d.app and managed-service health and errors, and from your own Third-party Analytics [Integrations](/concepts/connections) such as GA4 or a tag manager.
+
+**Source:** [`modules/analytics`](https://github.com/86d-app/86d/tree/main/modules/analytics) · **npm:** [`@86d-app/analytics`](https://www.npmjs.com/package/@86d-app/analytics)
+
+## Installation
+
+```sh
+86d module add analytics
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/analytics/funnel` | Funnel for a date range |
+| `GET` | `/admin/analytics/stats` | Event statistics for a date range |
+| `GET` | `/admin/analytics/top-products` | Top products from recorded events |
+
+## Related pages
+
+- [Audit log](/modules/audit-log) for records of store administrative actions
+- [Observe a Store Runtime](/operations/observability) for 86d Observability and Store Runtime error reporting
+- [How commerce records relate](/concepts/commerce-model) for the server-side owners of revenue and Order truth
+- [Versioning and maturity](/resources/versioning) for what Experimental means
+- [Glossary](/resources/glossary)

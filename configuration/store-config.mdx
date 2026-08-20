@@ -1,0 +1,295 @@
+---
+title: "config.json reference"
+description: "Every field in a Template's config.json: branding, which Modules are on, per-Module options, and color tokens."
+sidebarTitle: "config.json"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+Every [Template](/concepts/templates) carries a `config.json`. It sets your Store's branding, which [Modules](/concepts/modules) are on, the options those Modules receive, and the color tokens. Commerce data is not in here: prices, stock, and Orders live in the [Store Runtime](/concepts/architecture) database, so nothing you type in this file can change what a Shopper is charged.
+
+Run `86d generate` after every edit.
+
+## Where it lives
+
+```text
+templates/
+  brisa/
+    config.json
+```
+
+The starter is at `templates/brisa/config.json`. Your own Template uses the same filename under its own directory.
+
+## Top-level fields
+
+<ParamField body="theme" type="string" required>
+  The Template this config belongs to. Must match the directory name under `templates/`. The starter uses `"brisa"`.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Your Store's display name. It shows in the [Storefront](/concepts/storefront) navigation, the [Store Admin](/concepts/admin) header, and email templates.
+</ParamField>
+
+<ParamField body="favicon" type="string" required>
+  Root-relative path to your favicon, for example `"/assets/favicon.svg"`. SVG works.
+</ParamField>
+
+<ParamField body="icon" type="object" required>
+  Your square mark with no wordmark, used where space is tight such as a mobile menu. Supply light and dark versions.
+
+  <Expandable title="icon properties">
+    <ParamField body="icon.light" type="string" required>
+      Path to the icon used in light mode, for example `"/assets/icon/light.svg"`.
+    </ParamField>
+
+    <ParamField body="icon.dark" type="string" required>
+      Path to the icon used in dark mode, for example `"/assets/icon/dark.svg"`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="logo" type="object" required>
+  Your full logo with wordmark, shown in the navbar and footer. Supply light and dark versions.
+
+  <Expandable title="logo properties">
+    <ParamField body="logo.light" type="string" required>
+      Path to the logo used in light mode, for example `"/assets/logo/light.svg"`.
+    </ParamField>
+
+    <ParamField body="logo.dark" type="string" required>
+      Path to the logo used in dark mode, for example `"/assets/logo/dark.svg"`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="modules" type="string | string[]">
+  Which Modules are on.
+
+  - An explicit array of package names enables exactly those Modules.
+  - `"*"` discovers the catalog but admits no Experimental Modules.
+
+  Leaving the field out behaves like `"*"`. Since every first-party Module is currently Experimental, that means nothing loads.
+</ParamField>
+
+<ParamField body="advanced" type="object">
+  Versioned consent for advanced behavior. The resolver recognizes `version: 1` with `allowExperimentalModules: true`.
+</ParamField>
+
+<ParamField body="moduleOptions" type="object">
+  Per-Module settings, keyed by package name. Each Module defines its own options, listed on its reference page.
+
+  ```json
+  "moduleOptions": {
+    "@86d-app/cart": {
+      "guestCartExpiration": 604800000,
+      "maxItemsPerCart": 100
+    }
+  }
+  ```
+</ParamField>
+
+<ParamField body="variables" type="object" required>
+  OKLCH color tokens, applied as CSS custom properties for light and dark mode. Every supported key is listed under [Color tokens](#color-tokens).
+
+  <Expandable title="variables properties">
+    <ParamField body="variables.light" type="object" required>
+      Token values applied in light mode.
+    </ParamField>
+
+    <ParamField body="variables.dark" type="object" required>
+      Token values applied in dark mode.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Turning on an Experimental Module
+
+Every first-party registry entry is Experimental right now. To load one, name it in `modules` and add the versioned opt-in:
+
+```json templates/<theme>/config.json
+{
+  "modules": [
+    "@86d-app/cart",
+    "@86d-app/products"
+  ],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+The resolver fails closed when the opt-in is missing, carries the wrong version, or sets the flag to `false`. `"modules": "*"` and an omitted `modules` field discover the catalog, and no amount of advanced flagging makes either form admit Experimental code. Deprecated entries cannot be newly enabled at all.
+
+## Color tokens
+
+Colors are [OKLCH](https://oklch.com/) values. OKLCH is perceptually uniform, so the same lightness change looks like the same change across every hue. Each token becomes a CSS custom property on `:root`, such as `--background` or `--primary`.
+
+Define `variables.light` and `variables.dark` separately. These are the tokens:
+
+| Token | Description |
+| --- | --- |
+| `radius` | Border radius for cards and inputs (for example `"0.5rem"`). Light mode only. |
+| `background` | Page background |
+| `foreground` | Default text color |
+| `card` | Card surface background |
+| `card-foreground` | Text on card surfaces |
+| `popover` | Popover and dropdown background |
+| `popover-foreground` | Text inside popovers |
+| `primary` | Primary action color (buttons, links) |
+| `primary-foreground` | Text on primary backgrounds |
+| `secondary` | Secondary surface color |
+| `secondary-foreground` | Text on secondary surfaces |
+| `muted` | Subtle background for de-emphasized content |
+| `muted-foreground` | Text inside muted areas |
+| `accent` | Hover and highlight accent surface |
+| `accent-foreground` | Text inside accent areas |
+| `destructive` | Destructive action color (delete buttons, error states) |
+| `border` | Default border color |
+| `input` | Input field border and background tint |
+| `ring` | Focus ring color |
+| `chart-1` to `chart-5` | Chart series colors |
+| `sidebar` | Store Admin sidebar background |
+| `sidebar-foreground` | Text in the sidebar |
+| `sidebar-primary` | Active item highlight in the sidebar |
+| `sidebar-primary-foreground` | Text on active sidebar items |
+| `sidebar-accent` | Hover surface inside the sidebar |
+| `sidebar-accent-foreground` | Text on hovered sidebar items |
+| `sidebar-border` | Sidebar border color |
+| `sidebar-ring` | Focus ring inside the sidebar |
+
+<Tip>
+  [oklch.com](https://oklch.com/) lets you pick colors visually and copy the values straight into this file.
+</Tip>
+
+## A complete example
+
+This shows the shape of every field, with the Module list cut down to two packages:
+
+<Warning>
+  The starter names all 101 first-party packages pinned in `registry.lock.json` and opts into their Experimental maturity. Cut that list down to what you actually sell with before this Store leaves your machine. Every Module you leave in is code running in your Store.
+</Warning>
+
+```json templates/<theme>/config.json
+{
+  "theme": "brisa",
+  "name": "86d Starter Kit",
+  "favicon": "/assets/favicon.svg",
+  "icon": {
+    "light": "/assets/icon/light.svg",
+    "dark": "/assets/icon/dark.svg"
+  },
+  "logo": {
+    "light": "/assets/logo/light.svg",
+    "dark": "/assets/logo/dark.svg"
+  },
+  "modules": [
+    "@86d-app/cart",
+    "@86d-app/products"
+  ],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  },
+  "moduleOptions": {
+    "@86d-app/cart": {
+      "guestCartExpiration": 604800000,
+      "maxItemsPerCart": 100
+    }
+  },
+  "variables": {
+    "light": {
+      "radius": "0.5rem",
+      "background": "oklch(0.995 0 0)",
+      "foreground": "oklch(0.13 0.005 285)",
+      "card": "oklch(1 0 0)",
+      "card-foreground": "oklch(0.13 0.005 285)",
+      "popover": "oklch(1 0 0)",
+      "popover-foreground": "oklch(0.13 0.005 285)",
+      "primary": "oklch(0.18 0.005 285)",
+      "primary-foreground": "oklch(0.985 0 0)",
+      "secondary": "oklch(0.965 0.002 285)",
+      "secondary-foreground": "oklch(0.18 0.005 285)",
+      "muted": "oklch(0.965 0.002 285)",
+      "muted-foreground": "oklch(0.5 0.01 285)",
+      "accent": "oklch(0.96 0.003 285)",
+      "accent-foreground": "oklch(0.18 0.005 285)",
+      "destructive": "oklch(0.577 0.245 27.325)",
+      "border": "oklch(0.915 0.004 285)",
+      "input": "oklch(0.915 0.004 285)",
+      "ring": "oklch(0.7 0.01 285)",
+      "chart-1": "oklch(0.646 0.222 41.116)",
+      "chart-2": "oklch(0.6 0.118 184.704)",
+      "chart-3": "oklch(0.398 0.07 227.392)",
+      "chart-4": "oklch(0.828 0.189 84.429)",
+      "chart-5": "oklch(0.769 0.188 70.08)",
+      "sidebar": "oklch(0.985 0 0)",
+      "sidebar-foreground": "oklch(0.13 0.005 285)",
+      "sidebar-primary": "oklch(0.18 0.005 285)",
+      "sidebar-primary-foreground": "oklch(0.985 0 0)",
+      "sidebar-accent": "oklch(0.965 0.002 285)",
+      "sidebar-accent-foreground": "oklch(0.18 0.005 285)",
+      "sidebar-border": "oklch(0.915 0.004 285)",
+      "sidebar-ring": "oklch(0.7 0.01 285)"
+    },
+    "dark": {
+      "background": "oklch(0.12 0.005 285)",
+      "foreground": "oklch(0.96 0.005 285)",
+      "card": "oklch(0.16 0.005 285)",
+      "card-foreground": "oklch(0.96 0.005 285)",
+      "popover": "oklch(0.18 0.005 285)",
+      "popover-foreground": "oklch(0.96 0.005 285)",
+      "primary": "oklch(0.92 0.005 285)",
+      "primary-foreground": "oklch(0.16 0.005 285)",
+      "secondary": "oklch(0.22 0.005 285)",
+      "secondary-foreground": "oklch(0.96 0.005 285)",
+      "muted": "oklch(0.22 0.005 285)",
+      "muted-foreground": "oklch(0.62 0.01 285)",
+      "accent": "oklch(0.28 0.005 285)",
+      "accent-foreground": "oklch(0.96 0.005 285)",
+      "destructive": "oklch(0.704 0.191 22.216)",
+      "border": "oklch(1 0 0 / 8%)",
+      "input": "oklch(1 0 0 / 12%)",
+      "ring": "oklch(0.5 0.01 285)",
+      "chart-1": "oklch(0.488 0.243 264.376)",
+      "chart-2": "oklch(0.696 0.17 162.48)",
+      "chart-3": "oklch(0.769 0.188 70.08)",
+      "chart-4": "oklch(0.627 0.265 303.9)",
+      "chart-5": "oklch(0.645 0.246 16.439)",
+      "sidebar": "oklch(0.16 0.005 285)",
+      "sidebar-foreground": "oklch(0.96 0.005 285)",
+      "sidebar-primary": "oklch(0.488 0.243 264.376)",
+      "sidebar-primary-foreground": "oklch(0.96 0.005 285)",
+      "sidebar-accent": "oklch(0.22 0.005 285)",
+      "sidebar-accent-foreground": "oklch(0.96 0.005 285)",
+      "sidebar-border": "oklch(1 0 0 / 8%)",
+      "sidebar-ring": "oklch(0.4 0.01 285)"
+    }
+  }
+}
+```
+
+## Applying a change
+
+Regenerate the Module imports and API router:
+
+```bash
+86d generate
+```
+
+`bun run dev` picks up the result without a restart.
+
+<Info>
+  On a [Managed Deployment](/resources/glossary#86d-cloud), the complete `86D_STORE_ID`, `86D_API_URL`, and `86D_WORKLOAD_CREDENTIAL` trio wins: configuration is fetched from the Control Plane with a short-lived scoped token, and a failed exchange or fetch stops the boot rather than falling back to this file. Setting `STORE_ID` on a Store you host yourself does not replace your local `config.json`.
+</Info>
+
+## Related pages
+
+- [Environment variables](/configuration/environment-variables)
+- [Customize a Template](/guides/customizing-templates)
+- [Templates](/concepts/templates)
+- [How Modules package Store capabilities](/concepts/modules)
+- [CLI command reference](/cli/commands)
+- [Glossary](/resources/glossary)

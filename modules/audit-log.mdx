@@ -1,0 +1,41 @@
+---
+title: "Audit log"
+description: "What the Experimental Audit Log Module records today, and why you should not assume automatic capture or tamper evidence."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module does not automatically capture every [Store Admin](/concepts/admin) mutation, does not hash-chain entries, and does not serve a chain-verification endpoint. Do not describe it as tamper-evident or use it as compliance evidence without additional controls. See [maturity levels](/resources/versioning).
+</Warning>
+
+The current Audit Log [Module](/concepts/modules) stores ordinary activity records. Each entry carries an action, a resource, actor fields, a description, changes, metadata, network context, and a timestamp. Other code must create those records explicitly.
+
+**Source:** [`modules/audit-log`](https://github.com/86d-app/86d/tree/main/modules/audit-log) · **npm:** [`@86d-app/audit-log`](https://www.npmjs.com/package/@86d-app/audit-log)
+
+## Installation
+
+```sh
+86d module add audit-log
+```
+
+## Current Store Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/audit-log/entries` | List and filter recorded entries |
+| `GET` | `/admin/audit-log/entries/:id` | Read one entry |
+| `GET` | `/admin/audit-log/resource/:resource/:resourceId` | Read recorded history for one resource |
+| `GET` | `/admin/audit-log/actor/:actorId` | Read recorded history for one actor |
+| `GET` | `/admin/audit-log/summary` | Summarize recorded entries |
+| `POST` | `/admin/audit-log/purge` | Purge entries under the endpoint's retention rules |
+
+## Maturity requirements
+
+To reach Stable, the server must author each entry's actor, authority, target, action, outcome, and timestamp. Access controls and retention need tests of their own. Audit records explain actions; they never become a second source of commerce truth.
+
+## Related pages
+
+- [Secure a Store Runtime](/operations/security) for access control expectations
+- [How agents work with 86d](/concepts/agentic-design) for planned agent operations and their audit trail
+- [Versioning and maturity](/resources/versioning) for what Experimental means
+- [Glossary](/resources/glossary)

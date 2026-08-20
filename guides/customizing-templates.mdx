@@ -1,0 +1,187 @@
+---
+title: "Customize a Template"
+description: "Change your Store's name, colors, logo, and page layouts by editing MDX files and config.json. No build tooling involved."
+sidebarTitle: "Customize a Template"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+A [Template](/concepts/templates) controls everything a Shopper sees: the layout, the palette, the type, the content of every page, and the marks in your header and footer. It is a folder of MDX files and one `config.json`. Editing your homepage means editing a text file. You do not touch the Next.js app, and you do not run a build step.
+
+## What is in the folder
+
+| File | Controls |
+| --- | --- |
+| `config.json` | Store name, color tokens, logo and favicon paths, enabled Modules |
+| `layout.mdx` | The global wrapper: navbar, content area, footer |
+| `index.mdx` | Your homepage |
+| `products/layout.mdx` | The Product listing page |
+| `products/[slug]/layout.mdx` | Each Product's page |
+| `collections/layout.mdx` | The Collection listing page |
+| `blog/layout.mdx` | The blog index |
+| `about.mdx`, `contact.mdx` | Static pages |
+
+## Copy the starter first, if you want
+
+Editing `brisa` in place works. Copying it first means an upstream change never conflicts with yours:
+
+```bash
+86d template create my-store
+```
+
+That writes `templates/my-store/` with the whole starter copied in. Activate it with `86d template activate my-store`.
+
+## Set your name and colors
+
+The top of `config.json` is your Store's identity:
+
+```json
+{
+  "theme": "brisa",
+  "name": "My Store",
+  "favicon": "/assets/favicon.svg",
+  "icon": {
+    "light": "/assets/icon/light.svg",
+    "dark": "/assets/icon/dark.svg"
+  },
+  "logo": {
+    "light": "/assets/logo/light.svg",
+    "dark": "/assets/logo/dark.svg"
+  }
+}
+```
+
+Colors are OKLCH tokens under `variables.light` and `variables.dark`, each mapping to a CSS custom property. Changing `primary` moves your brand color across every button and interactive element at once:
+
+```json
+{
+  "variables": {
+    "light": {
+      "background": "oklch(0.995 0 0)",
+      "foreground": "oklch(0.13 0.005 285)",
+      "primary": "oklch(0.18 0.005 285)",
+      "primary-foreground": "oklch(0.985 0 0)",
+      "secondary": "oklch(0.965 0.002 285)",
+      "accent": "oklch(0.96 0.003 285)",
+      "muted": "oklch(0.965 0.002 285)",
+      "muted-foreground": "oklch(0.5 0.01 285)",
+      "border": "oklch(0.915 0.004 285)"
+    },
+    "dark": {
+      "background": "oklch(0.12 0.005 285)",
+      "foreground": "oklch(0.96 0.005 285)",
+      "primary": "oklch(0.92 0.005 285)",
+      "primary-foreground": "oklch(0.16 0.005 285)"
+    }
+  }
+}
+```
+
+OKLCH lightness is perceptually uniform: `oklch(0.5 0.2 30)`, a warm orange, looks as bright as `oklch(0.5 0.2 250)`, a cool blue. The first number is lightness from 0 to 1, the second is chroma, the third is hue from 0 to 360. Move one at a time.
+
+## Edit the pages
+
+MDX is where you arrange [Module](/concepts/modules) components and write copy. Here is how the starter homepage is built:
+
+```mdx
+import Link from "next/link";
+
+{/* Hero section */}
+<section className="mx-auto max-w-7xl px-4 pt-20 pb-16">
+  <div className="text-center">
+    <h1 className="font-display text-5xl font-bold tracking-tight">
+      Welcome to my store
+    </h1>
+    <p className="mt-4 text-muted-foreground">
+      Thoughtfully selected products for everyday life.
+    </p>
+    <Link href="/products" className="mt-8 inline-flex rounded-full bg-foreground px-6 py-2.5 text-sm text-background">
+      Shop now
+    </Link>
+  </div>
+</section>
+
+{/* Featured products from the @86d-app/products module */}
+<section className="mx-auto max-w-7xl px-4 pt-16">
+  <FeaturedProducts limit={4} title="Featured" />
+</section>
+
+{/* Collections from the @86d-app/collections module */}
+<section className="mx-auto max-w-7xl px-4 pt-16">
+  <FeaturedCollections />
+</section>
+
+{/* Newsletter from the @86d-app/newsletter module */}
+<section className="mx-auto max-w-7xl px-4 pt-16 pb-24">
+  <NewsletterInline
+    title="Stay in the loop"
+    description="New arrivals, exclusive offers, and store updates."
+    source="homepage"
+  />
+</section>
+```
+
+`FeaturedProducts`, `FeaturedCollections`, and `NewsletterInline` each come from their Module. They become available the moment that Module is in `config.json` and you have run `86d generate`. Plain HTML, JSX, and Tailwind classes all work in the same file.
+
+### Pages that take a parameter
+
+A dynamic route's layout receives props. `products/[slug]/layout.mdx` gets `props.slug` without you wiring anything:
+
+```mdx
+{/* templates/<theme>/products/[slug]/layout.mdx */}
+<div className="mx-auto max-w-7xl px-4 py-12">
+  <ProductDetail slug={props.slug} />
+  <ProductReviews />
+  <ProductRecommendations productId={props.slug} />
+</div>
+```
+
+## Design variants
+
+A component can carry several designs as numbered MDX files: `1.mdx`, `2.mdx`, `3.mdx`. The `.tsx` file imports one of them:
+
+```tsx
+// The Navbar component imports its presentation variant
+import One from "./1.mdx";
+
+export function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+  return <One items={navItems} isOpen={isOpen} setIsOpen={setIsOpen} />;
+}
+```
+
+Switching designs is a one-line import change. Data fetching, state, and event handlers stay exactly where they are, which is why a redesign cannot introduce a data bug.
+
+## Swap your logo and favicon
+
+Replace the SVGs in your Template's `assets/` directory, and update the paths in `config.json` if the filenames change:
+
+```json
+{
+  "favicon": "/assets/favicon.svg",
+  "icon": {
+    "light": "/assets/icon/light.svg",
+    "dark": "/assets/icon/dark.svg"
+  },
+  "logo": {
+    "light": "/assets/logo/light.svg",
+    "dark": "/assets/logo/dark.svg"
+  }
+}
+```
+
+- **`favicon`**: the browser tab icon, usually 32 by 32 pixels.
+- **`icon.light` and `icon.dark`**: your square mark, used in the mobile menu and compact navbar. Supply both so it stays readable either way.
+- **`logo.light` and `logo.dark`**: the full logotype in the header and footer.
+
+Those SVGs use literal fill colors such as `#111` and `#f5f5f5` rather than CSS custom properties, because they are sometimes rendered outside the theme, in an Open Graph image for example, where no custom property exists to resolve.
+
+## Related pages
+
+- [Templates](/concepts/templates) for file structure and color tokens
+- [`config.json` reference](/configuration/store-config)
+- [Storefront](/concepts/storefront)
+- [How Modules package Store capabilities](/concepts/modules)
+- [Glossary](/resources/glossary)

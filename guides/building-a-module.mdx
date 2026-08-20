@@ -1,0 +1,198 @@
+---
+title: "Build a custom Module"
+description: "Scaffold, implement, and publish your own Module with Storefront components, Store Admin pages, and API endpoints."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+Every [Feature](/resources/glossary#feature) in 86d is a [Module](/concepts/modules), including all 101 first-party ones. There is no privileged internal API: what you write gets the same treatment as `@86d-app/products`. Your Module can add [Storefront](/concepts/storefront) components, [Store Admin](/concepts/admin) pages, and API endpoints. Isolation is enforced at the database layer through roles and published views (target); production storage is still JSON `ModuleData`.
+
+## Scaffold it
+
+<Steps>
+  <Step title="Create the package">
+    ```bash
+    86d module create my-feature
+    ```
+
+    You get `modules/my-feature/` with everything wired:
+
+    ```text
+    modules/my-feature/
+    ├── package.json
+    ├── tsconfig.json
+    └── src/
+        ├── index.ts                 Module factory
+        ├── schema.ts                Zod schema
+        ├── mdx.d.ts                 MDX type declarations
+        ├── store/
+        │   ├── components/index.tsx
+        │   └── endpoints/index.ts
+        ├── admin/
+        │   ├── components/index.tsx
+        │   └── endpoints/index.ts
+        └── __tests__/
+            └── index.test.ts
+    ```
+  </Step>
+  <Step title="Write your schema">
+    Declare storage with Zod and the `col` column registry from `@86d-app/core/schema`. The Store compiles that declaration into Postgres DDL in report mode today; production still stores entities as JSON in `ModuleData`.
+
+    ```ts src/declaration.ts
+    import { col } from "@86d-app/core/schema";
+    import { z } from "@86d-app/core/zod";
+
+    export const itemShape = z.object({
+      id: z.uuid().register(col, { pk: true }),
+      title: z.string().max(200),
+      published: z.boolean().default(false),
+    });
+    ```
+
+    Wire `tables` on your Module factory. Keep the legacy field-map `schema` only while JSON storage remains live.
+  </Step>
+  <Step title="Write endpoints">
+    Add controllers and endpoints. Store endpoints are public. Admin endpoints sit under `/api/admin/...` and require an authenticated Store Admin session, enforced for you.
+  </Step>
+  <Step title="Enable it">
+    ```bash
+    86d module enable my-feature
+    ```
+
+    This adds `@86d-app/my-feature` to your active [Template](/concepts/templates)'s `config.json`.
+  </Step>
+  <Step title="Regenerate">
+    ```bash
+    86d generate
+    ```
+
+    Your Module is now imported statically, its endpoints are mounted under `/api/`, and its components are in the MDX registry.
+  </Step>
+  <Step title="Run the tests">
+    ```bash
+    bun test
+    ```
+
+    The starter test only checks that the factory returns the expected `id` and `version`. Replace it with coverage of what your Module actually does, including what it does when a dependency is unavailable.
+  </Step>
+</Steps>
+
+## The entry point
+
+`src/index.ts` exports a factory that returns a `Module`:
+
+```ts src/index.ts
+import type { Module } from "@86d-app/core";
+import { schema } from "./schema.js";
+import { storeEndpoints } from "./store/endpoints/index.js";
+import { adminEndpoints } from "./admin/endpoints/index.js";
+
+export default function myFeature(
+  options: Record<string, unknown> = {},
+): Module {
+  return {
+    id: "my-feature",
+    version: "0.0.1",
+    schema,
+    options,
+    endpoints: {
+      store: storeEndpoints,
+      admin: adminEndpoints,
+    },
+  };
+}
+```
+
+It is a factory rather than a singleton so a Store can pass it options through `moduleOptions` in `config.json`.
+
+## Where your admin pages appear
+
+Declare a group and your pages land in the Store Admin sidebar. The nine top-level groups are **Catalog**, **Sales**, **Customers**, **Fulfillment**, **Marketing**, **Content**, **Finance**, **Support**, and **System**.
+
+Each has collapsible subgroups, such as Sales → Orders, Cart, Billing. Name one with `subgroup` on an `AdminPage`:
+
+```ts
+admin: {
+  pages: [
+    {
+      path: "/admin/my-feature",
+      component: "MyFeatureList",
+      label: "My feature",
+      icon: "Star",
+      group: "Catalog",
+      subgroup: "Products",   // optional, overrides the default mapping
+    },
+  ],
+},
+```
+
+## Talking to another Module
+
+Cross-Module work uses typed capabilities for immediate decisions. Cross-Module reads use published column-projected views granted at provision time (target). Legacy `exports` and `requires` field metadata remains during migration; it does not grant table access.
+
+```ts
+capabilities: {
+  accepts: [acceptCapability(someCapability)],
+},
+```
+
+The runtime validates contracts at startup. A missing capability fails at boot, not on a shopper request.
+
+## Reaching the database
+
+**Current:** database access goes through [`ModuleDataService`](/resources/glossary#moduledataservice) as `ctx.data`. Production reads and writes JSON rows in `ModuleData`. Declare new Modules with Zod and `col`; compiled tables are not live storage yet.
+
+**Target:** the same interface backed by compiled tables under `mod_<moduleId>` with Postgres role isolation.
+
+A Module never imports `@86d-app/db` or an ORM client directly:
+
+```ts
+init: async (ctx: ModuleContext) => {
+  // ctx.data is a ModuleDataService scoped to this module's schema
+  const controllers = createControllers(ctx.data);
+  return { controllers };
+},
+```
+
+`@86d-app/core/test-utils` gives you an in-memory data service, so your unit tests need no database at all.
+
+## Publishing to npm
+
+Anyone running 86d can install your Module once it is published:
+
+<Steps>
+  <Step title="Update package.json">
+    Set `"private": false`, pick a version, and write a `description` and `keywords` someone can find.
+  </Step>
+  <Step title="Build">
+    ```bash
+    bun run build
+    ```
+  </Step>
+  <Step title="Publish">
+    ```bash
+    npm publish --access public
+    ```
+
+    First-party Modules ship through Changesets with npm provenance. If you publish your own, that release and security process is yours to run.
+  </Step>
+</Steps>
+
+Then anyone installs it with:
+
+```bash
+86d module add npm:@your-scope/your-module
+```
+
+Publishing puts your package on npm. It does not add it to the first-party registry, and it says nothing about compatibility or maturity. Anyone installing it should read it first, and so should you.
+
+## Related pages
+
+- [Add a Module](/guides/adding-modules)
+- [How Modules package Store capabilities](/concepts/modules)
+- [Storefront](/concepts/storefront)
+- [Store Admin](/concepts/admin)
+- [Test the Store Runtime](/operations/testing)
+- [Versioning and maturity](/resources/versioning)

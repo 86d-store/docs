@@ -1,0 +1,91 @@
+---
+title: "86d"
+description: "Own the commerce underneath your Store. Run it yourself, or hand the operating work to 86d.app and an agent you can audit."
+sidebarTitle: "Home"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+86d is a commerce product you own. The [Store Runtime](/concepts/architecture) is MIT-licensed and runs on your infrastructure with your database, so the code and the commerce data stay yours. [86d.app](/introduction) is the optional managed product that provisions and operates that same runtime for you when you would rather not.
+
+Creating a Store is the first hour. Operating one is every hour after, and that is the part 86d is built for: repricing, restocking, running a promotion, issuing a refund, reconciling a discrepancy. You can do that work yourself in [Store Admin](/concepts/admin), or delegate it to an agent that has to show you a [Change Set](/concepts/agentic-design) before anything lands.
+
+These pages are written for two readers. If you run a Store, start with what a capability does and what you have to decide. If you are an agent acting on a Store, the exact contract is under each of those sections: options, endpoints, request and response shapes, and what happens when something fails.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    Get a Store Runtime on your machine with the CLI or Docker Compose.
+  </Card>
+  <Card title="Deploy it" icon="rocket" href="/deployment">
+    Railway, Vercel with Neon, or your own Docker host.
+  </Card>
+  <Card title="Module catalog" icon="grid" href="/modules/overview">
+    101 first-party Modules, each with its own maturity.
+  </Card>
+  <Card title="CLI reference" icon="terminal" href="/cli/overview">
+    Scaffold Modules, switch Templates, run code generation.
+  </Card>
+  <Card title="What is 86d?" icon="circle-info" href="/introduction">
+    The two products, the interfaces, and who owns which facts.
+  </Card>
+  <Card title="86d Cloud plans" icon="cloud" href="/resources/cloud-plans">
+    What the managed offer costs and what is still in development.
+  </Card>
+</CardGroup>
+
+## How a Store fits together
+
+A Store Runtime is a Bun and Next.js monorepo built from composable [Modules](/concepts/modules). A Module can add API endpoints, [Store Admin](/concepts/admin) pages, and [Storefront](/concepts/storefront) components. You enable the ones you want in your active [Template](/concepts/templates), regenerate, and use the components in MDX.
+
+<Steps>
+  <Step title="Install and initialize">
+    Install the `86d` CLI, then run `86d init`. It writes your environment file, installs dependencies, runs migrations, and seeds demo data with Store Admin credentials.
+  </Step>
+  <Step title="Choose your Modules">
+    Edit the `modules` array in your active Template's `config.json`. First-party Modules live in the same repository you cloned. Treat external code as an advanced opt-in and read it before you install it.
+  </Step>
+  <Step title="Regenerate">
+    `86d generate` rewrites the Module imports and the API router. Every enabled Module's components become available in MDX with no import statement.
+  </Step>
+  <Step title="Customize and deploy">
+    Edit the Template's MDX to control layout and content, then push to Railway, Vercel, or any Docker host.
+  </Step>
+</Steps>
+
+## What you get
+
+<CardGroup cols={2}>
+  <Card title="Commerce as separate parts" icon="boxes-stacked" href="/modules/overview">
+    Products, Cart, Checkout, and Loyalty are independent Modules. Turn off what you do not sell.
+  </Card>
+  <Card title="Storefront in MDX" icon="palette" href="/concepts/templates">
+    Layout and content are MDX files. Module components drop in without imports.
+  </Card>
+  <Card title="Sell in more places" icon="share-nodes" href="/guides/channel-integrations">
+    Marketplaces, product feeds, and social channels. Sync depth differs by Integration, and each page says which.
+  </Card>
+  <Card title="Take payments" icon="credit-card" href="/guides/payment-integrations">
+    Bring your own processor through an Integration, or wait for 86d Payments. Both are documented.
+  </Card>
+  <Card title="Your database, your data" icon="database" href="/deployment">
+    One PostgreSQL database per Store. You can read it, back it up, and take it with you.
+  </Card>
+  <Card title="MIT licensed" icon="code" href="https://github.com/86d-app/86d">
+    Read the code, fork it, ship it. No key, no phone home, no account required.
+  </Card>
+</CardGroup>
+
+<Tip>
+  If an AI assistant is doing the work, point it at the [Docs MCP server](/resources/mcp) so it searches these pages instead of guessing. Tell it to read the whole page before it changes anything in a Store.
+</Tip>
+
+## Where to go next
+
+- [What is 86d?](/introduction) names the two products and the interfaces you will see
+- [How 86d separates product authority](/concepts/architecture) shows who owns which facts
+- [How commerce records relate](/concepts/commerce-model) covers Cart through Shipping
+- [How agents work with 86d](/concepts/agentic-design) covers Commands, Change Sets, and confirmation
+- [Glossary](/resources/glossary) defines every capitalized term on this site
+- [Versioning and maturity](/resources/versioning) explains what Stable, Beta, and Experimental mean here

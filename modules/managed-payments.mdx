@@ -1,0 +1,69 @@
+---
+title: "Managed payments"
+description: "The bridge that will connect a managed Store to 86d Payments. Nothing to configure, and nothing to use yet."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** [86d Payments](/resources/glossary#86d-payments) does not exist as a live service, so this Module has nothing to connect to. It is documented because it is in the registry, not because you can use it. See [maturity levels](/resources/versioning).
+</Warning>
+
+When [86d Payments](/guides/payment-integrations) arrives, a [Managed Deployment](/resources/glossary#86d-cloud) will not hold provider credentials of its own. This Module is how a managed [Store Runtime](/concepts/architecture) will ask the [Control Plane](/concepts/architecture) to run a payment operation on its behalf, and how the durable outcome will come back.
+
+You will not install or configure it. Provisioning handles it. If you are taking payments today, you want [Set up a payment provider](/guides/payment-integrations) instead.
+
+**Source:** [`modules/managed-payments`](https://github.com/86d-app/86d/tree/main/modules/managed-payments) · **npm:** [`@86d-app/managed-payments`](https://www.npmjs.com/package/@86d-app/managed-payments)
+
+## Why it exists
+
+Provider secrets never enter a Store Runtime. That constraint is what makes managed payments safe to operate: a compromised Store container has no credential that can move money, because it never had one.
+
+So the split is:
+
+| Side | What it owns |
+| --- | --- |
+| **Control Plane** | Provider credentials, the Merchant Payment Account, provider operations, fee and settlement ledgers, disputes |
+| **Store Runtime** | The [Payment](/modules/payments) record, and its relationship to the [Order](/modules/orders) |
+
+This Module is the seam. It authenticates with the Store's [Workload credential](/resources/glossary#workload-credential), submits an operation, and applies the confirmed outcome to the local Payment record.
+
+## What it does
+
+It requires [`@86d-app/payments`](/modules/payments) and reads `paymentStatus` and `paymentAmount` from it. It registers one Store endpoint and one outcome consumer.
+
+Four operation kinds cross the boundary: `authorize`, `capture`, `void`, and `refund`. Three shopper-visible options are supported: `card`, `apple_pay`, and `google_pay`. Every operation runs in `sandbox` or `live` mode, explicitly, with no implicit default.
+
+## Store endpoint
+
+### `POST /payments/managed/prepare`
+
+Prepares a managed payment operation for the current [Checkout](/modules/checkout). It authenticates as the Store's workload identity rather than as a Shopper, so a browser cannot call it into doing anything on its own.
+
+## Workload scopes
+
+The token this Module exchanges for is scoped to five permissions and nothing else:
+
+| Scope | What it allows |
+| --- | --- |
+| `payments.operation:submit` | Submit an operation for execution |
+| `payments.operation:read` | Read the state of an operation it submitted |
+| `payments.outcome:read` | Read durable outcomes waiting to be applied |
+| `payments.outcome:acknowledge` | Mark an outcome as applied, so it is not applied twice |
+| `payments.connection:read` | Read the [Connection](/concepts/connections) an operation is bound to |
+
+The audience is `https://86d.app/api/store-runtime`. A token minted for anything else is rejected.
+
+## Outcomes arrive once
+
+An outcome carries an event id, a version, and a payment sequence number. The consumer deduplicates on the event id and refuses to apply an outcome out of sequence, then acknowledges it. That is what stops a redelivered webhook from refunding a Shopper twice.
+
+Each outcome names its `provider`, its `mode`, its `connectionId`, and a `state` of `confirmed` or `declined`. There is no third state meaning probably.
+
+## Related pages
+
+- [Payments](/modules/payments) for the Store Runtime Payment record
+- [Set up a payment provider](/guides/payment-integrations) for what works today
+- [How Connections route provider work](/concepts/connections)
+- [How commerce records relate](/concepts/commerce-model)
+- [Managed identity](/concepts/architecture#managed-identity)
+- [Versioning and maturity](/resources/versioning)

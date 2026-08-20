@@ -1,0 +1,35 @@
+---
+title: "eBay"
+description: "eBay listing management for 86d. Push catalog as listings, sync Inventory, and ingest sold Orders into your 86d Order queue."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The eBay [Module](/concepts/modules) syncs your catalog to eBay listings through the eBay Sell API. Sold [Orders](/concepts/commerce-model) flow into the `@86d-app/orders` queue tagged with `channel: "ebay"`.
+
+**Source:** [`modules/ebay`](https://github.com/86d-app/86d/tree/main/modules/ebay) · **npm:** [`@86d-app/ebay`](https://www.npmjs.com/package/@86d-app/ebay)
+
+## Installation
+
+```sh
+86d module add ebay
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/ebay/listings` | List active listings |
+| `POST` | `/admin/ebay/listings/sync` | Push catalog updates |
+
+## Related pages
+
+- [Products](/modules/products)
+- [Orders](/modules/orders)
+- [Connect a sales channel](/guides/channel-integrations)
+- [How Connections route provider work](/concepts/connections)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

@@ -1,0 +1,35 @@
+---
+title: "Waitlist"
+description: "Capture interest in upcoming or out-of-stock products in 86d. Notify Shoppers when a product is available."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Waitlist [Module](/concepts/modules) lets [Shoppers](/resources/glossary#shopper) join a waitlist for any product. When the product becomes available (a preorder window opens or a backorder is replenished), the Module fires a `waitlist.notify` event for each subscriber.
+
+**Source:** [`modules/waitlist`](https://github.com/86d-app/86d/tree/main/modules/waitlist) · **npm:** [`@86d-app/waitlist`](https://www.npmjs.com/package/@86d-app/waitlist)
+
+## Installation
+
+```sh
+86d module add waitlist
+```
+
+## Components
+
+Use these components in your MDX [Template](/concepts/templates) files.
+
+- `<WaitlistButton productId={id} />`
+- `<WaitlistForm productId={id} />`
+
+## Related pages
+
+- [Preorders](/modules/preorders)
+- [Backorders](/modules/backorders)
+- [Notifications](/modules/notifications)
+- [Inventory](/modules/inventory)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

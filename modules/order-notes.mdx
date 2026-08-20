@@ -1,0 +1,29 @@
+---
+title: "Order notes"
+description: "Internal notes on an Order, kept separate from what a Customer can see. Unverified."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+Somewhere to write down what happened with an Order. The Order Notes [Module](/concepts/modules) is meant to hold internal notes your team can see and, separately, notes a [Customer](/modules/customers) is allowed to see.
+
+Nothing here has been verified: who can see which note, authorization, retention, and how notes attach to an [Order](/modules/orders) are all unproven. Getting the visibility boundary wrong here shows internal notes to a Shopper, so read the source before you evaluate it.
+
+**Source:** [`modules/order-notes`](https://github.com/86d-app/86d/tree/main/modules/order-notes) · **npm:** [`@86d-app/order-notes`](https://www.npmjs.com/package/@86d-app/order-notes)
+
+## Installation
+
+```sh
+86d module add order-notes
+```
+
+## Related pages
+
+- [Orders](/modules/orders) for the Order record itself
+- [Tickets](/modules/tickets) for Customer support threads
+- [How commerce records relate](/concepts/commerce-model) for what an Order owns
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

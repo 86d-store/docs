@@ -1,0 +1,44 @@
+---
+title: "Tickets"
+description: "Customer support tickets for 86d: threaded messages between Customer and Store Admin, with status tracking and auto-routing."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Tickets [Module](/concepts/modules) is [Customer](/resources/glossary#customer) support. A Customer opens a ticket, replies thread between them and your [Store Admin](/concepts/admin) team, and the ticket moves through `open -> waiting_on_customer -> resolved -> closed`. A ticket can also link to one [Order](/concepts/commerce-model).
+
+**Source:** [`modules/tickets`](https://github.com/86d-app/86d/tree/main/modules/tickets) · **npm:** [`@86d-app/tickets`](https://www.npmjs.com/package/@86d-app/tickets)
+
+## Installation
+
+```sh
+86d module add tickets
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/tickets` | Open a ticket |
+| `GET` | `/tickets/me` | List the customer's tickets |
+| `POST` | `/tickets/me/:id/reply` | Reply |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/tickets` | Queue with filters |
+| `POST` | `/admin/tickets/:id/respond` | Reply |
+| `POST` | `/admin/tickets/:id/resolve` | Resolve |
+
+## Related pages
+
+- [Order notes](/modules/order-notes) for notes attached to one Order
+- [FAQ](/modules/faq) for self-service answers on the Storefront
+- [Notifications](/modules/notifications) for store messages and provider delivery
+- [How commerce records relate](/concepts/commerce-model) for what an Order owns
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

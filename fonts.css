@@ -1,0 +1,22 @@
+/* Brand mono/serif. Mintlify docs.json only configures heading/body; code and
+   serif need CSS. Matches website + 86d Console next/font Google loads. */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Merriweather:wght@400;700&display=swap");
+
+:root {
+	--font-mono:
+		"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+		"Liberation Mono", "Courier New", monospace;
+	--font-serif: "Merriweather", ui-serif, Georgia, "Times New Roman", serif;
+}
+
+code,
+kbd,
+samp,
+pre,
+code-block {
+	font-family: var(--font-mono);
+}
+
+blockquote {
+	font-family: var(--font-serif);
+}

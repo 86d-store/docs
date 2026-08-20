@@ -1,0 +1,163 @@
+---
+title: "Brands"
+description: "Reference for @86d-app/brands: organize products by manufacturer or brand with dedicated brand pages, featured listings, and SEO metadata."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Brands [Module](/concepts/modules) organizes products by manufacturer or brand. You create brand records with logos, banner images, and SEO metadata, then assign products to them. The [Storefront](/concepts/storefront) gets dedicated brand pages and featured brand listings. A product belongs to exactly one brand, so filtering catalog queries by brand stays unambiguous.
+
+**Source:** [`modules/brands`](https://github.com/86d-app/86d/tree/main/modules/brands) · **npm:** [`@86d-app/brands`](https://www.npmjs.com/package/@86d-app/brands)
+
+## Installation
+
+<CodeGroup>
+
+```sh npm
+npm install @86d-app/brands
+```
+
+```sh pnpm
+pnpm add @86d-app/brands
+```
+
+</CodeGroup>
+
+Then register the Module in your store's `config.json`:
+
+```json
+{
+  "modules": ["@86d-app/brands"],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+## Configuration
+
+```ts
+import brands from "@86d-app/brands";
+
+const module = brands({
+  maxProductsPerPage: "100",
+});
+```
+
+<ParamField body="maxProductsPerPage" default='"100"' type="string">
+  Maximum number of products returned by the brand products endpoint. This value is a string for module config compatibility.
+</ParamField>
+
+## Store endpoints
+
+Store endpoints are public and return only active brands. Inactive brands are hidden from the Storefront.
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/brands` | List active brands, paginated and filterable by featured flag |
+| `GET` | `/brands/featured` | Get featured brands with optional `limit` query param |
+| `GET` | `/brands/:slug` | Get a single brand by slug |
+| `GET` | `/brands/:slug/products` | Get paginated products for a brand |
+| `GET` | `/brands/product/:productId` | Get the brand associated with a specific product |
+
+## Admin endpoints
+
+Admin endpoints require authentication and return brands of all statuses.
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/brands` | List all brands, paginated and filterable |
+| `GET` | `/admin/brands/stats` | Get brand statistics |
+| `POST` | `/admin/brands/create` | Create a new brand |
+| `POST` | `/admin/brands/:id/update` | Update a brand |
+| `POST` | `/admin/brands/:id/delete` | Delete a brand and all its product associations |
+| `GET` | `/admin/brands/:id/products` | List products for a brand |
+| `POST` | `/admin/brands/:id/products/assign` | Assign products to a brand |
+| `POST` | `/admin/brands/:id/products/unassign` | Unassign products from a brand |
+
+## Components
+
+Add these components to your MDX [Template](/concepts/templates) files. The `brands` Module must be listed in `config.json`.
+
+### `BrandList`
+
+Renders a grid of active brands. Fetches its own data.
+
+<ParamField body="limit" type="number">
+  Maximum number of brands to display.
+</ParamField>
+
+```mdx
+<BrandList />
+
+<BrandList limit={12} />
+```
+
+---
+
+### `FeaturedBrands`
+
+Renders a row or grid of featured brands. Fetches its own data.
+
+<ParamField body="limit" type="number">
+  Maximum number of featured brands to display.
+</ParamField>
+
+```mdx
+<FeaturedBrands />
+
+<FeaturedBrands limit={6} />
+```
+
+## Types
+
+```ts
+interface Brand {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  logo?: string;
+  bannerImage?: string;
+  website?: string;
+  isActive: boolean;
+  isFeatured: boolean;
+  position: number;
+  seoTitle?: string;
+  seoDescription?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface BrandProduct {
+  id: string;
+  brandId: string;
+  productId: string;
+  assignedAt: Date;
+}
+
+interface BrandStats {
+  totalBrands: number;
+  activeBrands: number;
+  featuredBrands: number;
+  totalProducts: number;
+}
+```
+
+## Notes
+
+- A product can belong to only one brand. Assigning a product to a new brand automatically removes it from its previous brand.
+- Store endpoints return only active brands. `getBrandForProduct` returns `null` for inactive brands.
+- Deleting a brand cascades and removes all associated `BrandProduct` records.
+- Bulk assign and unassign operations are idempotent. Already-assigned products are skipped, and the return value is the count of new assignments only.
+
+## Related pages
+
+- [Products](/modules/products)
+- [Collections](/modules/collections)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

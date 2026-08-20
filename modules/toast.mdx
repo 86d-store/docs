@@ -1,0 +1,32 @@
+---
+title: "Toast POS"
+description: "Toast POS Integration for 86d. Sync menu, route online Orders to Toast, and reconcile in-store and online sales."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Toast [Module](/concepts/modules) connects your [Store](/resources/glossary#store) to a Toast POS for restaurants and cafes. Your catalog syncs to Toast as a menu, and online [Orders](/concepts/commerce-model) route to Toast for in-restaurant fulfillment. Toast in-store sales can flow back into `@86d-app/orders`, so you can report on online and in-store sales together.
+
+**Source:** [`modules/toast`](https://github.com/86d-app/86d/tree/main/modules/toast) · **npm:** [`@86d-app/toast`](https://www.npmjs.com/package/@86d-app/toast)
+
+## Installation
+
+```sh
+86d module add toast
+```
+
+## Configuration
+
+Set the `TOAST_*` environment variables (`TOAST_API_KEY`, `TOAST_RESTAURANT_GUID`, `TOAST_SANDBOX`). See [Environment variables](/configuration/environment-variables).
+
+## Related pages
+
+- [Uber Eats](/modules/uber-eats)
+- [Orders](/modules/orders)
+- [Connect a sales channel](/guides/channel-integrations)
+- [How Connections route provider work](/concepts/connections)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

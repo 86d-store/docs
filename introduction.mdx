@@ -1,0 +1,92 @@
+---
+title: "What is 86d?"
+description: "The two 86d products, the interfaces you will use, and which system owns which facts about your Store."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+86d is two products that fit together. **86d.store** is an MIT-licensed commerce runtime you can download and run today. **86d.app** is an optional managed product that provisions and operates that runtime for you. Using the second one never costs you access to the first: your Store's code and its commerce database stay yours either way.
+
+## The two products
+
+| Product | What it is | What it owns |
+| --- | --- | --- |
+| **86d.store** | The MIT-licensed [Store Runtime](/concepts/architecture): a [Storefront](/concepts/storefront), a [Store Admin](/concepts/admin), your enabled [Modules](/concepts/modules), and a PostgreSQL database | One Store's commerce state |
+| **86d.app** | The managed product for Store lifecycle, hosting, billing, provider onboarding, and agent access | Managed-service state |
+
+[86d Console](/resources/glossary#86d-console) is the interface you sign in to for 86d.app. The [Control Plane](/concepts/architecture) is the authority behind it. The Control Plane can create, deploy, pause, and destroy a managed Store Runtime, and it never becomes a second copy of your catalog, [Orders](/concepts/commerce-model), or [Customers](/modules/customers).
+
+## Feature, Integration, Module
+
+Three words that sound interchangeable and are not:
+
+- **[Feature](/resources/glossary#feature)**: something your Store does. Products, Checkout, Loyalty.
+- **[Integration](/concepts/connections)**: something your Store does with an outside company. Stripe, EasyPost, Meta.
+- **[Module](/concepts/modules)**: the package that delivers one of those. This is the word that matters when you are installing, upgrading, or writing code.
+
+A [Connection](/concepts/connections) is the configured relationship an Integration uses: which provider, which account, which credentials, and whether it is currently healthy.
+
+The repository holds 101 first-party Modules. Being in the catalog says nothing about whether a Module is ready. Browse the [Module catalog](/modules/overview), then read the page for anything you plan to turn on.
+
+## What is inside a Store Runtime
+
+Every 86d.store deployment contains the same five things:
+
+- a [Storefront](/concepts/storefront) that Shoppers see
+- a [Store Admin](/concepts/admin) where you run the Business
+- an active [Template](/concepts/templates) that controls layout and content
+- the Modules you enabled
+- one PostgreSQL database holding your commerce data
+
+All of it is in the [public repository](https://github.com/86d-app/86d). You can read it, change it, and run a fork.
+
+## Two ways to run it
+
+### Standalone
+
+You host the Store Runtime yourself: your server, your PostgreSQL, your storage bucket, your provider credentials. No [86d Account](/resources/glossary#86d-account) is involved, and nothing calls home. Start at the [Quickstart](/quickstart), then [Deployment and hosting](/deployment).
+
+### Managed
+
+86d.app provisions an isolated Store Runtime and operates it through [86d Cloud](/resources/glossary#86d-cloud): deployment, domains, upgrades, and one bill. Same runtime, same database ownership, less work.
+
+The managed product is still being built. See [86d Cloud plans](/resources/cloud-plans) for the intended offer and what remains unfinished, and [Public Beta status](/resources/public-beta) for what is open to try right now.
+
+## The rules 86d holds itself to
+
+These are not aspirations. They are the constraints the code is written against, and they are why some things that look convenient are refused.
+
+- **One authority per fact.** Managed-service records live in the Control Plane. Commerce records live in your Store Runtime. Neither copies the other.
+- **One Store, one database.** Nothing is shared between Stores, so your data stays portable.
+- **Named Connections, no silent fallback.** A refund goes back through the same provider relationship that took the payment. If that Connection is revoked or unhealthy, the operation stops and asks for attention instead of rerouting.
+- **The server decides the money.** [Checkout](/concepts/commerce-model) recalculates price, tax, Shipping, and availability on the server before it creates an Order. A browser or an agent can propose numbers; it cannot set them.
+- **Maturity is earned per capability.** Stable describes one tested capability, never a whole repository. See [Versioning and maturity](/resources/versioning).
+- **Agents are optional and bounded.** Every human interface stays. An agent runs the same [Commands](/concepts/agentic-design) you do, under the same rules, with an audit record.
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Run it locally" icon="bolt" href="/quickstart">
+    A Store Runtime on your machine in a handful of commands.
+  </Card>
+  <Card title="Understand commerce records" icon="diagram-project" href="/concepts/commerce-model">
+    How Cart, Checkout, Order, Payment, Fulfillment, and Shipping relate.
+  </Card>
+  <Card title="Browse Modules" icon="grid" href="/modules/overview">
+    What each first-party Module does and where its source lives.
+  </Card>
+  <Card title="Common questions" icon="circle-question" href="/resources/faq">
+    Hosting, licensing, maturity, agents, and cost.
+  </Card>
+</CardGroup>
+
+## Related pages
+
+- [How 86d separates product authority](/concepts/architecture)
+- [How commerce records relate](/concepts/commerce-model)
+- [How Connections route provider work](/concepts/connections)
+- [How agents work with 86d](/concepts/agentic-design)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

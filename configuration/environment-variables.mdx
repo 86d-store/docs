@@ -1,0 +1,196 @@
+---
+title: "Environment variables"
+description: "Every variable that configures a Store: the three you must set, and the credential sets that switch an Integration on."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+A Store reads its configuration from environment variables at startup. Copy `.env.example` to `.env` in the repository root and fill in what you need. Anything commented out in `.env.example` is optional: uncomment it only when you turn on the [Integration](/concepts/connections) that reads it.
+
+```bash
+cp .env.example .env
+```
+
+Secrets belong in the server environment. Never in `config.json`, never in a [Template](/concepts/templates), never in a `NEXT_PUBLIC_` variable unless the value is genuinely public.
+
+## The three you have to set
+
+Nothing works until these are right, and production refuses to start without a usable auth secret.
+
+| Variable | What it is |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection string for every runtime query, for example `postgresql://postgres:postgres@localhost:5432/86d` |
+| `DATABASE_URL_UNPOOLED` | The same database, without pooling, used for migrations. Set it to the same value as `DATABASE_URL` unless you run a pooler such as PgBouncer |
+| `BETTER_AUTH_SECRET` | Signs session tokens and auth cookies. Generate with `openssl rand -base64 32` |
+
+<Warning>
+  In production `BETTER_AUTH_SECRET` has to be at least 32 characters, must not be a known repository or Better Auth default, and must carry enough character variety to pass an entropy check. Development and test fall back to a local-only value when it is absent, and production rejects that fallback outright.
+</Warning>
+
+## Where your Store lives
+
+| Variable | Default | What it does |
+| --- | --- | --- |
+| `APP_URL` | `http://localhost:3000` | Your Store's public URL. Emails, webhooks, and redirects build absolute URLs from it |
+| `NEXT_PUBLIC_STORE_URL` | `http://localhost:3000` | The same URL, readable in the browser |
+| `BETTER_AUTH_URL` | `http://localhost:3000` | Base URL for auth callbacks. Match it to `APP_URL` |
+| `NODE_ENV` | `development` | Set to `production` when you deploy. Changes logging, error handling, and build output |
+| `DATABASE_CLIENT` | `postgresql` | Which database driver to use |
+
+## Store identity and managed access
+
+| Variable | What it does |
+| --- | --- |
+| `STORE_ID` | The data isolation boundary for a Store you host yourself. `86d init` does not generate one, and the environment layer falls back to a fixed development UUID, so set a unique value on any deployment you intend to keep |
+| `86D_STORE_ID` | The Store UUID for a [Managed Deployment](/resources/glossary#86d-cloud). When present it takes precedence over `STORE_ID` |
+| `86D_API_URL` | HTTPS base URL for the 86d API. Defaults to `https://api.86d.app`. Also supplies the OpenID discovery origin for human sign-in |
+| `86D_API_VERSION` | API version segment. Defaults to `v1` |
+| `86D_WORKLOAD_CREDENTIAL` | The opaque managed machine credential. The runtime exchanges it for short-lived Store-scoped access rather than sending it as a bearer token |
+| `86D_ADMIN_OAUTH_CLIENT_ID` | OAuth client for human [Store Admin](/concepts/admin) sign-in. Set it with the secret below |
+| `86D_ADMIN_OAUTH_CLIENT_SECRET` | The matching client secret |
+| `86D_TELEMETRY` | Managed diagnostics opt-in. Only the exact string `managed-runtime-diagnostics-v1` turns it on |
+
+<Warning>
+  `86D_STORE_ID`, `86D_API_URL`, and `86D_WORKLOAD_CREDENTIAL` travel together. Set one without the others and managed configuration resolution fails rather than guessing. When all three are present, a failed exchange, a rejected credential, or a network error stops the boot: the runtime does not quietly fall back to a local Template and serve the wrong Store.
+</Warning>
+
+Human sign-in uses its own OAuth client. No machine credential can authenticate a person, and no person's session can act as the workload. Keep workload credentials and OAuth client secrets out of browser code, logs, agent output, Templates, and merchant-readable settings. See [managed identity](/concepts/architecture#managed-identity) and [authentication](/configuration/authentication).
+
+## How Integrations turn on
+
+Setting the right variables is what enables most Integrations. `86d generate` reads your environment and writes the wiring into the generated API. Miss one variable in a set and the Integration stays off, silently, because a half-configured provider is worse than none.
+
+Every group below is an **and**: all the listed variables have to be present.
+
+### Payments
+
+| Provider | Required together | Also accepts |
+| --- | --- | --- |
+| [Stripe](/modules/stripe) | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_ACCOUNT_ID` |
+| [PayPal](/modules/paypal) | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` | `PAYPAL_SANDBOX`, `PAYPAL_CONNECTION_ID`, `PAYPAL_PROVIDER_ACCOUNT_ID` |
+| [Square](/modules/square) | `SQUARE_ACCESS_TOKEN`, `SQUARE_WEBHOOK_SIGNATURE_KEY`, `SQUARE_WEBHOOK_NOTIFICATION_URL` | `NEXT_PUBLIC_SQUARE_APPLICATION_ID`, `NEXT_PUBLIC_SQUARE_LOCATION_ID` |
+| [Braintree](/modules/braintree) | `BRAINTREE_MERCHANT_ID`, `BRAINTREE_PUBLIC_KEY`, `BRAINTREE_PRIVATE_KEY` | `BRAINTREE_SANDBOX` |
+
+<Warning>
+  Configure one sandbox provider at a time. There is no safe failover between payment providers: a refund has to go back through whichever provider took the money. See [Set up a payment provider](/guides/payment-integrations).
+</Warning>
+
+### Shipping, tax, and delivery
+
+| Capability | Required together | Also accepts |
+| --- | --- | --- |
+| [Shipping labels](/modules/shipping) | `EASYPOST_API_KEY` | `EASYPOST_TEST_MODE`, `EASYPOST_WEBHOOK_SECRET` |
+| [Third-party tax](/modules/tax) | `TAXJAR_API_KEY` | `TAXJAR_SANDBOX` |
+| [DoorDash Drive](/modules/doordash) | `DOORDASH_DEVELOPER_ID`, `DOORDASH_KEY_ID`, `DOORDASH_SIGNING_SECRET` | `DOORDASH_SANDBOX` |
+| [Uber Direct](/modules/uber-direct) | `UBER_CLIENT_ID`, `UBER_CLIENT_SECRET`, `UBER_CUSTOMER_ID` | `UBER_DIRECT_WEBHOOK_SIGNING_KEY` |
+| [Uber Eats](/modules/uber-eats) | `UBER_EATS_CLIENT_ID`, `UBER_EATS_CLIENT_SECRET`, `UBER_EATS_RESTAURANT_ID` | |
+| [Toast](/modules/toast) | `TOAST_API_KEY`, `TOAST_RESTAURANT_GUID` | `TOAST_SANDBOX` |
+| Address autocomplete | `GOOGLE_MAPS_API_KEY` | |
+
+### Sales channels
+
+| Channel | Required together |
+| --- | --- |
+| [Amazon](/modules/amazon) | `AMAZON_SELLER_ID`, `AMAZON_CLIENT_ID`, `AMAZON_CLIENT_SECRET`, `AMAZON_REFRESH_TOKEN`, plus optional `AMAZON_MARKETPLACE_ID` and `AMAZON_REGION` |
+| [eBay](/modules/ebay) | `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `EBAY_REFRESH_TOKEN`, plus optional `EBAY_SITE_ID` |
+| [Etsy](/modules/etsy) | `ETSY_API_KEY`, `ETSY_SHOP_ID`, `ETSY_ACCESS_TOKEN` |
+| [Walmart](/modules/walmart) | `WALMART_CLIENT_ID`, `WALMART_CLIENT_SECRET`, plus optional `WALMART_CHANNEL_TYPE` |
+| [Google Shopping](/modules/google-shopping) | `GOOGLE_MERCHANT_ID`, `GOOGLE_MERCHANT_API_KEY`, plus optional `GOOGLE_MERCHANT_TARGET_COUNTRY` and `GOOGLE_MERCHANT_CONTENT_LANGUAGE` |
+| [Facebook Shop](/modules/facebook-shop) | `FACEBOOK_ACCESS_TOKEN`, `FACEBOOK_CATALOG_ID`, `FACEBOOK_COMMERCE_ACCOUNT_ID`, plus optional `FACEBOOK_PAGE_ID` |
+| [Instagram Shop](/modules/instagram-shop) | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_CATALOG_ID`, `INSTAGRAM_COMMERCE_ACCOUNT_ID`, plus optional `INSTAGRAM_BUSINESS_ID` |
+| [TikTok Shop](/modules/tiktok-shop) | `TIKTOK_APP_KEY`, `TIKTOK_APP_SECRET`, `TIKTOK_ACCESS_TOKEN`, `TIKTOK_SHOP_ID`, plus optional `TIKTOK_SANDBOX` |
+| [Pinterest](/modules/pinterest-shop) | `PINTEREST_ACCESS_TOKEN`, plus optional `PINTEREST_CATALOG_ID` and `PINTEREST_AD_ACCOUNT_ID` |
+| [X Shop](/modules/x-shop) | `X_API_KEY`, `X_API_SECRET`, plus optional `X_ACCESS_TOKEN`, `X_REFRESH_TOKEN`, `X_MERCHANT_ID` |
+
+### Messaging
+
+| Capability | Required together |
+| --- | --- |
+| [Email](/modules/notifications) | `RESEND_API_KEY`, plus optional `RESEND_FROM_ADDRESS` |
+| SMS | `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN`, plus `TWILIO_FROM_NUMBER` for the sending number |
+
+<Note>
+  `.env.example` lists `TWILIO_PHONE_NUMBER` and `TWILIO_SERVICE_SID`, but the generator reads `TWILIO_FROM_NUMBER` for the sending number. Set `TWILIO_FROM_NUMBER` if you want outbound SMS to have a from address.
+</Note>
+
+### Search and AI
+
+| Capability | Required together |
+| --- | --- |
+| [Meilisearch](/modules/search) | `MEILISEARCH_HOST`, `MEILISEARCH_API_KEY` |
+| AI product copy | `OPENAI_API_KEY` |
+| [Recommendations](/modules/recommendations) | `OPENAI_API_KEY` or `OPENROUTER_API_KEY` |
+
+`AI_GATEWAY` picks which upstream handles AI calls: `86d`, `openai`, `gemini`, `openrouter`, or `vercel`. `GEMINI_API_KEY` is read when you point it at Gemini.
+
+### Analytics and error reporting
+
+The [Analytics](/modules/analytics) Module turns on when any one of `NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID`, `GA4_MEASUREMENT_ID`, or `SENTRY_DSN` is set.
+
+| Variable | What it does |
+| --- | --- |
+| `NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID` | Google Tag Manager container, for example `GTM-0000000` |
+| `GA4_MEASUREMENT_ID` | Google Analytics 4 measurement ID |
+| `GA4_API_SECRET` | Server-side GA4 API secret |
+| `SENTRY_DSN` | Sentry error reporting for the server |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry error reporting from the browser |
+
+Google Tag Manager and GA4 are [Third-party Analytics](/resources/glossary#third-party-analytics) you own and configure. Sentry is Store Runtime diagnostics. Neither is authoritative for Orders, Payments, Inventory, Loyalty, revenue, or GMV. When those numbers disagree, the database is right.
+
+## Storage
+
+Full setup is in [Configure storage](/configuration/storage).
+
+| Variable | What it does |
+| --- | --- |
+| `STORAGE_CLIENT` | `local` (default), `vercel`, or `s3` |
+| `STORAGE_PUBLIC_URL_MODE` | `direct` returns the raw bucket URL. `proxy` returns a same-origin `/uploads/...` path |
+| `STORAGE_LOCAL_DIR` | Directory for local files. Defaults to `./uploads` |
+| `STORAGE_LOCAL_BASE_URL` | Public base URL for those files. Defaults to `/uploads` |
+| `S3_ENDPOINT` | S3-compatible endpoint: MinIO, Cloudflare R2, Railway, AWS |
+| `S3_BUCKET` | Bucket name |
+| `S3_REGION` | Region. Defaults to `us-east-1` |
+| `S3_ACCESS_KEY` | Access key ID |
+| `S3_SECRET_KEY` | Secret access key |
+| `S3_VIRTUAL_HOSTED_STYLE` | Set to `"true"` for Railway object storage and any provider needing virtual-hosted-style URLs |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token. Vercel sets this when you attach a Blob store |
+| `VERCEL_BLOB_STORAGE_HOSTNAME` | Public hostname of your Blob store |
+
+## Seed and Docker values
+
+| Variable | Default | What it does |
+| --- | --- | --- |
+| `APP_ADMIN_EMAIL` | `admin@example.com` | Store Admin email created by the seed |
+| `APP_ADMIN_PASSWORD` | `password123` | Store Admin password created by the seed. Change it |
+| `MINIO_ROOT_USER` | `minioadmin` | MinIO root user in Docker Compose |
+| `MINIO_ROOT_PASSWORD` | `minioadmin` | MinIO root password |
+| `MINIO_API_PUBLISH_PORT` | `9000` | Host port for the MinIO S3 API |
+| `MINIO_CONSOLE_PUBLISH_PORT` | `9001` | Host port for the MinIO console |
+
+Railway supplies `RAILWAY_PUBLIC_DOMAIN`, `RAILWAY_PROJECT_ID`, `RAILWAY_SERVICE_ID`, and `RAILWAY_ENVIRONMENT_ID` at runtime. Use the first to build your public URL: `APP_URL=https://$RAILWAY_PUBLIC_DOMAIN`.
+
+## Variables that are reserved and do nothing
+
+`.env.example` lists social login variables that the current auth package does not read. Setting them enables nothing.
+
+| Provider | Variables |
+| --- | --- |
+| Google | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `NEXT_PUBLIC_AUTH_GOOGLE_ID` |
+| X | `AUTH_TWITTER_ID`, `AUTH_TWITTER_SECRET` |
+| Slack | `AUTH_SLACK_ID`, `AUTH_SLACK_SECRET` |
+| Shopify | `AUTH_SHOPIFY_ID`, `AUTH_SHOPIFY_SECRET` |
+| Apple | `AUTH_APPLE_ID`, `AUTH_APPLE_SECRET`, `AUTH_APPLE_BUNDLE_IDENTIFIER` |
+| Facebook | `AUTH_FACEBOOK_ID`, `AUTH_FACEBOOK_SECRET` |
+
+See [Authentication](/configuration/authentication) for what does work today.
+
+## Related pages
+
+- [Authentication](/configuration/authentication)
+- [Configure storage](/configuration/storage)
+- [`config.json` reference](/configuration/store-config)
+- [Deployment and hosting](/deployment)
+- [Managed identity](/concepts/architecture#managed-identity)
+- [Glossary](/resources/glossary)

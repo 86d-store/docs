@@ -1,0 +1,34 @@
+---
+title: "Social proof"
+description: "Real-time purchase counts, viewer counts, and trust badges for the 86d Storefront."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Social Proof [Module](/concepts/modules) shows [Shoppers](/resources/glossary#shopper) evidence that other people are buying: live purchase notifications, recent-order counts, viewer counts on product pages, and trust badges you configure.
+
+**Source:** [`modules/social-proof`](https://github.com/86d-app/86d/tree/main/modules/social-proof) · **npm:** [`@86d-app/social-proof`](https://www.npmjs.com/package/@86d-app/social-proof)
+
+## Installation
+
+```sh
+86d module add social-proof
+```
+
+## Components
+
+Use these components in your MDX [Template](/concepts/templates) files.
+
+- `<RecentPurchases />`
+- `<ViewerCount productId={id} />`
+- `<TrustBadges />`
+
+## Related pages
+
+- [Reviews](/modules/reviews)
+- [Storefront Analytics](/modules/analytics)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

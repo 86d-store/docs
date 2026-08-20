@@ -1,0 +1,187 @@
+---
+title: "Set up a payment provider"
+description: "Connect your own Stripe, PayPal, Square, or Braintree account for sandbox testing, and understand how 86d Payments will differ when it arrives."
+sidebarTitle: "Payment integrations"
+---
+
+<Warning>
+  **In development.** Payment capabilities have no recorded evidence yet. Use sandbox credentials only. See [maturity levels](/resources/versioning).
+</Warning>
+
+There are two ways to take money in 86d, and only one of them exists today.
+
+**Third-party Payments** means you bring your own processor. You hold the account, you sign their agreement, you pay their rates, and 86d charges you nothing per [Checkout](/modules/checkout). Stripe, PayPal, Square, and Braintree each have a first-party [Module](/concepts/modules).
+
+**[86d Payments](/resources/glossary#86d-payments)** is the service 86d is building, where 86d handles onboarding, cards, wallets, settlement, and disputes for you at one published rate. It is not available. The section at the bottom of this page explains what it will cost, so you can plan.
+
+Third-party Payments stays available after 86d Payments ships. Nobody gets moved off a processor they chose.
+
+## Before you configure anything
+
+Make sure you can:
+
+1. create and reset a provider test account
+2. keep server secrets in the deployment environment, out of `config.json`
+3. expose a temporary HTTPS endpoint for provider events
+4. read the provider's own event log
+5. throw away your Store's test data afterward
+
+Read [How Connections route provider work](/concepts/connections) before you test a refund. Refunds are where provider routing stops being an abstraction.
+
+## Install one provider
+
+Install `@86d-app/payments` alongside exactly one provider Module:
+
+```bash
+npm install @86d-app/payments @86d-app/stripe
+```
+
+Add both to your active [Template](/concepts/templates)'s `config.json` and regenerate:
+
+```json
+{
+  "modules": [
+    "@86d-app/payments",
+    "@86d-app/stripe"
+  ],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+```bash
+86d generate
+```
+
+<Warning>
+  One provider at a time. There is no safe failover between processors: a refund has to go back through whoever took the money, so a second configured provider buys you nothing and costs you a class of bug that is painful to find.
+</Warning>
+
+## Configure it
+
+<Tabs>
+  <Tab title="Stripe">
+    | Variable | What it is |
+    | --- | --- |
+    | `STRIPE_SECRET_KEY` | Test API secret |
+    | `STRIPE_WEBHOOK_SECRET` | Test event-signing secret |
+    | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Browser publishable key |
+
+    Register this endpoint in Stripe:
+
+    ```text
+    POST https://store_domain_here/api/stripe/webhook
+    ```
+
+    Subscribe to the PaymentIntent success, failure, cancellation, and refund events your test exercises. The [Stripe Module](/modules/stripe) page has the package detail.
+  </Tab>
+  <Tab title="PayPal">
+    | Variable | What it is |
+    | --- | --- |
+    | `PAYPAL_CLIENT_ID` | Sandbox client identifier |
+    | `PAYPAL_CLIENT_SECRET` | Sandbox client secret |
+    | `PAYPAL_WEBHOOK_ID` | Your configured webhook identifier |
+    | `PAYPAL_SANDBOX` | Set to `"true"` for sandbox |
+
+    The [Storefront](/concepts/storefront) also needs `NEXT_PUBLIC_PAYPAL_CLIENT_ID` to render the PayPal button.
+
+    ```text
+    POST https://store_domain_here/api/paypal/webhook
+    ```
+
+    Subscribe to capture completion and denial. See the [PayPal Module](/modules/paypal).
+  </Tab>
+  <Tab title="Square">
+    | Variable | What it is |
+    | --- | --- |
+    | `SQUARE_ACCESS_TOKEN` | Sandbox access token |
+    | `SQUARE_WEBHOOK_SIGNATURE_KEY` | Event signature key |
+    | `SQUARE_WEBHOOK_NOTIFICATION_URL` | The URL you registered |
+
+    The Storefront also uses the public Square application and location identifiers.
+
+    ```text
+    POST https://store_domain_here/api/square/webhook
+    ```
+
+    See the [Square Module](/modules/square).
+  </Tab>
+  <Tab title="Braintree">
+    | Variable | What it is |
+    | --- | --- |
+    | `BRAINTREE_MERCHANT_ID` | Sandbox merchant identifier |
+    | `BRAINTREE_PUBLIC_KEY` | Sandbox public key |
+    | `BRAINTREE_PRIVATE_KEY` | Sandbox private key |
+    | `BRAINTREE_SANDBOX` | Set to `"true"` for sandbox |
+
+    ```text
+    POST https://store_domain_here/api/braintree/webhook
+    ```
+
+    Subscribe to the settlement events your test uses. See the [Braintree Module](/modules/braintree).
+  </Tab>
+</Tabs>
+
+## Test the event boundary
+
+Provider events are the part that breaks in production and looks fine in a demo. Run all six of these before you widen testing:
+
+1. Send a valid test event. Confirm exactly one state change.
+2. Send an event with a bad signature. Confirm it is rejected, not merely logged.
+3. Send the valid event again. Confirm no duplicate effect.
+4. Deliver events out of order. Confirm state cannot move backward.
+5. Retry after an ambiguous write. Confirm the recovery is idempotent.
+6. Refund something. Confirm the refund went back through the [Connection](/concepts/connections) that took the [Payment](/modules/payments).
+
+A green sandbox happy path is not evidence. The failure paths are the evidence.
+
+## Check the whole purchase, not the charge
+
+A provider Module on its own does not give you a trustworthy path from Checkout to an [Order](/modules/orders). Verify the server-owned amount, [Inventory](/modules/inventory), tax, [Shipping](/modules/shipping), the Payment outcome, Order creation, and retry behavior together, because that is how they fail: together.
+
+See [How commerce records relate](/concepts/commerce-model), [Payments](/modules/payments), and [Checkout](/modules/checkout).
+
+## What 86d Payments will cost
+
+86d Payments is a planned service. When it arrives, the fee on [Launch](/resources/cloud-plans) and Premium will be:
+
+> 5% of eligible merchandise subtotal, plus exactly $0.50 per paid Checkout.
+
+That rate is **all-in**. It is your complete cost to accept the payment. No separate processor line reaches you, because upstream processing is paid out of the same fee.
+
+**Eligible merchandise** is your subtotal after product discounts and [Loyalty](/modules/loyalty) redemption. Shipping, tax, tips, and any order fee you define are excluded from the calculation.
+
+Some specifics worth knowing before you model your margins:
+
+- One fee per paid Checkout, created when confirmed captures first cover the full amount due. An authorization on its own creates no fee.
+- Splitting a payment into several captures does not repeat the 50 cent charge.
+- A void, a full refund, a cancellation you make, or a chargeback the buyer wins credits the entire fee back to you.
+- A partial refund recalculates the fee against what is left. While merchandise remains, 86d keeps 5% of that remainder plus $0.50. When nothing eligible remains, no fee remains.
+- A reversed refund or dispute outcome reverses the matching adjustment.
+
+Launch and Premium share one published rate with no volume tiers. Enterprise rates are negotiated. Using 86d Payments does not waive the [86d Cloud](/resources/cloud-plans) management fee.
+
+<Warning>
+  86d is not the merchant of record, does not sell chargeback protection, and does not insure you against fraud loss. Refund, dispute, and chargeback costs stay yours unless 86d caused the failure.
+</Warning>
+
+## Selling before payments are switched on
+
+A Store waiting on payment activation does not have to turn Shoppers away. It can take a **reservation**: a purchase intent with the charge deferred, disclosed as such at Checkout and again in the confirmation email. The Shopper can cancel, the deadline is fixed, and only card is offered because wallets need an approved merchant account.
+
+When payments activate, the reservation captures and becomes an Order. If activation is declined or the deadline passes, it cancels, the Shopper is notified, and the stored payment method is deleted.
+
+That is different from a [Checkout Request](/resources/glossary#checkout-request), which is what a Store saves when tax or a Shipping quote is the missing piece rather than payment. A Checkout Request stores no payment details, reserves no stock, and creates no Order.
+
+## Related pages
+
+- [Payments](/modules/payments)
+- [How commerce records relate](/concepts/commerce-model)
+- [How Connections route provider work](/concepts/connections)
+- [Environment variables](/configuration/environment-variables)
+- [Secure a Store Runtime](/operations/security)
+- [86d Cloud plans](/resources/cloud-plans)
+- [Versioning and maturity](/resources/versioning)
+- [Public Beta status](/resources/public-beta)

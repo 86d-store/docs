@@ -1,0 +1,50 @@
+---
+title: "Referrals"
+description: "Customer referral program for 86d. Each Customer gets a unique referral code; both referrer and referee earn a reward on conversion."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Referrals [Module](/concepts/modules) gives every [Customer](/resources/glossary#customer) a unique referral code. When a new Customer places their first [Order](/concepts/commerce-model) with that code, both the referrer and the new Customer receive the reward you set per program: a discount, store credit, or loyalty points.
+
+**Source:** [`modules/referrals`](https://github.com/86d-app/86d/tree/main/modules/referrals) · **npm:** [`@86d-app/referrals`](https://www.npmjs.com/package/@86d-app/referrals)
+
+## Installation
+
+```sh
+86d module add referrals
+```
+
+## Configuration
+
+```ts
+referrals({
+  rewardType: "store-credit",      // "store-credit" | "discount" | "loyalty-points"
+  referrerRewardAmount: "1000",    // in cents or points
+  refereeRewardAmount: "1000",
+});
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/referrals/me` | Get the customer's code and stats |
+| `POST` | `/referrals/redeem` | Apply a referral code at signup or checkout |
+
+## Components
+
+- `<ReferralDashboard />`
+- `<ReferralBadge />`
+
+## Related pages
+
+- [Affiliates](/modules/affiliates) for partner programs rather than customer-to-customer referrals
+- [Store credits](/modules/store-credits)
+- [Loyalty](/modules/loyalty)
+- [Discounts](/modules/discounts)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

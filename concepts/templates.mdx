@@ -1,0 +1,228 @@
+---
+title: "Templates"
+description: "A Template holds everything visual about your Store: MDX pages, a config.json, and color tokens. Change it without touching commerce logic."
+sidebarTitle: "Templates"
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+A [Template](/resources/glossary#template) is a folder holding everything visual about your Store: the MDX files that make up each page, a `config.json` listing which [Modules](/concepts/modules) are on and what colors to use, and any global CSS. Swap the Template and your Store looks different. Your Module logic, API routes, and commerce data do not move.
+
+That separation is the point. Redesigning your Storefront should not be able to break [Checkout](/modules/checkout).
+
+The starter Template, `brisa`, ships under `templates/`. Copy it when you want your own.
+
+## What is in a Template
+
+```text
+templates/<theme>/
+├── config.json          # Module list, theme name, color tokens, asset paths
+├── layout.mdx           # Global page wrapper (Navbar + main content + Footer)
+├── index.mdx            # Homepage content
+├── about.mdx
+├── contact.mdx
+├── terms.mdx
+├── privacy.mdx
+├── products/
+│   ├── layout.mdx       # Product listing page
+│   └── [slug]/
+│       └── layout.mdx   # Product detail page (receives props.slug)
+├── collections/
+│   ├── layout.mdx
+│   └── [slug]/layout.mdx
+├── blog/
+│   ├── layout.mdx
+│   └── [slug]/layout.mdx
+├── track/index.mdx      # Order tracking
+├── search/index.mdx     # Search results
+└── assets/              # Favicon and logos (light + dark variants)
+```
+
+## `config.json`
+
+`config.json` controls presentation and local Module configuration for the active Template. Commerce facts stay in the [Store Runtime](/concepts/architecture) domains that own them, so nothing in this file can change a price or a stock count.
+
+```json config.json
+{
+  "theme": "brisa",
+  "name": "86d Starter Kit",
+  "favicon": "/assets/favicon.svg",
+  "icon": {
+    "light": "/assets/icon/light.svg",
+    "dark": "/assets/icon/dark.svg"
+  },
+  "logo": {
+    "light": "/assets/logo/light.svg",
+    "dark": "/assets/logo/dark.svg"
+  },
+  "modules": [
+    "@86d-app/products",
+    "@86d-app/collections",
+    "@86d-app/blog"
+  ],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  },
+  "moduleOptions": {
+    "@86d-app/cart": {
+      "guestCartExpiration": 604800000,
+      "maxItemsPerCart": 100
+    }
+  },
+  "variables": {
+    "light": {
+      "background": "oklch(0.995 0 0)",
+      "foreground": "oklch(0.13 0.005 285)",
+      "primary": "oklch(0.18 0.005 285)",
+      "primary-foreground": "oklch(0.985 0 0)"
+    },
+    "dark": {
+      "background": "oklch(0.12 0.005 285)",
+      "foreground": "oklch(0.96 0.005 285)",
+      "primary": "oklch(0.92 0.005 285)",
+      "primary-foreground": "oklch(0.16 0.005 285)"
+    }
+  }
+}
+```
+
+### The fields that matter
+
+| Field | What it does |
+| --- | --- |
+| `theme` | The Template name. Must match the folder name under `templates/` |
+| `name` | Your Store's display name, shown in the navbar and the browser tab |
+| `modules` | An explicit package list. `"*"` discovers the catalog but admits no Experimental Modules |
+| `advanced` | Versioned consent for advanced behavior, including Experimental Module admission |
+| `moduleOptions` | Per-Module settings, passed to each Module's `init` function at startup |
+| `variables.light` | OKLCH color tokens applied as CSS custom properties in light mode |
+| `variables.dark` | The same tokens for dark mode |
+
+The complete schema is in the [`config.json` reference](/configuration/store-config).
+
+<Warning>
+  Every first-party registry entry is Experimental right now. Name each package explicitly, set `advanced.version` to `1` and `allowExperimentalModules` to `true`, and read the list again before you deploy.
+</Warning>
+
+## Colors
+
+Colors are [OKLCH](https://oklch.com/) values. OKLCH is perceptually uniform, which means raising lightness by the same amount looks like the same amount of change across every hue. Picking a palette stops being trial and error. Every token in `variables.light` and `variables.dark` maps to a CSS custom property Tailwind reads.
+
+<CodeGroup>
+
+```json Light mode (excerpt)
+"variables": {
+  "light": {
+    "radius": "0.5rem",
+    "background": "oklch(0.995 0 0)",
+    "foreground": "oklch(0.13 0.005 285)",
+    "primary": "oklch(0.18 0.005 285)",
+    "primary-foreground": "oklch(0.985 0 0)",
+    "secondary": "oklch(0.965 0.002 285)",
+    "muted": "oklch(0.965 0.002 285)",
+    "muted-foreground": "oklch(0.5 0.01 285)",
+    "border": "oklch(0.915 0.004 285)",
+    "destructive": "oklch(0.577 0.245 27.325)"
+  }
+}
+```
+
+```json Dark mode (excerpt)
+"variables": {
+  "dark": {
+    "background": "oklch(0.12 0.005 285)",
+    "foreground": "oklch(0.96 0.005 285)",
+    "primary": "oklch(0.92 0.005 285)",
+    "primary-foreground": "oklch(0.16 0.005 285)",
+    "secondary": "oklch(0.22 0.005 285)",
+    "muted": "oklch(0.22 0.005 285)",
+    "muted-foreground": "oklch(0.62 0.01 285)",
+    "border": "oklch(1 0 0 / 8%)"
+  }
+}
+```
+
+</CodeGroup>
+
+<Tip>
+  The format is `oklch(lightness chroma hue)`. To move your brand color, change the hue (0 to 360) on `primary` and leave lightness and chroma alone. Changing all three at once is how palettes end up muddy.
+</Tip>
+
+## Logic and presentation are separate files
+
+Every visual component in a Template splits in two:
+
+- **`.tsx`** holds the logic: state, data fetching, event handlers, configuration.
+- **`.mdx`** holds the markup: a render template that receives everything as props.
+
+```tsx navbar/index.tsx
+import One from "./1.mdx";
+
+export function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+  return <One items={items} isOpen={isOpen} setIsOpen={setIsOpen} />;
+}
+```
+
+```mdx navbar/1.mdx
+<nav>
+  {props.items.map(item => (
+    <a href={item.href}>{item.label}</a>
+  ))}
+</nav>
+```
+
+Numbered MDX files (`1.mdx`, `2.mdx`, `3.mdx`) are design variants of the same component. Switching designs means changing which numbered file the `.tsx` imports. The logic never moves, so a redesign cannot introduce a data bug.
+
+## Make your own
+
+<Steps>
+  <Step title="Copy brisa">
+    ```bash
+    86d template create my-theme
+    ```
+
+    This copies the starter into `templates/my-theme/` and updates `theme` and `name` in the new `config.json`.
+  </Step>
+  <Step title="Edit the MDX">
+    Change `layout.mdx`, `index.mdx`, and any page-level MDX to match your design. Module components are available by name with no imports.
+  </Step>
+  <Step title="Activate it">
+    ```bash
+    86d template activate my-theme
+    ```
+
+    Activation points the `template/*` path alias in `apps/store/tsconfig.json` at your new directory.
+  </Step>
+  <Step title="Restart">
+    ```bash
+    bun run dev
+    ```
+
+    MDX edits hot-reload. `config.json` changes need the restart.
+  </Step>
+</Steps>
+
+You can also pull a Template from GitHub or npm:
+
+```bash
+86d template add github:owner/repo/templates/custom
+86d template add npm:@acme/store-template
+```
+
+[`86d template add`](/cli/commands#86d-template-add-specifier) has the full specifier grammar. The command fails if the downloaded Template has no `config.json`, and the Template has to ship an explicit `modules` array. Copy the shape of `templates/brisa/config.json`.
+
+<Warning>
+  Rename the folder and the `theme` field has to change with it. A mismatch fails the build, which is better than the alternative but still costs you a confused ten minutes.
+</Warning>
+
+## Related pages
+
+- [Customize a Template](/guides/customizing-templates) for name, colors, logos, and pages
+- [`config.json` reference](/configuration/store-config)
+- [Storefront](/concepts/storefront) for how a Template renders
+- [How Modules package Store capabilities](/concepts/modules)
+- [Glossary](/resources/glossary)

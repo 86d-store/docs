@@ -1,0 +1,92 @@
+---
+title: "Docs MCP server"
+description: "Read-only access to these pages for AI assistants: semantic search plus a shell over a virtual documentation filesystem."
+---
+
+<Warning>
+  **Read-only.** This server cannot see or change a [Business](/resources/glossary#business), a Store, a deployment, an [Order](/modules/orders), or a [Payment](/modules/payments). It is not the 86d agent transport. Do not send it credentials.
+</Warning>
+
+The Docs MCP server gives an AI client structured access to this documentation: every concept, [Module](/concepts/modules) page, CLI reference, configuration page, and guide. Two tools: semantic search for conceptual questions, and a read-only shell over a virtual filesystem for exact matching, structure, and full pages.
+
+If you are an agent, search first and then read the whole page before acting on it. A matched snippet regularly omits the warning that would have changed your answer.
+
+Authorized product operations through [Remote OAuth MCP](/concepts/agentic-design) are still being built. There is no public product-operation endpoint or tool catalog today.
+
+## Endpoint
+
+Point any MCP-compatible client at:
+
+```text
+https://86d.app/docs/mcp
+```
+
+86d hosts it. No authentication, and it serves exactly what you see on this site.
+
+## The two tools
+
+### `search_86d`
+
+Semantic search across everything: concepts, Modules, CLI, configuration, guides. Use it for the questions you would ask a person, such as how to add a payment provider, or what the difference is between a Module and a Template.
+
+It returns matched sections with titles and links. To read the whole page, pass its path to `query_docs_filesystem_86d`.
+
+### `query_docs_filesystem_86d`
+
+A read-only shell over a virtual filesystem rooted at `/`, holding every page as an `.mdx` file. It is sandboxed in memory: nothing runs on your machine, on the server host, or over the network. Use it for exact matches, regex, structure, and full pages.
+
+**Reading a page.** There is no separate get-page tool. Pass the path to `cat` or `head`:
+
+- `cat /quickstart.mdx`
+- `head -120 /concepts/modules.mdx`
+- `cat /modules/cart.mdx /modules/checkout.mdx /modules/orders.mdx`
+
+**Searching.** `rg` handles keyword and regex:
+
+- `rg -il "stripe" /` lists every page that mentions Stripe.
+- `rg -C 3 "BETTER_AUTH_SECRET" /` returns matches with three lines of context.
+- `rg "86d (init|generate|template)" /cli/` scopes to the CLI section.
+
+**Exploring.** `tree` and `ls` show the layout:
+
+- `tree / -L 2` prints the top-level structure.
+- `ls /modules/` lists every documented module.
+- `ls /guides/` lists every guide.
+
+**Available commands.** `rg`, `grep`, `find`, `tree`, `ls`, `cat`, `head`, `tail`, `stat`, `wc`, `sort`, `uniq`, `cut`, `sed`, `awk`, `jq`, and the usual text utilities. No writes, no network, no process control. `--help` works on any of them.
+
+#### Every call starts fresh
+
+Calls are independent. The working directory resets to `/` each time, and no variables, aliases, or history survive. Either use absolute paths or chain into one call:
+
+```sh
+ls /modules/
+# or
+cd /modules && ls && head -40 cart.mdx
+```
+
+A `cd` in one call has no effect on the next.
+
+#### Output is capped
+
+Each call truncates at 30 KB, so aim rather than sweep:
+
+- `rg -C 3 "pattern" /path/file.mdx` pulls only the relevant part of a long page.
+- `head -N` when the top of the file is enough.
+- Batch reads into one `cat` call rather than issuing them one at a time.
+
+#### Citing a page
+
+Drop the `.mdx` extension to turn a filesystem path into a URL:
+
+- `/quickstart.mdx` -> `/quickstart`
+- `/concepts/modules.mdx` -> `/concepts/modules`
+- `/modules/cart.mdx` -> `/modules/cart`
+
+## Related pages
+
+- [How agents work with 86d](/concepts/agentic-design)
+- [CLI overview](/cli/overview)
+- [What is 86d?](/introduction)
+- [Glossary](/resources/glossary#docs-mcp-server)
+- [Versioning and maturity](/resources/versioning)

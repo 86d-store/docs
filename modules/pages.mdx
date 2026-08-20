@@ -1,0 +1,43 @@
+---
+title: "Pages"
+description: "CMS-style static pages for 86d: About, Contact, Press, Terms, anything you write once and update occasionally, with a draft and publish flow."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Pages [Module](/concepts/modules) manages static pages outside the standard catalog routes. Each page has a slug, a Markdown or MDX body, optional SEO meta, and a draft or published state. Use it for About, Press, Wholesale, or anything else that does not fit the product or blog model.
+
+**Source:** [`modules/pages`](https://github.com/86d-app/86d/tree/main/modules/pages) · **npm:** [`@86d-app/pages`](https://www.npmjs.com/package/@86d-app/pages)
+
+## Installation
+
+```sh
+86d module add pages
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/pages/:slug` | Get a published page |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/pages` | List pages |
+| `POST` | `/admin/pages` | Create |
+| `PUT` | `/admin/pages/:id` | Update |
+| `POST` | `/admin/pages/:id/publish` | Publish |
+
+## Related pages
+
+- [Blog](/modules/blog)
+- [SEO](/modules/seo)
+- [Navigation](/modules/navigation)
+- [Templates](/concepts/templates)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

@@ -1,0 +1,47 @@
+---
+title: "Store locator"
+description: "Physical store locations with proximity search for 86d. Map view powered by Google Maps when GOOGLE_MAPS_API_KEY is set."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Store Locator [Module](/concepts/modules) keeps a directory of your physical store locations. Each location has an address, hours, contact details, and optional services such as BOPIS and in-store returns. When `GOOGLE_MAPS_API_KEY` is set, the [Storefront](/concepts/storefront) component renders an interactive map and a proximity-sorted list; without the key, it falls back to a list-only view.
+
+**Source:** [`modules/store-locator`](https://github.com/86d-app/86d/tree/main/modules/store-locator) · **npm:** [`@86d-app/store-locator`](https://www.npmjs.com/package/@86d-app/store-locator)
+
+## Installation
+
+```sh
+86d module add store-locator
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/locations` | List all locations |
+| `GET` | `/locations/near?postalCode=` | Sorted by distance |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/admin/locations` | Create |
+| `PUT` | `/admin/locations/:id` | Update |
+| `DELETE` | `/admin/locations/:id` | Delete |
+
+## Components
+
+- `<StoreLocator />`: the full map and list view.
+- `<NearestStore />`: a compact widget for the homepage.
+
+## Related pages
+
+- [Store pickup](/modules/store-pickup)
+- [Returns](/modules/returns)
+- [Storefront](/concepts/storefront)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

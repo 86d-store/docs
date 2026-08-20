@@ -1,0 +1,193 @@
+---
+title: "Collections"
+description: "Reference for @86d-app/collections: curate manual and automatic product groupings with SEO, featured flags, and drag-and-drop ordering."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Collections [Module](/concepts/modules) groups products for merchandising. You can curate a collection by hand or define rules that build it automatically, feature it on the [Storefront](/concepts/storefront), and control its ordering and SEO metadata.
+
+<Note>
+  The Products package still stores its own collection-link records. Check which endpoint owns the operation you are calling, and do not write through both paths for one change.
+</Note>
+
+**Source:** [`modules/collections`](https://github.com/86d-app/86d/tree/main/modules/collections) · **npm:** [`@86d-app/collections`](https://www.npmjs.com/package/@86d-app/collections)
+
+## Installation
+
+<CodeGroup>
+
+```sh npm
+npm install @86d-app/collections
+```
+
+```sh pnpm
+pnpm add @86d-app/collections
+```
+
+</CodeGroup>
+
+Then register the Module in your store's `config.json`:
+
+```json
+{
+  "modules": ["@86d-app/collections"],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+## Configuration
+
+```ts
+import collections from "@86d-app/collections";
+
+const module = collections({
+  maxProductsPerCollection: "500",
+});
+```
+
+<ParamField body="maxProductsPerCollection" default='"500"' type="string">
+  Maximum number of products allowed in a single collection. Requests that would exceed this limit are rejected.
+</ParamField>
+
+## Store endpoints
+
+Store endpoints are public and return only active collections.
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/collections` | List active collections, filterable by type and featured flag |
+| `GET` | `/collections/featured` | Get featured collections |
+| `GET` | `/collections/:slug` | Get a single collection by slug |
+| `GET` | `/collections/:slug/products` | Get paginated products in a collection |
+| `GET` | `/collections/product/:productId` | Get all collections containing a specific product |
+
+## Admin endpoints
+
+Admin endpoints require authentication and return collections of all statuses.
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/collections` | List all collections, paginated and filterable |
+| `GET` | `/admin/collections/stats` | Get collection statistics |
+| `POST` | `/admin/collections/create` | Create a new collection |
+| `POST` | `/admin/collections/:id/update` | Update a collection |
+| `POST` | `/admin/collections/:id/delete` | Delete a collection and all its product associations |
+| `GET` | `/admin/collections/:id/products` | List products in a collection |
+| `POST` | `/admin/collections/:id/products/add` | Add products to a collection |
+| `POST` | `/admin/collections/:id/products/remove` | Remove products from a collection |
+| `POST` | `/admin/collections/:id/products/reorder` | Reorder products within a collection |
+
+## Components
+
+Add these components to your MDX [Template](/concepts/templates) files. The `collections` Module must be listed in `config.json`.
+
+### `CollectionList`
+
+Renders a grid of all active collections. Fetches its own data; no props required.
+
+```mdx
+<CollectionList />
+```
+
+### `FeaturedCollections`
+
+Renders featured collection cards. Fetches its own data; no props required.
+
+```mdx
+<FeaturedCollections />
+```
+
+## Types
+
+```ts
+type CollectionType = "manual" | "automatic";
+
+type CollectionSortOrder =
+  | "manual"
+  | "title-asc"
+  | "title-desc"
+  | "price-asc"
+  | "price-desc"
+  | "created-asc"
+  | "created-desc"
+  | "best-selling";
+
+interface Collection {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  type: CollectionType;
+  sortOrder: CollectionSortOrder;
+  isActive: boolean;
+  isFeatured: boolean;
+  position: number;
+  conditions?: CollectionConditions; // automatic collections only
+  seoTitle?: string;
+  seoDescription?: string;
+  publishedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface CollectionProduct {
+  id: string;
+  collectionId: string;
+  productId: string;
+  position: number;
+  addedAt: Date;
+}
+
+interface CollectionConditions {
+  match: "all" | "any";
+  rules: CollectionCondition[];
+}
+
+interface CollectionCondition {
+  field: string;
+  operator:
+    | "equals"
+    | "not_equals"
+    | "contains"
+    | "starts_with"
+    | "ends_with"
+    | "greater_than"
+    | "less_than"
+    | "in"
+    | "not_in";
+  value: string | number | string[];
+}
+
+interface CollectionStats {
+  totalCollections: number;
+  activeCollections: number;
+  featuredCollections: number;
+  manualCollections: number;
+  automaticCollections: number;
+  totalProducts: number;
+}
+```
+
+## Notes
+
+- Slugs must be unique. The create and update endpoints validate for conflicts.
+- Adding a product that already exists in a collection is idempotent. The operation returns the existing entry rather than creating a duplicate.
+- Deleting a collection cascades and removes all associated `CollectionProduct` records.
+- Automatic collections store `conditions` as JSON. The [Store Runtime](/concepts/architecture) evaluates these conditions at query time.
+- Store endpoints return only active collections. Admin endpoints return all collections regardless of status.
+- Products within a collection are ordered by `position` ascending.
+
+## Related pages
+
+- [Products](/modules/products)
+- [Brands](/modules/brands)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

@@ -1,0 +1,223 @@
+---
+title: "Payments"
+description: "Evaluate the Experimental Payments Module in the Store Runtime: payment intents, refunds, and the current PaymentProvider interface."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** Use one sandbox provider. Offline simulation is for local development only and cannot represent a Shopper Payment. The current interface does not yet persist explicit Payment Connections or establish a production-ready Checkout-to-Order path. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Payments [Module](/concepts/modules) records payment intents, saved payment methods, and refunds in the [Store Runtime](/concepts/architecture) database. Provider calls go through the current `PaymentProvider` interface.
+
+This Module is not [86d Payments](/resources/glossary#86d-payments). Using it does not waive Cloud management fees.
+
+See [How commerce records relate](/concepts/commerce-model) and [How Connections route provider work](/concepts/connections) before you evaluate this Module.
+
+**Source:** [`modules/payments`](https://github.com/86d-app/86d/tree/main/modules/payments) · **npm:** [`@86d-app/payments`](https://www.npmjs.com/package/@86d-app/payments)
+
+## Installation
+
+Install the Payments Module alongside a [Third-party Payment](/resources/glossary#third-party-payments) Module:
+
+```sh
+npm install @86d-app/payments @86d-app/stripe
+```
+
+## Configuration
+
+```json
+{
+  "modules": ["@86d-app/payments", "@86d-app/stripe"],
+  "advanced": {
+    "version": 1,
+    "allowExperimentalModules": true
+  }
+}
+```
+
+Set provider secrets in the server environment. The current generator creates the provider instance from those values. Do not put a secret key in source, `config.json`, browser variables, or [Store Admin](/concepts/admin) fields.
+
+<ParamField path="provider" default="undefined" type="PaymentProvider">
+  A provider implementation. When omitted, the current module stores simulated local intents and handles status transitions in memory. This is not an available Payment method for Shoppers.
+</ParamField>
+
+<ParamField path="currency" default='"USD"' type="string">
+  Default currency code for new payment intents. Individual intents can override this by passing `currency` to `controller.createIntent()`.
+</ParamField>
+
+## `PaymentProvider` interface
+
+To connect any payment processor, implement this interface and pass an instance to the `provider` option:
+
+```ts
+interface PaymentProvider {
+  createIntent(params: {
+    amount: number;      // positive integer, smallest currency unit (e.g. cents)
+    currency: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<ProviderIntentResult>;
+
+  confirmIntent(providerIntentId: string): Promise<ProviderIntentResult>;
+
+  cancelIntent(providerIntentId: string): Promise<ProviderIntentResult>;
+
+  createRefund(params: {
+    providerIntentId: string;
+    amount?: number;     // partial refund in cents; omit for full refund
+    reason?: string;
+  }): Promise<ProviderRefundResult>;
+}
+```
+
+**`ProviderIntentResult`** contains `providerIntentId`, `status`, and an optional `providerMetadata` bag. For Stripe, `providerMetadata.clientSecret` holds the value you pass to the frontend `PaymentElement`.
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/payments/intents` | Create a payment intent |
+| `GET` | `/payments/intents/:id` | Get an intent by ID |
+| `POST` | `/payments/intents/:id/confirm` | Confirm payment |
+| `POST` | `/payments/intents/:id/cancel` | Cancel payment |
+| `GET` | `/payments/methods` | List the customer's saved payment methods |
+| `DELETE` | `/payments/methods/:id` | Delete a saved payment method |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/payments` | List all intents (filter by `customerId`, `status`, `orderId`) |
+| `GET` | `/admin/payments/:id` | Get intent detail |
+| `POST` | `/admin/payments/:id/refund` | Issue a refund |
+| `GET` | `/admin/payments/:id/refunds` | List refunds for an intent |
+
+## Payment intent statuses
+
+| Status | Description |
+| --- | --- |
+| `pending` | Intent created, payment not yet initiated |
+| `processing` | Payment is being processed |
+| `succeeded` | Payment completed successfully |
+| `failed` | Payment failed |
+| `cancelled` | Intent was cancelled |
+| `refunded` | Payment has been partially or fully refunded |
+
+## Checkout integration
+
+In sandbox evaluation, the `CheckoutPayment` component can call `createIntent` when the [Shopper](/resources/glossary#shopper) reaches the payment step. You do not need to call the payments API from your [Checkout](/modules/checkout) templates; the runtime context connects the two modules. This path is sandbox evaluation only. It is not a live Shopper purchase.
+
+A typical sandbox evaluation flow looks like this:
+
+```ts
+// 1. Customer reaches checkout payment step; intent is created
+const intent = await controller.createIntent({
+  amount: 4999,   // $49.99 in cents
+  currency: "USD",
+  customerId: "cust_123",
+  orderId: "ord_456",
+});
+// With Stripe: intent.providerMetadata.clientSecret -> send to frontend PaymentElement
+
+// 2. Customer completes payment on the frontend -> confirm server-side
+const confirmed = await controller.confirmIntent(intent.id);
+// confirmed.status === "succeeded"
+
+// 3. Issue a refund when needed
+const refund = await controller.createRefund({
+  intentId: intent.id,
+  amount: 1000,           // $10.00 partial refund; omit for full refund
+  reason: "customer request",
+});
+```
+
+## Financial safety guards
+
+The Payments controller enforces these rules regardless of which provider [Integration](/concepts/connections) you use:
+
+| Rule | Detail |
+| --- | --- |
+| **Amount validation** | `createIntent` rejects zero, negative, and fractional amounts. Amount must be a positive integer in the smallest currency unit. |
+| **Confirm guards** | `confirmIntent` only transitions from `pending` or `processing`. Throws on terminal states (`cancelled`, `failed`, `refunded`). |
+| **Cancel guards** | `cancelIntent` only works on `pending` or `processing`. Throws on `succeeded`, `failed`, `refunded`. |
+| **Refund guards** | `createRefund` only works on `succeeded` or `refunded` intents. |
+| **Refund cap** | Cumulative refunds cannot exceed the original intent amount. Each call sums non-failed prior refunds before allowing a new one. |
+| **Webhook deduplication** | `handleWebhookRefund` deduplicates by `providerRefundId`. Webhook retries return the existing refund rather than creating a duplicate. |
+
+## Provider event security
+
+Each provider uses its own event authentication protocol. Keep event endpoints private until valid, invalid, repeated, and out-of-order provider events pass your tests.
+
+Follow [Third-party Payment integrations](/guides/payment-integrations) for the current sandbox setup and verification checklist.
+
+## Current Third-party Payment modules
+
+| Provider | Package |
+| --- | --- |
+| Stripe | `@86d-app/stripe` |
+| PayPal | `@86d-app/paypal` |
+| Square | `@86d-app/square` |
+| Braintree | `@86d-app/braintree` |
+
+Each provider has its own reference page: [Stripe](/modules/stripe), [PayPal](/modules/paypal), [Square](/modules/square), and [Braintree](/modules/braintree). The packages exist in the first-party catalog, but each one still needs its own maturity evidence. You can also implement the current `PaymentProvider` interface for evaluation. The contract may change before 1.0 as explicit Connection routing ships.
+
+## Types
+
+```ts
+type PaymentIntentStatus =
+  | "pending" | "processing" | "succeeded"
+  | "failed" | "cancelled" | "refunded";
+
+type RefundStatus = "pending" | "succeeded" | "failed";
+
+interface PaymentIntent {
+  id: string;
+  providerIntentId?: string;     // e.g. Stripe's pi_xxx
+  customerId?: string;
+  email?: string;
+  amount: number;                // in cents
+  currency: string;
+  status: PaymentIntentStatus;
+  paymentMethodId?: string;
+  orderId?: string;
+  checkoutSessionId?: string;
+  metadata: Record<string, unknown>;
+  providerMetadata: Record<string, unknown>;  // provider-specific data
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface PaymentMethod {
+  id: string;
+  customerId: string;
+  providerMethodId: string;      // e.g. Stripe's pm_xxx
+  type: string;                  // "card" | "bank_transfer" | "wallet"
+  last4?: string;
+  brand?: string;                // "visa" | "mastercard" | etc.
+  expiryMonth?: number;
+  expiryYear?: number;
+  isDefault: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface Refund {
+  id: string;
+  paymentIntentId: string;
+  providerRefundId: string;
+  amount: number;                // in cents
+  reason?: string;
+  status: RefundStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+## Related pages
+
+- [Set up a payment provider](/guides/payment-integrations)
+- [Checkout](/modules/checkout)
+- [How commerce records relate](/concepts/commerce-model)
+- [How Connections route provider work](/concepts/connections)
+- [86d glossary](/resources/glossary#payment)
+- [Versioning and maturity](/resources/versioning)

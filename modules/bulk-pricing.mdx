@@ -1,0 +1,38 @@
+---
+title: "Bulk pricing"
+description: "Quantity-based tiered pricing for 86d. Discount per unit when Shoppers buy at or above each tier threshold."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Bulk Pricing [Module](/concepts/modules) sets quantity tiers per product or variant: "5 to 9 units: 10% off; 10+ units: 20% off". [Cart](/modules/cart) and [Checkout](/modules/checkout) apply the matching tier automatically based on the quantity in the cart line.
+
+**Source:** [`modules/bulk-pricing`](https://github.com/86d-app/86d/tree/main/modules/bulk-pricing) · **npm:** [`@86d-app/bulk-pricing`](https://www.npmjs.com/package/@86d-app/bulk-pricing)
+
+## Installation
+
+```sh
+86d module add bulk-pricing
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/bulk-pricing/:productId` | List tiers |
+| `POST` | `/admin/bulk-pricing/:productId` | Add a tier |
+| `DELETE` | `/admin/bulk-pricing/tiers/:id` | Remove a tier |
+
+## Components
+
+- `<BulkPricingTable productId={id} />`: shows tiers on product detail pages
+
+## Related pages
+
+- [Price lists](/modules/price-lists) for segment-based pricing rather than quantity-based
+- [Discounts](/modules/discounts) for coupon-based discounting
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

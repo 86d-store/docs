@@ -1,0 +1,50 @@
+---
+title: "Multi-currency"
+description: "Display and accept multiple currencies in 86d. Daily exchange-rate sync and per-product currency overrides."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Multi-currency [Module](/concepts/modules) lets a [Store](/resources/glossary#store) sell in more than one currency. Catalog prices stay in the store's primary currency; the Module computes display prices in the [Shopper](/resources/glossary#shopper)'s chosen currency from current exchange rates. When the payment provider supports it, the charge itself uses that currency. You can also set a per-product override for any price you do not want derived from an exchange rate.
+
+**Source:** [`modules/multi-currency`](https://github.com/86d-app/86d/tree/main/modules/multi-currency) · **npm:** [`@86d-app/multi-currency`](https://www.npmjs.com/package/@86d-app/multi-currency)
+
+## Installation
+
+```sh
+86d module add multi-currency
+```
+
+## Configuration
+
+```ts
+multiCurrency({
+  primary: "USD",
+  enabled: "USD,EUR,GBP,JPY",
+  ratesProvider: "exchangerate-host",  // or "openexchangerates"
+  refreshHours: "24",
+});
+```
+
+## Components
+
+- `<CurrencyPicker />`: [Storefront](/concepts/storefront) currency selector.
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/multi-currency/rates` | Current rates |
+| `POST` | `/admin/multi-currency/refresh` | Force refresh |
+| `POST` | `/admin/multi-currency/overrides` | Per-product price overrides |
+
+## Related pages
+
+- [Tax](/modules/tax)
+- [Payments](/modules/payments)
+- [Price lists](/modules/price-lists)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

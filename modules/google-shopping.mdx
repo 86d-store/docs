@@ -1,0 +1,34 @@
+---
+title: "Google Shopping"
+description: "Push your 86d catalog to Google Merchant Center for Shopping ads and free listings, with conversion tracking through Google Tag Manager."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Google Shopping [Module](/concepts/modules) generates a product feed in the format Google Merchant Center expects and, when configured, pushes it to Merchant Center through the Content API. Conversion tracking uses your `NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID` for return on ad spend (ROAS) reporting.
+
+**Source:** [`modules/google-shopping`](https://github.com/86d-app/86d/tree/main/modules/google-shopping) · **npm:** [`@86d-app/google-shopping`](https://www.npmjs.com/package/@86d-app/google-shopping)
+
+## Installation
+
+```sh
+86d module add google-shopping
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/feeds/google-shopping.xml` | Product feed for Merchant Center |
+
+## Related pages
+
+- [Product feeds](/modules/product-feeds)
+- [Storefront Analytics](/modules/analytics)
+- [SEO](/modules/seo)
+- [Connect a sales channel](/guides/channel-integrations)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

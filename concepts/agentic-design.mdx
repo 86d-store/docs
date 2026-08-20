@@ -1,0 +1,98 @@
+---
+title: "How agents work with 86d"
+description: "What an agent can do with 86d today, what the planned Command and Change Set model will allow, and where a human still has to say yes."
+sidebarTitle: "Agent operations"
+---
+
+<Warning>
+  **In development.** Authorized product operations through [Remote OAuth MCP](/resources/glossary#remote-oauth-mcp) do not exist yet. What works today is read-only. See [maturity levels](/resources/versioning).
+</Warning>
+
+The point of 86d is that you can hand real operating work to an agent without handing it the keys. Repricing, restocking, running a promotion, issuing a refund: an agent proposes, you see exactly what changes, and the system keeps a record of who decided what.
+
+None of that is live yet. This page separates what an agent can do with 86d today from the model that is being built, so nobody wires a production Store against a promise.
+
+## What works today
+
+| Surface | What it can do |
+| --- | --- |
+| [Docs MCP server](/resources/mcp) | Search and read these pages |
+| [86d CLI](/cli/overview) | Configure and inspect a Store Runtime on your machine |
+| Repository tools | Read the code, edit files, run tests, use git |
+
+The Docs MCP server is read-only. It cannot see or change a Business, a Store, an [Order](/modules/orders), a [Payment](/modules/payments), or a deployment. Do not send it credentials.
+
+## Remote OAuth MCP, when it exists
+
+Remote OAuth MCP is the planned transport for authorized product operations: OAuth authorization code with PKCE, short-lived scoped access tokens, rotating refresh tokens, revocation, and an actor identity that lands in the audit log. Its tools will call the same versioned [Commands](/resources/glossary#command) that 86d Console calls, so an agent and a person doing the same thing produce the same record.
+
+There is no public endpoint, authorization flow, or tool catalog today. The `/86d` skill is planned as a thin guide over that Command contract, teaching a model how to find the connection and read a result. Product behavior lives in the Command layer, never in the skill.
+
+## The planned model
+
+Three records carry the whole thing:
+
+| Record | What it is |
+| --- | --- |
+| **Command** | One authorized business operation, with a version, an idempotency key, and a typed result |
+| **Workflow** | A user-visible operation that coordinates several Commands and reports honestly when it half-succeeds |
+| **[Change Set](/resources/glossary#change-set)** | A group of proposed Store changes, frozen against the exact revisions they were prepared from |
+
+Each plane runs and audits the Commands for the facts it owns. The [Control Plane](/concepts/architecture) handles managed work. The Store Runtime handles commerce Commands, drafts, and commerce audit facts.
+
+A Workflow that fails partway says so. It reports `pending`, `running`, `completed`, `rolled_back`, `failed`, or `needs_attention`, and it never reports success because one external step worked.
+
+## What you see before you approve
+
+A Change Set shows you the whole picture before anything lands:
+
+- which Business and Stores it touches
+- the revisions it was prepared against
+- before and after values
+- what Shoppers will see, and what changes operationally
+- estimated charges and the spending authority it needs
+- required permissions
+- validation results and anything still blocking
+- what can be rolled back
+
+Your approval binds to that exact Change Set. The agent cannot edit it afterward. If something else changed underneath in the meantime, the Change Set becomes conflicted and has to be regenerated. Nothing silently overwrites newer state.
+
+## Three levels of human involvement
+
+| Level | What it covers |
+| --- | --- |
+| **Automatic** | Reads, searches, diagnostics, previews, validation, and unpublished drafts already inside the agent's scope |
+| **Approve** | Publishing a Change Set, changing a Store setting, enabling a Feature or Integration |
+| **Confirm now** | Spending money, refunding, changing payouts, changing credentials or Members, cutting over a domain, provisioning, changing plan, pausing, suspending, deleting data |
+
+A [Standing permission](/resources/glossary#standing-permission) can cover bounded routine work, scoped by Business, Store, action, amount, time window, and spending ceiling. Buying shipping labels all week without a prompt each time is exactly what it is for. Anything outside that scope or over that cap goes back to **Confirm now**.
+
+Four things never accept a standing permission, no matter what: accepting terms, making a KYC attestation, enabling automatic top-up, and deleting an account or Business. Those need a person, present, each time.
+
+The product explains what the action does. It does not show you a risk score and ask you to trust it.
+
+## Rules an agent works under
+
+An agent gets opaque [Connection references](/concepts/connections) and capability status. It never sees provider keys, OAuth tokens, webhook secrets, or managed credentials.
+
+An agent may generate descriptions, handles, collections, tags, alt text, and layout. It must not invent merchant facts: price, Inventory counts, weight, dimensions, ingredients, origin, regulated claims, tax treatment, or whether a provider approved something. Those are yours to state.
+
+A tool call that returned successfully proves the call succeeded. It does not prove the Workflow finished.
+
+## Using the current tools
+
+1. Connect an MCP-compatible client to the [Docs MCP server](/resources/mcp).
+2. Search for the smallest page that answers the question.
+3. Read the whole page before acting on it.
+4. Check any implementation claim against the current source and tests.
+5. Use the [CLI](/cli/overview) only against the working copy you mean to change.
+
+## Related pages
+
+- [Docs MCP server](/resources/mcp)
+- [Use the 86d CLI](/cli/overview)
+- [How 86d separates product authority](/concepts/architecture)
+- [How Connections route provider work](/concepts/connections)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)
+- [Production launch evidence](/operations/launch-evidence)

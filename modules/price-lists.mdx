@@ -1,0 +1,36 @@
+---
+title: "Price lists"
+description: "Customer-segment or channel-specific pricing for 86d. Override product prices for B2B groups, regions, or specific channels."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Price Lists [Module](/concepts/modules) overrides product prices for specific groups of [Customers](/resources/glossary#customer). A price list applies to one or more customer groups (B2B, wholesale, employees) or to specific sales [Channels](/resources/glossary#channel), and its prices replace the standard product prices for those buyers. Multiple price lists can stack with explicit precedence.
+
+**Source:** [`modules/price-lists`](https://github.com/86d-app/86d/tree/main/modules/price-lists) · **npm:** [`@86d-app/price-lists`](https://www.npmjs.com/package/@86d-app/price-lists)
+
+## Installation
+
+```sh
+86d module add price-lists
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/price-lists` | List |
+| `POST` | `/admin/price-lists` | Create |
+| `PUT` | `/admin/price-lists/:id` | Update |
+| `POST` | `/admin/price-lists/:id/items` | Add product overrides |
+
+## Related pages
+
+- [Customer groups](/modules/customer-groups)
+- [Bulk pricing](/modules/bulk-pricing)
+- [Multi-currency](/modules/multi-currency)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

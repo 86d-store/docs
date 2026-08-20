@@ -1,0 +1,34 @@
+---
+title: "Gamification"
+description: "Points, badges, and challenges for an 86d Storefront. Reward Customer behavior beyond purchasing."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Gamification [Module](/concepts/modules) rewards [Customer](/resources/glossary#customer) behavior with points and badges. You configure rules, such as sign-up, first purchase, or three reviews in a month, and you award challenges. Awarded points can roll into `@86d-app/loyalty` so they spend like loyalty points.
+
+**Source:** [`modules/gamification`](https://github.com/86d-app/86d/tree/main/modules/gamification) · **npm:** [`@86d-app/gamification`](https://www.npmjs.com/package/@86d-app/gamification)
+
+## Installation
+
+```sh
+86d module add gamification
+```
+
+## Components
+
+Use these components in your MDX [Template](/concepts/templates) files.
+
+- `<BadgeShelf customerId={id} />`
+- `<ChallengeProgress challengeId={id} />`
+
+## Related pages
+
+- [Loyalty](/modules/loyalty)
+- [Customers](/modules/customers)
+- [Reviews](/modules/reviews)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

@@ -1,0 +1,44 @@
+---
+title: "Product labels"
+description: "Visual badges on product cards: 'New', 'Sale', 'Best seller', 'Low stock'. Rule-based and merchandiser-controlled."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Product Labels [Module](/concepts/modules) attaches badges to product cards, driven by rules you configure (newness window, on-sale flag, low-stock threshold) or by manual selection. Labels render through `<ProductCard />` automatically when the Module is enabled.
+
+**Source:** [`modules/product-labels`](https://github.com/86d-app/86d/tree/main/modules/product-labels) · **npm:** [`@86d-app/product-labels`](https://www.npmjs.com/package/@86d-app/product-labels)
+
+## Installation
+
+```sh
+86d module add product-labels
+```
+
+## Configuration
+
+```ts
+productLabels({
+  newWindowDays: "30",
+  bestSellerThreshold: "100",
+});
+```
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/product-labels` | List configured labels |
+| `POST` | `/admin/product-labels` | Create a label |
+| `PUT` | `/admin/product-labels/:id` | Update a label |
+| `DELETE` | `/admin/product-labels/:id` | Delete a label |
+
+## Related pages
+
+- [Products](/modules/products)
+- [Flash sales](/modules/flash-sales)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

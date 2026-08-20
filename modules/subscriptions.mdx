@@ -1,0 +1,77 @@
+---
+title: "Subscriptions"
+description: "Recurring billing and subscription lifecycle for 86d: create, pause, resume, cancel, with provider-agnostic billing through @86d-app/payments."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Subscriptions [Module](/concepts/modules) manages the recurring-billing lifecycle on top of the [Products](/modules/products) and [Payments](/modules/payments) Modules. [Customers](/resources/glossary#customer) can subscribe to a product, choose a billing interval, pause and resume, swap variants, and cancel. The Module schedules renewal charges through whichever payment provider you configure under `@86d-app/payments`.
+
+**Source:** [`modules/subscriptions`](https://github.com/86d-app/86d/tree/main/modules/subscriptions) · **npm:** [`@86d-app/subscriptions`](https://www.npmjs.com/package/@86d-app/subscriptions)
+
+## Installation
+
+```sh
+86d module add subscriptions
+```
+
+The Module requires `@86d-app/products`, `@86d-app/orders`, and `@86d-app/payments` to be enabled.
+
+## Configuration
+
+```ts
+subscriptions({
+  defaultBillingDay: "1",          // 1-28, day of month for renewals
+  retryAttempts: "3",              // retries on failed renewal charge
+  cancelOnFailure: "true",         // cancel after exhausting retries
+  trialDaysDefault: "0",           // default trial period in days
+});
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/subscriptions` | Create a subscription |
+| `GET` | `/subscriptions/me` | List the customer's subscriptions |
+| `GET` | `/subscriptions/me/:id` | Get a single subscription |
+| `POST` | `/subscriptions/me/:id/pause` | Pause renewals |
+| `POST` | `/subscriptions/me/:id/resume` | Resume |
+| `POST` | `/subscriptions/me/:id/swap` | Swap variant |
+| `POST` | `/subscriptions/me/:id/cancel` | Cancel |
+
+## Admin endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/admin/subscriptions` | List subscriptions (filter by `status`, `customerId`) |
+| `GET` | `/admin/subscriptions/:id` | Detail |
+| `POST` | `/admin/subscriptions/:id/refund` | Refund a renewal charge |
+| `GET` | `/admin/subscriptions/upcoming` | Renewals due in the next N days |
+
+## Lifecycle
+
+```text
+trial -> active -> active (renews each cycle)
+active -> paused -> active
+active -> past_due -> active (after retry success) | cancelled (after retry exhaustion)
+active -> cancelled
+```
+
+## Components
+
+- `<SubscriptionPlanCard plan={...} />`: [Storefront](/concepts/storefront) upsell card.
+- `<SubscriptionsList />`: Customer self-service list.
+- `<SubscriptionDetail id={...} />`: management UI with pause and cancel actions.
+
+## Related pages
+
+- [Payments](/modules/payments)
+- [Customers](/modules/customers)
+- [Memberships](/modules/memberships) for paid access plans rather than per-product subscriptions
+- [How commerce records relate](/concepts/commerce-model)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)

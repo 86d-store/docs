@@ -1,0 +1,43 @@
+---
+title: "Digital downloads"
+description: "Sell digital files in 86d: ebooks, audio, video, software. Time-limited signed URLs and per-order download caps."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Digital Downloads [Module](/concepts/modules) turns any file into a sellable digital good. After purchase, the [Customer](/resources/glossary#customer) receives a download link backed by a time-limited signed URL, and the Module enforces per-order download caps to prevent unlimited sharing. Your configured [storage adapter](/configuration/storage) (`local`, `vercel`, or `s3`) serves the files.
+
+**Source:** [`modules/digital-downloads`](https://github.com/86d-app/86d/tree/main/modules/digital-downloads) · **npm:** [`@86d-app/digital-downloads`](https://www.npmjs.com/package/@86d-app/digital-downloads)
+
+## Installation
+
+```sh
+86d module add digital-downloads
+```
+
+## Configuration
+
+```ts
+digitalDownloads({
+  signedUrlTtlSeconds: "86400",   // 24h
+  maxDownloadsPerPurchase: "5",
+});
+```
+
+## Store endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/downloads/me` | List the customer's purchased downloads |
+| `GET` | `/downloads/me/:id` | Get a fresh signed URL |
+
+## Related pages
+
+- [Products](/modules/products) to mark a product as digital
+- [Orders](/modules/orders)
+- [Storage configuration](/configuration/storage)
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

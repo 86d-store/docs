@@ -1,0 +1,103 @@
+---
+title: "Storefront"
+description: "The shopper-facing side of your Store: a Next.js app whose pages are MDX files you can edit, with Module components you place like HTML."
+---
+
+<Warning>
+  **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
+</Warning>
+
+The [Storefront](/resources/glossary#storefront) is what your Shoppers see. It is a Next.js application, and every page in it is an MDX file from your active [Template](/concepts/templates), which means changing your homepage is editing a text file rather than fighting a page builder.
+
+Components from your enabled [Modules](/concepts/modules), such as `<ProductGrid />`, `<Cart />`, and `<NewsletterInline />`, register themselves when you enable the Module. You place them in MDX the way you place a paragraph. No imports, no wiring.
+
+## Routes come from files
+
+| Route | Template file |
+| --- | --- |
+| `/` | `index.mdx` |
+| `/products` | `products/layout.mdx` |
+| `/products/[slug]` | `products/[slug]/layout.mdx` |
+| `/collections` | `collections/layout.mdx` |
+| `/collections/[slug]` | `collections/[slug]/layout.mdx` |
+| `/checkout` | Multi-step Next.js route: info, shipping, payment, review |
+| `/blog` | `blog/layout.mdx` |
+| `/search` | `search/index.mdx` |
+| `/track` | `track/index.mdx` |
+
+The global `layout.mdx` wraps every page with your `<StoreNavbar />`, the `<Cart />` drawer, and `<Footer />`.
+
+## Place components in MDX
+
+Once a Module is listed in `config.json`, its components are in the MDX registry everywhere:
+
+```mdx index.mdx
+<FeaturedProducts limit={4} title="Staff Picks" />
+
+<CollectionGrid featured />
+
+<NewsletterInline source="homepage" />
+```
+
+```mdx products/[slug]/layout.mdx
+<ProductDetail slug={props.slug} />
+
+<Reviews productId={props.slug} />
+
+<RecentlyViewed />
+```
+
+Props flow in from the page's rendering context. A detail page gets `props.slug` from the URL without you passing it.
+
+## Buying without an account
+
+A [Shopper](/resources/glossary#shopper) can buy without creating a [Customer](/modules/customers) account. Both paths work:
+
+- **[Guest](/resources/glossary#guest)**: the [Cart](/modules/cart) is keyed to a `guestId` held client-side. Items stay for 7 days, adjustable through `moduleOptions` in `config.json`.
+- **Signed in**: the Cart attaches to the Customer's `customerId`. A Guest Cart merges into it at sign-in, so nobody loses what they picked out.
+
+<Warning>
+  The Storefront never takes a Customer's identity from the request body. On every authenticated request, the session decides who the Customer is. A request that claims to be someone else is a request from an attacker.
+</Warning>
+
+## The Store API
+
+Each enabled Module mounts its public endpoints under `/api/`, handled by the catch-all route at `api/[...path]`:
+
+```text
+GET  /api/products
+GET  /api/products/:slug
+POST /api/cart
+GET  /api/collections
+POST /api/newsletter/subscribe
+```
+
+You never register a route by hand. Enable the Module, run `86d generate`.
+
+## Rate limits
+
+The API applies separate limits to general, sensitive, and [Store Admin](/concepts/admin) routes. A request over the limit returns HTTP `429` with retry headers. Current values are in the [security model](/operations/security#api-rate-limits).
+
+## Overriding a component
+
+The MDX registry merges components from four sources. When two export the same name, the later one wins:
+
+1. UI primitives
+2. App components: `<Navbar />`, `<Footer />`, `<Logo />`
+3. Module components, generated from what you enabled
+4. Per-page overrides
+
+That last layer is how you replace one Module's component on one page without forking the Module.
+
+<Tip>
+  `86d generate components` lists every component available in your current setup. In this workspace it writes to `public/internals/docs/component-api.md`.
+</Tip>
+
+## Related pages
+
+- [Templates](/concepts/templates) for file layout and `config.json`
+- [Customize a Template](/guides/customizing-templates)
+- [How Modules package Store capabilities](/concepts/modules)
+- [How commerce records relate](/concepts/commerce-model)
+- [Store Admin](/concepts/admin)
+- [Glossary](/resources/glossary)

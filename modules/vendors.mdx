@@ -1,0 +1,28 @@
+---
+title: "Vendors"
+description: "Multi-vendor marketplace support for 86d. Each vendor has their own catalog slice, payouts, and Store Admin access."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Vendors [Module](/concepts/modules) turns one [Store](/resources/glossary#store) into a multi-vendor marketplace. Each product belongs to one vendor, and each [Order](/concepts/commerce-model) splits into per-vendor sub-orders for fulfillment. You take a configurable commission and pay vendors out on a schedule.
+
+**Source:** [`modules/vendors`](https://github.com/86d-app/86d/tree/main/modules/vendors) · **npm:** [`@86d-app/vendors`](https://www.npmjs.com/package/@86d-app/vendors)
+
+## Installation
+
+```sh
+86d module add vendors
+```
+
+## Related pages
+
+- [Products](/modules/products) for the catalog vendors sell from
+- [Orders](/modules/orders) for the Order record that splits into sub-orders
+- [Affiliates](/modules/affiliates) for a different commission model
+- [How commerce records relate](/concepts/commerce-model) for Order and Fulfillment ownership
+- [Glossary](/resources/glossary)
+- [Versioning and maturity](/resources/versioning)

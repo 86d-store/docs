@@ -1,0 +1,40 @@
+---
+title: "Tipping"
+description: "Add tip options at Checkout in 86d. Preset percentages or a custom amount, added to the Order total as a separate line item."
+tag: "Experimental"
+---
+
+<Warning>
+  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+</Warning>
+
+The Tipping [Module](/concepts/modules) adds a tip step to [Checkout](/concepts/commerce-model): preset percentages (10, 15, 20) or a custom amount. The Module applies the tip to the [Order](/concepts/commerce-model) total and records it as a separate line item for accounting.
+
+**Source:** [`modules/tipping`](https://github.com/86d-app/86d/tree/main/modules/tipping) · **npm:** [`@86d-app/tipping`](https://www.npmjs.com/package/@86d-app/tipping)
+
+## Installation
+
+```sh
+86d module add tipping
+```
+
+## Configuration
+
+```ts
+tipping({
+  presets: "10,15,20",      // percentages
+  allowCustom: "true",
+});
+```
+
+## Components
+
+- `<TipSelector />`: embedded in the Checkout payment step.
+
+## Related pages
+
+- [Checkout](/modules/checkout)
+- [Payments](/modules/payments)
+- [How commerce records relate](/concepts/commerce-model)
+- [Versioning and maturity](/resources/versioning)
+- [Glossary](/resources/glossary)
