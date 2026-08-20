@@ -59,7 +59,7 @@ Do not use bare "dashboard", "console", "analytics", or "telemetry". Name which 
 
 ## Maturity
 
-Read `../public/apps/registry/registry.json` before you state a maturity anywhere, and never promote a page past what the registry records. Today every Module publishes `"maturity": "experimental"` with an empty `maturityEvidence` array.
+Read `../public/apps/registry/registry.json` before you state a maturity anywhere, and never promote a page past what the registry records. Use each Module's recorded `maturity` and `maturityEvidence`; do not cache a repository-wide maturity summary in this guide.
 
 Capability pages carry the maturity in two places:
 
@@ -128,9 +128,9 @@ Use these pages as the public conceptual sources and link to them instead of res
 2. Update `cli/commands.mdx` to match flags, sub-commands, and behavior.
 3. If a top-level command was added or removed, also update `cli/overview.mdx`.
 
-## Known gaps
+## Documentation gaps
 
-Thirteen Module pages are shorter than the rest because their source is thinner: `appointments`, `facebook-shop`, `favor`, `gift-wrapping`, `instagram-shop`, `kiosk`, `order-notes`, `photo-booth`, `pinterest-shop`, `tiktok-shop`, `walmart`, `wish`, and `x-shop`. Expand them only after checking the current source, tests, and failure behavior.
+Before expanding a short Module page, check the current source, tests, registry entry, and failure behavior. Page length is not maturity evidence, and this guide does not keep a static gap inventory.
 
 ## What not to touch
 

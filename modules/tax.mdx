@@ -30,8 +30,9 @@ Use [Store Admin](/concepts/admin) or the administrative endpoints to create eff
 | --- | --- | --- |
 | `GET` | `/admin/tax/nexus` | List configured nexus records |
 | `POST` | `/admin/tax/nexus/create` | Create a nexus record |
-| `POST` | `/tax/calculate` | Calculate current tax for an address and lines |
 | `GET` | `/tax/rates` | Return rates matching a storefront address |
+
+Cross-Module tax quotes use the `tax.quote` capability. There is no public `POST /tax/calculate` route.
 
 ## Where this is going
 
