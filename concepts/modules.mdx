@@ -93,11 +93,9 @@ Enabled Storefront components are registered for MDX, so they need no import:
 
 Every edge between Modules is declared when the Store is provisioned. Nothing discovers another Module at request time. That graph is the audit surface: an unsatisfied edge fails the build instead of degrading silently.
 
-**Current migration:** most first-party Modules still author legacy `Module.schema` field maps. The committed Drizzle bridge feeds selected maps through `transcodeModuleSchema` to produce `tables`; legacy-only Modules are reported as not transcoded. [`ModuleDataService`](/resources/glossary#moduledataservice) reads and writes compiled Postgres tables under `mod_<moduleId>` only where that declaration exists. The removed JSON storage path is not a fallback.
+**Authoring contract:** every Module declares one explicit `storage.kind`: `none`, `config`, or `relational`. Relational storage contains native Zod `tables` with the `col` registry and may add `config`, `extends`, `anchors`, and `publishes`. A storage-free Module writes `storage: { kind: "none" }`; storage is never inferred from absence. [`ModuleDataService`](/resources/glossary#moduledataservice) reads and writes compiled Postgres tables under `mod_<moduleId>` and declared Config keys only through the compiled data service.
 
-**Target authoring contract:** every Module declares one explicit `storage.kind`: `none`, `config`, or `relational`. Relational storage contains native Zod `tables` with the `col` registry and may add `config`, `extends`, `anchors`, and `publishes`. A storage-free Module writes `storage: { kind: "none" }`; storage is never inferred from absence. This becomes the supported authoring contract only after the Module storage and isolation migration closes; current adapter-fed first-party Modules are migration examples, not the final API.
-
-Target storage kinds:
+Storage kinds:
 
 | Kind | What the Store creates |
 | --- | --- |
@@ -105,9 +103,9 @@ Target storage kinds:
 | **Config** | Zod-validated declared keys in `core.module_config` |
 | **Relational** | Native `mod_<moduleId>` tables and/or approved typed core extensions, with optional declared Config keys, anchors, and published views |
 
-## Isolation (target)
+## Isolation
 
-Database isolation is the enforceable boundary: each Module runs under its own Postgres role with access to its schema and column-projected views published to it. An unpublished column is unreachable, not filtered.
+Database isolation is the enforceable boundary: each Module runs under its own Postgres role with access to its schema and column-projected views published to it. An unpublished column is unreachable, not filtered. Request transactions enter the Module role with `SET LOCAL ROLE`; the login role holds no Module privileges, so a missed role switch fails closed.
 
 In-process JavaScript isolation is not claimed. Modules share one event loop. Cross-Module decisions use typed capabilities; cross-Module reads use published views, not direct table access.
 

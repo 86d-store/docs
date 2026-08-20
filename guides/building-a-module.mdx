@@ -9,7 +9,7 @@ description: "Scaffold, implement, and publish your own Module with Storefront c
 
 Every [Feature](/resources/glossary#feature) in 86d is a [Module](/concepts/modules), including every first-party entry in the generated registry. There is no privileged internal API: what you write gets the same treatment as `@86d-app/products`. Your Module can add [Storefront](/concepts/storefront) components, [Store Admin](/concepts/admin) pages, and API endpoints.
 
-Data-bearing Module authoring is mid-migration. Most first-party Modules still expose legacy `Module.schema` field maps, and the migrated subset feeds those maps through `transcodeModuleSchema` into compiled `tables`. The JSON storage path is gone, but native Zod declarations and Postgres role isolation are not yet the supported external authoring contract.
+Every Module declares exactly one storage kind. Use native Zod with the `col` registry for Relational tables, declared Config keys for settings, or `{ kind: "none" }` when the Module owns no durable rows.
 
 ## Scaffold it
 
@@ -27,7 +27,7 @@ Data-bearing Module authoring is mid-migration. Most first-party Modules still e
     ├── tsconfig.json
     └── src/
         ├── index.ts                 Module factory
-        ├── schema.ts                Legacy migration placeholder
+        ├── schema.ts                Native storage declaration
         ├── mdx.d.ts                 MDX type declarations
         ├── store/
         │   ├── components/mdx.tsx
@@ -39,11 +39,12 @@ Data-bearing Module authoring is mid-migration. Most first-party Modules still e
             └── index.test.ts
     ```
   </Step>
-  <Step title="Preview the target storage declaration">
-    The current CLI scaffold still emits legacy `schema` wiring. For a current storage-free experiment, remove the generated `schema` import and `Module.schema` property. In the future contract, every Module instead declares `storage: { kind: "none" }`, `storage: { kind: "config", ... }`, or `storage: { kind: "relational", ... }`. The following Relational declaration shape uses imports that resolve today, but data-bearing external Modules should not rely on it until the Module storage and isolation migration closes.
+  <Step title="Declare storage">
+    Every Module declares `storage: { kind: "none" }`, `storage: { kind: "config", ... }`, or `storage: { kind: "relational", ... }`. Relational field names are locked: `tables`, `extends`, `anchors`, and `publishes`.
 
-    ```ts src/declaration.ts
-    import { col, type TableDeclaration } from "@86d-app/core/schema";
+    ```ts src/schema.ts
+    import type { ModuleStorageDeclaration } from "@86d-app/core/schema";
+    import { col } from "@86d-app/core/schema";
     import { z } from "@86d-app/core/zod";
 
     export const itemShape = z.object({
@@ -52,12 +53,22 @@ Data-bearing Module authoring is mid-migration. Most first-party Modules still e
       published: z.boolean().default(false),
     });
 
-    export const itemTables = {
-      item: { shape: itemShape },
-    } satisfies Readonly<Record<string, TableDeclaration>>;
+    export const myFeatureStorage = {
+      kind: "relational",
+      tables: {
+        item: { shape: itemShape },
+      },
+      publishes: {
+        item: {
+          version: "1.0.0",
+          table: "item",
+          columns: ["id", "title", "published"],
+        },
+      },
+    } as const satisfies ModuleStorageDeclaration;
     ```
 
-    The target entrypoint wires `storage: { kind: "relational", tables: itemTables }` and omits `Module.schema`. The current compatibility adapter is migration code, not a pattern for new Modules.
+    Wire `storage: myFeatureStorage` from the Module factory. Do not author legacy `Module.schema` field maps.
   </Step>
   <Step title="Write endpoints">
     Add controllers and endpoints. Store endpoints are public. Admin endpoints sit under `/api/admin/...` and require an authenticated Store Admin session, enforced for you.
@@ -85,17 +96,13 @@ Data-bearing Module authoring is mid-migration. Most first-party Modules still e
   </Step>
 </Steps>
 
-## Target entry point
+## Entry point
 
-<Warning>
-  **Future contract.** This uses valid package subpath imports, but native storage authoring is not current until the Module storage and isolation migration closes.
-</Warning>
-
-`src/index.ts` will export a factory that returns a `Module` with an explicit Relational storage declaration:
+`src/index.ts` exports a factory that returns a `Module` with an explicit storage declaration:
 
 ```ts src/index.ts
 import type { Module, ModuleConfig } from "@86d-app/core/types/module";
-import { itemTables } from "./declaration.js";
+import { myFeatureStorage } from "./schema.js";
 import { storeEndpoints } from "./store/endpoints/routes.js";
 import { adminEndpoints } from "./admin/endpoints/routes.js";
 
@@ -105,10 +112,7 @@ export default function myFeature(
   return {
     id: "my-feature",
     version: "0.0.1",
-    storage: {
-      kind: "relational",
-      tables: itemTables,
-    },
+    storage: myFeatureStorage,
     options,
     endpoints: {
       store: storeEndpoints,
@@ -143,7 +147,7 @@ admin: {
 
 ## Talking to another Module
 
-Cross-Module work uses typed capabilities for immediate decisions. Cross-Module reads use published column-projected views granted at provision time (target). Legacy `exports` and `requires` field metadata remains during migration; it does not grant table access.
+Cross-Module work uses typed capabilities for immediate decisions. Cross-Module reads use published column-projected views granted at provision time. Legacy `exports` and `requires` field metadata remains during migration; it does not grant table access.
 
 ```ts
 capabilities: {
@@ -155,9 +159,7 @@ The runtime validates contracts at startup. A missing capability fails at boot, 
 
 ## Reaching the database
 
-**Current migration:** database access goes through [`ModuleDataService`](/resources/glossary#moduledataservice) as `ctx.data`. It reaches compiled `mod_<moduleId>` tables for Modules that expose adapter-produced `tables`; most first-party Modules remain legacy-only and are reported as not transcoded. There is no JSON fallback.
-
-**Target:** every Module declares an explicit storage kind. A Relational Module declares native Zod `tables` and/or `extends` with `col`, while Config and None receive only their compiled bounded interfaces. The same data service runs under that Module's Postgres role. Until that migration closes, current storage-free Modules and surface work are the stable authoring path; treat data-bearing examples on this page as a preview.
+Database access goes through [`ModuleDataService`](/resources/glossary#moduledataservice) as `ctx.data`. It reaches compiled `mod_<moduleId>` tables and declared Config keys only. There is no raw SQL escape and no JSON fallback. When isolation is enforced, each request transaction enters the Module Postgres role with `SET LOCAL ROLE`.
 
 A Module never imports `@86d-app/db` or an ORM client directly:
 
