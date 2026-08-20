@@ -82,7 +82,7 @@ A [Module](/concepts/modules) packages one or more [Features](/resources/glossar
 
 ## How Modules talk to each other
 
-**Current:** declared `requires` and `exports` contracts plus an in-memory event path. Production storage is JSON `ModuleData`. On disposable databases only, compiled `mod_<moduleId>` tables may hold a development shadow copy for backfill and dual-read validation.
+**Current:** declared `requires` and `exports` contracts plus an in-memory event path. Module storage is compiled Postgres tables under `mod_<moduleId>`. Framework tables and `core.*` are owned by Drizzle.
 
 **Target:** typed synchronous capability calls for immediate decisions, versioned events through a durable transactional outbox for everything afterward, and Postgres role isolation with column-projected published views for reads across Modules. Four framework tables (`core.party`, `core.subject`, `core.transaction`, `core.module_config`) hold cross-Module invariants; they exist in the schema but are not read by Modules in production yet.
 

@@ -75,7 +75,7 @@ Inside a Store Runtime:
 - take [Customer](/modules/customers) and Store identity from the authenticated context
 - scope every query and mutation to its owner
 - reach data through [`ModuleDataService`](/resources/glossary#moduledataservice)
-- grant cross-Module reads only through column-projected published views (target); production storage is still JSON `ModuleData`
+- grant cross-Module reads only through column-projected published views (target); Module-owned rows live in compiled `mod_<moduleId>` tables
 
 See [Store isolation](/concepts/architecture#one-store-one-database).
 
@@ -93,7 +93,7 @@ A public client identifier can go in browser configuration when the provider doc
 
 ## Database access
 
-The Store Runtime uses Prisma and PostgreSQL. Generated queries are parameterized, which handles the common injection paths. Raw-query call sites still need reading by a person.
+The Store Runtime uses Drizzle and PostgreSQL. Compiled Module tables and framework tables are queried through the Drizzle query builder. Prefer that path over hand-written SQL.
 
 Modules get scoped access through `ModuleDataService`. That is a technical boundary, not an authorization one: it does not check whether the current session owns the record you are about to update.
 

@@ -93,18 +93,17 @@ Enabled Storefront components are registered for MDX, so they need no import:
 
 Every edge between Modules is declared when the Store is provisioned. Nothing discovers another Module at request time. That graph is the audit surface: an unsatisfied edge fails the build instead of degrading silently.
 
-**Current storage:** each Module's entities live as JSON documents in a shared `ModuleData` table. Production reads and writes go through [`ModuleDataService`](/resources/glossary#moduledataservice).
+**Current migration:** most first-party Modules still author legacy `Module.schema` field maps. The committed Drizzle bridge feeds selected maps through `transcodeModuleSchema` to produce `tables`; legacy-only Modules are reported as not transcoded. [`ModuleDataService`](/resources/glossary#moduledataservice) reads and writes compiled Postgres tables under `mod_<moduleId>` only where that declaration exists. The removed JSON storage path is not a fallback.
 
-**In development:** Modules declare Zod shapes with a column registry (`col`). The Store Runtime compiles those declarations into Postgres DDL. On disposable databases only, compiled tables can hold a **shadow copy** of JSON data for backfill reports and dual-read tests. Backfill defects are operator reports — they do not surface as merchant errors. Do not apply compiled DDL to a Store with merchant data.
+**Target authoring contract:** every Module declares one explicit `storage.kind`: `none`, `config`, or `relational`. Relational storage contains native Zod `tables` with the `col` registry and may add `config`, `extends`, `anchors`, and `publishes`. A storage-free Module writes `storage: { kind: "none" }`; storage is never inferred from absence. This becomes the supported authoring contract only after the Module storage and isolation migration closes; current adapter-fed first-party Modules are migration examples, not the final API.
 
-Storage tiers (chosen per table, not per Module):
+Target storage kinds:
 
-| Tier | What the Store creates |
+| Kind | What the Store creates |
 | --- | --- |
 | **None** | Nothing. Common for Integrations such as Stripe |
-| **Config** | Rows in `core.module_config` |
-| **Extension** | Typed columns on a core table |
-| **Own** | A `mod_<moduleId>` schema and its tables |
+| **Config** | Zod-validated declared keys in `core.module_config` |
+| **Relational** | Native `mod_<moduleId>` tables and/or approved typed core extensions, with optional declared Config keys, anchors, and published views |
 
 ## Isolation (target)
 

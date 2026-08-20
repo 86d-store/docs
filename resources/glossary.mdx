@@ -160,6 +160,10 @@ Software that talks to an outside company. The planned model routes each operati
 
 What is actually in stock, per Product and Variant, inside one Store Runtime. Browser input never changes it. See [Inventory](/modules/inventory).
 
+## Inventory lease
+
+A 15-minute stock hold created only while an active Checkout finalizes Payment. Success commits it. Cancellation, terminal failure, or expiry releases it idempotently. A pre-activation Checkout Request never creates one.
+
 ## Launch
 
 The introductory 86d Cloud plan: the complete standard product for one qualifying Store at $1 per month for twelve months. See [86d Cloud plans](/resources/cloud-plans).
@@ -206,7 +210,7 @@ The package that delivers Store Runtime behavior: schema, endpoints, Store Admin
 
 ## ModuleDataService
 
-The scoped data interface a Module receives. Production reads and writes JSON `ModuleData` today. Target storage is compiled tables under Postgres role isolation. A Module never imports the database client directly.
+The scoped data interface a Module receives. It reads and writes compiled Postgres tables under `mod_<moduleId>`. Target isolation adds Postgres roles and published views. A Module never imports the database client directly.
 
 ## Order
 
@@ -255,10 +259,6 @@ Service funds a Business added to its 86d Balance. They do not expire, and unuse
 ## Remote OAuth MCP
 
 The planned authenticated transport for agents performing product operations. In development, and separate from the read-only Docs MCP server. See [How agents work with 86d](/concepts/agentic-design).
-
-## Reservation
-
-A disclosed deferred-capture purchase intent, used when a Store's payments are not yet active. The Shopper's card is collected, the charge waits, the deferral is disclosed at Checkout and in the confirmation email, and there is a fixed deadline. On activation it captures and becomes an Order. Otherwise it cancels and the stored instrument is deleted. Planned.
 
 ## Shipping
 

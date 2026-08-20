@@ -8,7 +8,7 @@ The `mint` CLI is not a repo dependency. Run it from the `docs/` directory: `bun
 
 The 86d codebase is split across two sibling repos. `docs/` is a third sibling and is published independently.
 
-- **Target product behavior and vocabulary:** `../prd/README.md`. Follow its reading route for architecture, commercial terms, agents, and launch claims. Module storage tiers and isolation authority live in `../prd/contexts/store-runtime/module-system.md`; this site projects shipped behavior, not the full contract.
+- **Target product behavior and vocabulary:** `../prd/README.md`. Follow its reading route for architecture, commercial terms, agents, and launch claims. Module storage kinds and isolation authority live in `../prd/contexts/store-runtime/module-system.md`; this site projects shipped behavior, not the full contract.
 - **Current implementation:** the source and tests below. Verify them before claiming a Feature exists, is available, or behaves a certain way.
   - **Framework** (Modules, CLI, Templates, runtime, registry): `../public/`. CLI commands, flags, behavior: `../public/packages/cli/src/commands/`. Module names, options, contracts: `../public/modules/<name>/src/` and `../public/apps/registry/registry.json`. Template structure: `../public/templates/<name>/`. Framework environment variables: `../public/.env.example`.
   - **86d.app and Control Plane** (86d Accounts, Businesses, Store lifecycle, provisioning, Cloud billing, agents): `../private/`. Platform environment variables and provisioning behavior: `../private/.env.example` and `../private/packages/api/src/router/provisioning.ts`.

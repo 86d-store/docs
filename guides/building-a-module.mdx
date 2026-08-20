@@ -7,7 +7,9 @@ description: "Scaffold, implement, and publish your own Module with Storefront c
   **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
 </Warning>
 
-Every [Feature](/resources/glossary#feature) in 86d is a [Module](/concepts/modules), including all 101 first-party ones. There is no privileged internal API: what you write gets the same treatment as `@86d-app/products`. Your Module can add [Storefront](/concepts/storefront) components, [Store Admin](/concepts/admin) pages, and API endpoints. Isolation is enforced at the database layer through roles and published views (target); production storage is still JSON `ModuleData`.
+Every [Feature](/resources/glossary#feature) in 86d is a [Module](/concepts/modules), including every first-party entry in the generated registry. There is no privileged internal API: what you write gets the same treatment as `@86d-app/products`. Your Module can add [Storefront](/concepts/storefront) components, [Store Admin](/concepts/admin) pages, and API endpoints.
+
+Data-bearing Module authoring is mid-migration. Most first-party Modules still expose legacy `Module.schema` field maps, and the migrated subset feeds those maps through `transcodeModuleSchema` into compiled `tables`. The JSON storage path is gone, but native Zod declarations and Postgres role isolation are not yet the supported external authoring contract.
 
 ## Scaffold it
 
@@ -17,7 +19,7 @@ Every [Feature](/resources/glossary#feature) in 86d is a [Module](/concepts/modu
     86d module create my-feature
     ```
 
-    You get `modules/my-feature/` with everything wired:
+    You get a package and surface scaffold under `modules/my-feature/`:
 
     ```text
     modules/my-feature/
@@ -25,23 +27,23 @@ Every [Feature](/resources/glossary#feature) in 86d is a [Module](/concepts/modu
     ├── tsconfig.json
     └── src/
         ├── index.ts                 Module factory
-        ├── schema.ts                Zod schema
+        ├── schema.ts                Legacy migration placeholder
         ├── mdx.d.ts                 MDX type declarations
         ├── store/
-        │   ├── components/index.tsx
-        │   └── endpoints/index.ts
+        │   ├── components/mdx.tsx
+        │   └── endpoints/routes.ts
         ├── admin/
-        │   ├── components/index.tsx
-        │   └── endpoints/index.ts
+        │   ├── components/.gitkeep
+        │   └── endpoints/routes.ts
         └── __tests__/
             └── index.test.ts
     ```
   </Step>
-  <Step title="Write your schema">
-    Declare storage with Zod and the `col` column registry from `@86d-app/core/schema`. The Store compiles that declaration into Postgres DDL in report mode today; production still stores entities as JSON in `ModuleData`.
+  <Step title="Preview the target storage declaration">
+    The current CLI scaffold still emits legacy `schema` wiring. For a current storage-free experiment, remove the generated `schema` import and `Module.schema` property. In the future contract, every Module instead declares `storage: { kind: "none" }`, `storage: { kind: "config", ... }`, or `storage: { kind: "relational", ... }`. The following Relational declaration shape uses imports that resolve today, but data-bearing external Modules should not rely on it until the Module storage and isolation migration closes.
 
     ```ts src/declaration.ts
-    import { col } from "@86d-app/core/schema";
+    import { col, type TableDeclaration } from "@86d-app/core/schema";
     import { z } from "@86d-app/core/zod";
 
     export const itemShape = z.object({
@@ -49,9 +51,13 @@ Every [Feature](/resources/glossary#feature) in 86d is a [Module](/concepts/modu
       title: z.string().max(200),
       published: z.boolean().default(false),
     });
+
+    export const itemTables = {
+      item: { shape: itemShape },
+    } satisfies Readonly<Record<string, TableDeclaration>>;
     ```
 
-    Wire `tables` on your Module factory. Keep the legacy field-map `schema` only while JSON storage remains live.
+    The target entrypoint wires `storage: { kind: "relational", tables: itemTables }` and omits `Module.schema`. The current compatibility adapter is migration code, not a pattern for new Modules.
   </Step>
   <Step title="Write endpoints">
     Add controllers and endpoints. Store endpoints are public. Admin endpoints sit under `/api/admin/...` and require an authenticated Store Admin session, enforced for you.
@@ -79,23 +85,30 @@ Every [Feature](/resources/glossary#feature) in 86d is a [Module](/concepts/modu
   </Step>
 </Steps>
 
-## The entry point
+## Target entry point
 
-`src/index.ts` exports a factory that returns a `Module`:
+<Warning>
+  **Future contract.** This uses valid package subpath imports, but native storage authoring is not current until the Module storage and isolation migration closes.
+</Warning>
+
+`src/index.ts` will export a factory that returns a `Module` with an explicit Relational storage declaration:
 
 ```ts src/index.ts
-import type { Module } from "@86d-app/core";
-import { schema } from "./schema.js";
-import { storeEndpoints } from "./store/endpoints/index.js";
-import { adminEndpoints } from "./admin/endpoints/index.js";
+import type { Module, ModuleConfig } from "@86d-app/core/types/module";
+import { itemTables } from "./declaration.js";
+import { storeEndpoints } from "./store/endpoints/routes.js";
+import { adminEndpoints } from "./admin/endpoints/routes.js";
 
 export default function myFeature(
-  options: Record<string, unknown> = {},
+  options: ModuleConfig = {},
 ): Module {
   return {
     id: "my-feature",
     version: "0.0.1",
-    schema,
+    storage: {
+      kind: "relational",
+      tables: itemTables,
+    },
     options,
     endpoints: {
       store: storeEndpoints,
@@ -142,9 +155,9 @@ The runtime validates contracts at startup. A missing capability fails at boot, 
 
 ## Reaching the database
 
-**Current:** database access goes through [`ModuleDataService`](/resources/glossary#moduledataservice) as `ctx.data`. Production reads and writes JSON rows in `ModuleData`. Declare new Modules with Zod and `col`; compiled tables are not live storage yet.
+**Current migration:** database access goes through [`ModuleDataService`](/resources/glossary#moduledataservice) as `ctx.data`. It reaches compiled `mod_<moduleId>` tables for Modules that expose adapter-produced `tables`; most first-party Modules remain legacy-only and are reported as not transcoded. There is no JSON fallback.
 
-**Target:** the same interface backed by compiled tables under `mod_<moduleId>` with Postgres role isolation.
+**Target:** every Module declares an explicit storage kind. A Relational Module declares native Zod `tables` and/or `extends` with `col`, while Config and None receive only their compiled bounded interfaces. The same data service runs under that Module's Postgres role. Until that migration closes, current storage-free Modules and surface work are the stable authoring path; treat data-bearing examples on this page as a preview.
 
 A Module never imports `@86d-app/db` or an ORM client directly:
 

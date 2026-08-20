@@ -169,11 +169,9 @@ Launch and Premium share one published rate with no volume tiers. Enterprise rat
 
 ## Selling before payments are switched on
 
-A Store waiting on payment activation does not have to turn Shoppers away. It can take a **reservation**: a purchase intent with the charge deferred, disclosed as such at Checkout and again in the confirmation email. The Shopper can cancel, the deadline is fixed, and only card is offered because wallets need an approved merchant account.
+A Store waiting on payment activation can retain a non-binding [Checkout Request](/resources/glossary#checkout-request) for 30 days. It stores the requested Products, quantities, contact details, and displayed estimate. It stores no Payment credential, reserves no Inventory, guarantees no price, and creates no Payment or Order.
 
-When payments activate, the reservation captures and becomes an Order. If activation is declined or the deadline passes, it cancels, the Shopper is notified, and the stored payment method is deleted.
-
-That is different from a [Checkout Request](/resources/glossary#checkout-request), which is what a Store saves when tax or a Shipping quote is the missing piece rather than payment. A Checkout Request stores no payment details, reserves no stock, and creates no Order.
+If payments activate before the request expires, the Store may send one checkout invitation that expires no later than the request. Checkout recalculates price, Inventory, tax, and Shipping, then asks the Shopper to accept the fresh result and provide a Payment method. Payment finalization may hold Inventory for 15 minutes; success commits that lease, while cancellation, failure, or expiry releases it. The Store never collects a card for deferred capture before activation.
 
 ## Related pages
 
