@@ -102,10 +102,12 @@ Clearing this list is not the same as earning Stable. See [Versioning and maturi
 
 You do not have to upstream anything to publish it:
 
-1. Build with `bun run build`.
+1. Build with `bun run build` so `dist/` contains JavaScript and `.d.ts` (plus copied `.mdx` assets when needed).
 2. Set `"private": false` and a release version in `package.json`.
-3. Add accurate package metadata and provenance.
-4. Publish: `npm publish --access public`.
+3. Restrict `"files"` to `dist` (+ README); map `publishConfig.exports` to `./dist`. Do not publish `src` or test/tooling files.
+4. Replace `workspace:*` / `catalog:` with real semver versions.
+5. Add accurate package metadata and provenance.
+6. Publish: `npm publish --access public`.
 
 Then anyone installs it:
 

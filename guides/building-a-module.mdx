@@ -177,23 +177,32 @@ init: async (ctx: ModuleContext) => {
 
 ## Publishing to npm
 
-Anyone running 86d can install your Module once it is published:
+Anyone running 86d can install your Module once it is published. Published packages must ship **compiled `dist/`** (JavaScript + `.d.ts`), not raw `src/`. Workspace development can keep `exports` on `./src` for DX; `publishConfig.exports` must point at `./dist`.
 
 <Steps>
   <Step title="Update package.json">
-    Set `"private": false`, pick a version, and write a `description` and `keywords` someone can find.
+    Set `"private": false`, pick a version, and write a `description` and `keywords` someone can find. Require:
+
+    - `"files": ["dist", "README.md"]` (exclude tests; never include `src`, `.turbo`, or vitest config)
+    - `"publishConfig.exports"` mapping every public entry to `./dist/*.js` and `./dist/*.d.ts`
+    - A `build` that runs `tsc` with `rootDir: "src"`, `outDir: "dist"`, `declaration: true`, and copies non-TS assets (for example `.mdx`) into `dist`
   </Step>
   <Step title="Build">
     ```bash
     bun run build
     ```
+
+    First-party and scaffolded Modules use `"build": "86d module build"`, which runs `tsc` then copies non-TS assets (for example `.mdx`) into `dist/`. Confirm `dist/` contains `.js` and `.d.ts` for every export, and that `npm pack --dry-run` lists only `dist` + README + package metadata. Add `"86d"` as a `devDependency` so the CLI bin resolves.
+  </Step>
+  <Step title="Rewrite installable dependency specs">
+    Replace any `workspace:*` or `catalog:` dependency with a real semver before publish. First-party Releases run `bun run prepare-publish` for this; third-party authors must do it themselves.
   </Step>
   <Step title="Publish">
     ```bash
     npm publish --access public
     ```
 
-    First-party Modules ship through Changesets with npm provenance. If you publish your own, that release and security process is yours to run.
+    First-party Modules ship through Changesets with npm provenance (`bun run release`). If you publish your own, that release and security process is yours to run.
   </Step>
 </Steps>
 
