@@ -57,6 +57,8 @@ The same Store Runtime runs both ways:
 
 A standalone Store needs no [86d Account](/resources/glossary#86d-account) and makes no call to the Control Plane. Managed operation is still being built, so check [86d Cloud plans](/resources/cloud-plans) for the current state of the offer.
 
+When a Store runs on 86d Cloud, it receives a [managed hostname](/resources/glossary#managed-hostname) derived from the Store name (`example.86d.store`, or `dev-example.86d.store` during development). Conflicts append a numeric suffix. You can still attach your own domain later; the managed hostname stays assigned.
+
 ## One Store, one database
 
 Every Store Runtime is single-tenant: its own deployment, its own PostgreSQL database. Managed infrastructure may sit on shared provider accounts, but each Business and Store stays separately scoped and separately billed.

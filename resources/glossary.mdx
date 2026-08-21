@@ -180,6 +180,10 @@ The rewards relationship between one Store and its Customers. Browser input neve
 
 The Cloud resources running one managed Store Runtime. A Store record can exist with no Managed Deployment.
 
+## Managed hostname
+
+The default public address of a managed Store under `86d.store`. Production uses `{slugified-store-name}.86d.store`. Development uses `dev-{slugified-store-name}.86d.store`. If that label is taken, allocation appends `-1`, `-2`, `-3`, and so on. Provider resource labels such as `dev-store-{slugId}` are not the public hostname. 86d Console hides a managed hostname until it returns HTTP 200.
+
 ## Managed Runtime Diagnostics
 
 Bounded error, health, and performance data from a managed Store Runtime that has explicitly opted in. It excludes Shopper behavior and commerce events.
