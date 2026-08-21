@@ -26,7 +26,9 @@ The Docs MCP server is read-only. It cannot see or change a Business, a Store, a
 
 Remote OAuth MCP is the planned transport for authorized product operations: OAuth authorization code with PKCE, short-lived scoped access tokens, rotating refresh tokens, revocation, and an actor identity that lands in the audit log. Its tools will call the same versioned [Commands](/resources/glossary#command) that 86d Console calls, so an agent and a person doing the same thing produce the same record.
 
-There is no public endpoint, authorization flow, or tool catalog today. The `/86d` skill is planned as a thin guide over that Command contract, teaching a model how to find the connection and read a result. Product behavior lives in the Command layer, never in the skill.
+The shared wire contract and conformance digest live in the open-source package `@86d-app/contracts` (`command`, `change-set`, and `conformance` entry points). Both planes pin an exact package version and verify the embedded SHA-256 digest before serving Commands. A mismatch fails closed. Raw tRPC stays a private transport; it is not an agent or cross-plane interface.
+
+There is no public Remote OAuth MCP endpoint, authorization flow, or tool catalog today. The `/86d` skill is planned as a thin guide over that Command contract, teaching a model how to find the connection and read a result. Product behavior lives in the Command layer, never in the skill.
 
 ## The planned model
 
