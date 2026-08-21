@@ -124,6 +124,8 @@ export default function myFeature(
 
 It is a factory rather than a singleton so a Store can pass it options through `moduleOptions` in `config.json`.
 
+Declare every cross-Module edge up front: capabilities you provide or accept (exact or caret SemVer ranges), hooks you define or implement, readers over published views, template data projections, and durable event emits/handlers (exact integer schema versions). Provisioning compiles those edges into one execution graph; missing or incompatible edges fail the build, and request paths perform no Module discovery.
+
 ## Where your admin pages appear
 
 Declare a group and your pages land in the Store Admin sidebar. The nine top-level groups are **Catalog**, **Sales**, **Customers**, **Fulfillment**, **Marketing**, **Content**, **Finance**, **Support**, and **System**.

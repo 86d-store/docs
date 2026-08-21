@@ -91,9 +91,11 @@ Enabled Storefront components are registered for MDX, so they need no import:
 
 ## Declared binding and storage
 
-Every edge between Modules is declared when the Store is provisioned. Nothing discovers another Module at request time. That graph is the audit surface: an unsatisfied edge fails the build instead of degrading silently.
+Every edge between Modules — capabilities, hooks, readers, template data, and durable events — is declared when the Store is provisioned and compiled into one deterministic execution graph. Nothing discovers another Module at request time. An unsatisfied, incompatible, ambiguous, or cyclic edge fails the build instead of degrading silently.
 
 **Authoring contract:** every Module declares one explicit `storage.kind`: `none`, `config`, or `relational`. Relational storage contains native Zod `tables` with the `col` registry and may add `config`, `extends`, `anchors`, and `publishes`. A storage-free Module writes `storage: { kind: "none" }`; storage is never inferred from absence. [`ModuleDataService`](/resources/glossary#moduledataservice) reads and writes compiled Postgres tables under `mod_<moduleId>` and declared Config keys only through the compiled data service.
+
+Synchronous contract versions use stable SemVer with exact or caret (`^`) ranges; durable event schema versions are exact positive integers. Optional edges are allowed only when the owner Module is not installed; an installed owner with a missing or incompatible contract fails the build.
 
 Storage kinds:
 
@@ -109,7 +111,7 @@ Database isolation is the enforceable boundary: each Module runs under its own P
 
 In-process JavaScript isolation is not claimed. Modules share one event loop. Cross-Module decisions use typed capabilities; cross-Module reads use published views, not direct table access.
 
-Today the runtime still uses legacy `requires` and `exports` metadata plus an in-memory event path while the contract migrates. See [cross-Module communication](/concepts/architecture#how-modules-talk-to-each-other).
+Today the runtime still carries legacy `requires`/`exports` field metadata and an in-memory event path beside the compiled durable outbox. Cross-Module decisions use typed capabilities; cross-Module reads use published views and compiled readers. See [cross-Module communication](/concepts/architecture#how-modules-talk-to-each-other).
 
 ## External Modules
 
