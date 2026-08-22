@@ -65,7 +65,7 @@ Each entry in the evidence register identifies:
 | Result | Pass or fail, with the terminal state actually observed |
 | Support | An artifact an authorized reviewer can go and inspect |
 
-The register is append-only and access-controlled, because entries reference provider artifacts and production identifiers. What is published is the status, not the underlying record.
+The register is append-only. Correction and invalidation append linked entries and advance a head projection; they never edit an observation. Dates in the current-state table come only from the effective passed Local, Console, or Agent entries. A pass closes only from a passed pass seal. Unit tests, fixtures, and dry runs cannot write those cells.
 
 A screenshot does not advance a gate. Neither does a verbal report, a sandbox result, or a job being accepted into a queue.
 
