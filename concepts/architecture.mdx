@@ -59,6 +59,10 @@ A standalone Store needs no [86d Account](/resources/glossary#86d-account) and m
 
 When a Store runs on 86d Cloud, it receives a [managed hostname](/resources/glossary#managed-hostname) derived from the Store name (`example.86d.store`, or `dev-example.86d.store` during development). Conflicts append a numeric suffix. You can still attach your own domain later; the managed hostname stays assigned.
 
+## What you see from 86d
+
+Managed capabilities appear as **86d Cloud**, **86d Payments**, managed hosting, managed email, and managed AI. Upstream suppliers behind those services do not appear in 86d Console, Store Admin, emails, pricing, support, or errors. When you bring your own [Connection](/concepts/connections) or [host the Store Runtime yourself](/deployment), the provider you chose may appear because that relationship is yours.
+
 ## One Store, one database
 
 Every Store Runtime is single-tenant: its own deployment, its own PostgreSQL database. Managed infrastructure may sit on shared provider accounts, but each Business and Store stays separately scoped and separately billed.

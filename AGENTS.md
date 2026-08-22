@@ -92,7 +92,7 @@ Published docs cover shipped behavior, setup, concepts, and safe operation. Keep
 
 COSMOBIA is the founder's own Store and an internal proof loop. It is not a merchant-facing subject. Do not name it in published docs.
 
-**Do not name the supplier behind an 86d-managed service.** Underlying providers such as Finix, Railway, Cloudflare, Neon, Resend, and EasyPost **must never** appear when describing 86d Cloud, 86d Payments, managed email, managed AI, or managed hosting. A merchant operates 86d — describe what 86d does, not who 86d bought it from. Prefer 86d product vocabulary in docs headings and examples that a merchant reads.
+**Do not name the supplier behind an 86d-managed service.** Underlying providers such as Finix, Railway, Cloudflare, Neon, Resend, and EasyPost **must never** appear when describing 86d Cloud, 86d Payments, managed email, managed AI, or managed hosting — including in operations pages, glossary entries, architecture diagrams' merchant-facing labels, and launch-evidence prose a merchant can read. A merchant operates 86d — describe what 86d does, not who 86d bought it from. Prefer 86d product vocabulary in docs headings and examples that a merchant reads.
 
 The exceptions are real and narrow. Name a provider when the merchant is choosing it themselves: a host they deploy to (Railway, Vercel, a Docker server of their own), a [Connection](/concepts/connections) they bring (their Stripe account, their EasyPost key), or a Module that exists to talk to that company. Those are the merchant's relationships, not 86d's. Canonical rule: [prd/product.md — supplier invisibility](../prd/product.md#the-merchant-sees-86d-never-our-suppliers).
 
