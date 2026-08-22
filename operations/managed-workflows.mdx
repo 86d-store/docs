@@ -16,6 +16,8 @@ Close the tab. Lose your connection. The Store still gets built.
 
 Managed provisioning, domain, and workload-identity facts for those Workflows persist through Control Plane Drizzle/PostgreSQL. The Control Plane stores provider resource identities, opaque secret references, health, and operation history — never a raw managed database URL.
 
+The managed `*.86d.store` front door attaches the public FQDN to Railway as a custom domain, then publishes Railway's routing CNAME **and** VERIFY TXT into Cloudflare (DNS-only). Compensation and development teardown remove both owned DNS records before detaching the Railway domain or deleting the Railway project.
+
 ## What a Workflow reports
 
 Every Workflow reports one of six states, and it reports the truth rather than the optimistic reading:
