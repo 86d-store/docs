@@ -18,6 +18,8 @@ Managed provisioning, domain, and workload-identity facts for those Workflows pe
 
 The managed `*.86d.store` front door publishes the DNS records 86d Cloud needs for that hostname (routing plus ownership verification), then serves HTTPS only after the hostname responds healthy. Compensation and development teardown remove those owned DNS records before detaching the hostname or destroying the Managed Deployment.
 
+`store.provision` is the only activation entry that starts Cloud benefits. Identity create leaves the Store unprovisioned. Successful Launch provision starts the 30-day trial, grants Promotional Credit, and creates the entitlement together after health; failure does not consume Launch. Console surfaces create, progress, and detail states for that Workflow, and activation notifications enqueue through the Control Plane outbox with a Store-scoped dedupe key.
+
 ## What a Workflow reports
 
 Every Workflow reports one of six states, and it reports the truth rather than the optimistic reading:
