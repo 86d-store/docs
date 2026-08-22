@@ -1,8 +1,20 @@
-# Documentation site instructions for AI agents
+# Documentation site (docs)
 
-Mintlify documentation site for [86d](https://86d.app), Aspen theme. Pages are MDX files with YAML frontmatter; navigation and configuration live in `docs.json`. Two top-level tabs: **Documentation** (Get started, Concepts, Configuration, Guides, CLI, Operations, Resources) and **Modules** (one reference page per first-party Module, grouped by domain).
+Mintlify documentation site for [86d](https://86d.app), Aspen theme. Pages are MDX with YAML frontmatter; navigation and configuration live in `docs.json`. Two top-level tabs: **Documentation** (Get started, Concepts, Configuration, Guides, CLI, Operations, Resources) and **Modules** (one reference page per first-party Module, grouped by domain).
 
 The `mint` CLI is not a repo dependency. Run it from the `docs/` directory: `bunx mint dev` to preview locally, `bunx mint broken-links` to check internal links.
+
+**Parent:** workspace [`../AGENTS.md`](../AGENTS.md) owns product boundaries, supplier invisibility, and publication locality. This guide owns docs editing mechanics and health gates.
+
+## Change protocol
+
+1. **Route the context.** Read workspace `../AGENTS.md`, this guide, and [Source of truth](#source-of-truth) for the capability you are documenting.
+   - Done when target PRD routes and current implementation sources for the branch are identified.
+2. **Edit for both readers.** Apply [Who reads these pages](#who-reads-these-pages) and [Editing rules](#editing-rules).
+   - Done when the page opens with merchant-plain purpose and carries the exact agent contract underneath.
+3. **Verify.** Run both [Health gates](#health-gates) from `docs/` until _green_.
+   - Done when both commands exit 0.
+4. **Keep publication _local_.** Agents never push. See [Git and commits](#git-and-commits).
 
 ## Source of truth
 
@@ -28,22 +40,22 @@ Open every capability page with what it does for a Store in plain words. Put the
 
 ## Editing rules
 
-- **Always run Mintlify commands from the `docs/` directory.**
-- **Every page needs `title` and `description`** in frontmatter. Both are required.
-- **Every page needs a status callout.** Capability pages carry the maturity callout for their current maturity. Narrative pages carry the in-development callout. See [Maturity](#maturity).
-- **Sentence case for headings.** "Module configuration", not "Module Configuration". Capitalized defined terms keep their capitals inside a heading.
-- **Use "you", not "the user".**
-- **Active voice. Short sentences. One idea per sentence.**
-- **No em dashes, and no en dashes misused as em dashes.** This is a hard rule, checked by the dash grep in [Health gates](#health-gates). Use a comma, a colon, a semicolon, parentheses, or a sentence break.
-- **No `easy`, `simple`, `quick`, `very`, `just`, or `really`.** Say the concrete thing instead: "one command", "two fields", "no configuration".
-- **No weasel words.** Replace `typically`, `generally`, `most`, and `often` with the actual number or condition.
-- **Bold for UI elements** (`Click **Settings**`) and for load-bearing facts. Not for emphasis.
-- **Code formatting** for file paths, command names, environment variables, and identifiers. Not for prose emphasis.
-- **Internal links** are root-relative paths without the `.mdx` extension (`/concepts/modules`).
-- **Every code block gets a language tag.** TypeScript is the default.
-- **Units take a space and an uppercase unit**: `64 KB`, `200 ms`. Seconds stay bare: `30s`.
-- **Do not hard-wrap paragraphs.** One paragraph is one line in source.
-- **No `---` horizontal rules** between sections.
+- Always run Mintlify commands from the `docs/` directory.
+- Every page needs `title` and `description` in frontmatter.
+- Every page needs a status callout. Capability pages carry the maturity callout for their current maturity. Narrative pages carry the in-development callout. See [Maturity](#maturity).
+- Sentence case for headings. "Module configuration", not "Module Configuration". Capitalized defined terms keep their capitals inside a heading.
+- Use "you", not "the user".
+- Active voice. Short sentences. One idea per sentence.
+- No em dashes, and no en dashes misused as em dashes. This is a hard rule, checked by the dash grep in [Health gates](#health-gates). Use a comma, a colon, a semicolon, parentheses, or a sentence break.
+- No `easy`, `simple`, `quick`, `very`, `just`, or `really`. Say the concrete thing instead: "one command", "two fields", "no configuration".
+- No weasel words. Replace `typically`, `generally`, `most`, and `often` with the actual number or condition.
+- Bold for UI elements (`Click **Settings**`) and for load-bearing facts. Not for emphasis.
+- Code formatting for file paths, command names, environment variables, and identifiers. Not for prose emphasis.
+- Internal links are root-relative paths without the `.mdx` extension (`/concepts/modules`).
+- Every code block gets a language tag. TypeScript is the default.
+- Units take a space and an uppercase unit: `64 KB`, `200 ms`. Seconds stay bare: `30s`.
+- Do not hard-wrap paragraphs. One paragraph is one line in source.
+- No `---` horizontal rules between sections.
 
 ## Capitalization
 
@@ -92,7 +104,7 @@ Published docs cover shipped behavior, setup, concepts, and safe operation. Keep
 
 COSMOBIA is the founder's own Store and an internal proof loop. It is not a merchant-facing subject. Do not name it in published docs.
 
-**Do not name the supplier behind an 86d-managed service.** Underlying providers such as Finix, Railway, Cloudflare, Neon, Resend, and EasyPost **must never** appear when describing 86d Cloud, 86d Payments, managed email, managed AI, or managed hosting — including in operations pages, glossary entries, architecture diagrams' merchant-facing labels, and launch-evidence prose a merchant can read. A merchant operates 86d — describe what 86d does, not who 86d bought it from. Prefer 86d product vocabulary in docs headings and examples that a merchant reads.
+**Supplier invisibility:** do not name the supplier behind an 86d-managed service. Underlying providers such as Finix, Railway, Cloudflare, Neon, Resend, and EasyPost must never appear when describing 86d Cloud, 86d Payments, managed email, managed AI, or managed hosting — including in operations pages, glossary entries, architecture diagrams' merchant-facing labels, and launch-evidence prose a merchant can read. A merchant operates 86d — describe what 86d does, not who 86d bought it from. Prefer 86d product vocabulary in docs headings and examples that a merchant reads.
 
 The exceptions are real and narrow. Name a provider when the merchant is choosing it themselves: a host they deploy to (Railway, Vercel, a Docker server of their own), a [Connection](/concepts/connections) they bring (their Stripe account, their EasyPost key), or a Module that exists to talk to that company. Those are the merchant's relationships, not 86d's. Canonical rule: [prd/product.md — supplier invisibility](../prd/product.md#the-merchant-sees-86d-never-our-suppliers).
 
@@ -121,12 +133,14 @@ Use these pages as the public conceptual sources and link to them instead of res
 3. Add the page to the correct group in `docs.json` under the Modules tab.
 4. Match the shape of a well-developed page, for example `modules/products.mdx`: what it does for a Store, source and npm links, installation, configuration, what a merchant sets up, Store endpoints, admin endpoints, components, related pages.
 5. Cross-link from related pages.
+   - Done when the page is linked, maturity matches the registry, and both health gates are _green_.
 
 ### Update a CLI command reference
 
 1. Read the actual command in `../public/packages/cli/src/commands/<name>.ts`.
 2. Update `cli/commands.mdx` to match flags, sub-commands, and behavior.
 3. If a top-level command was added or removed, also update `cli/overview.mdx`.
+   - Done when the page matches the command source and both health gates are _green_.
 
 ## Documentation gaps
 
@@ -139,30 +153,28 @@ Before expanding a short Module page, check the current source, tests, registry 
 
 ## Health gates
 
-Both must exit zero before committing, run from `docs/`:
+Both must exit zero before committing, run from `docs/`. A gate is _green_ only when the command exits 0:
 
 ```bash
 bunx mint broken-links
 python3 -c "import re,sys,glob;[sys.exit(1) for f in glob.glob('**/*.mdx',recursive=True) if re.search('[\\u2013\\u2014]',open(f).read())]"  # em/en dash grep
 ```
 
-## Git safety
+## Git and commits
 
-**Agents never push.** Local work stays local until the operator publishes it. This covers every publication path: `git push` and all its variants, `gh`, and any tool that uploads branches or rewrites remote history.
+Agents keep all work _local_. Do not use `git push`, `gh`, PR tooling, branch-upload tools, or any command that publishes or rewrites remote history.
 
-## Commits
+Every commit follows [Conventional Commits](https://www.conventionalcommits.org/) with a required scope: `type(scope): subject` — imperative, lowercase subject, no trailing period, under 72 characters when possible. Husky and commitlint enforce the format locally. See `CONTRIBUTING.md` for the full contributor guide.
 
-Every commit follows [Conventional Commits](https://www.conventionalcommits.org/) with a **required scope**: `type(scope): subject` — imperative, lowercase subject, no trailing period, under 72 characters when possible. Husky and commitlint enforce the format locally. See `CONTRIBUTING.md` for the full contributor guide.
+- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+- Scopes: `site`, `concepts`, `guides`, `cli`, `modules`, `resources`, `config`, `repo`. Scope is the directory you changed (`concepts/` → `concepts`); non-obvious mappings: root-level pages (`index.mdx`, `introduction.mdx`, `quickstart.mdx`, `deployment.mdx`) → `site`, `operations/` → `resources`, `configuration/` → `config` (as are `docs.json` and Mintlify config), cross-cutting repo or hook changes → `repo`.
 
-**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+Commit guardrails:
 
-**Scopes:** `site`, `concepts`, `guides`, `cli`, `modules`, `resources`, `config`, `repo`. Scope is the directory you changed (`concepts/` → `concepts`); non-obvious mappings: root-level pages (`index.mdx`, `introduction.mdx`, `quickstart.mdx`, `deployment.mdx`) → `site`, `operations/` → `resources`, `configuration/` → `config` (as are `docs.json` and Mintlify config), cross-cutting repo or hook changes → `repo`.
-
-**Agent rules:**
-
-- Commit only when the user asks, or when finishing a self-contained docs slice that passes both health gates.
-- One logical change per commit. Split unrelated work (for example a concepts rewrite and a CLI reference update) into separate commits.
-- Let the hooks run: `git commit --no-verify` only when the user explicitly requests it.
+1. Commit only when the user asks, or when finishing a self-contained docs slice that passes both health gates.
+2. Immediately before every commit, run both [Health gates](#health-gates) until _green_.
+3. One logical change per commit. Split unrelated work (for example a concepts rewrite and a CLI reference update) into separate commits.
+4. Let the hooks run: `git commit --no-verify` only when the user explicitly requests it.
 
 ## Reporting back
 
