@@ -45,6 +45,10 @@ The page you are on expands its parent group and subgroup, so you always know wh
   Group and subgroup collapse states persist in `localStorage` under `86d-admin-sidebar-collapsed`, so your sidebar survives reloads and browser restarts.
 </Info>
 
+## Merchant UI contract
+
+Store Admin follows the same merchant interaction contract as 86d Console: shared OKLCH tokens (copied into public-owned CSS), Zod + TanStack Form for multi-field forms, TanStack Table for record lists, and Empty / Loading / Error / Permission denied / Provider unavailable states on every screen. The locked reference surfaces are `/admin/products` and `/admin/products/new`. The workspace [Experience](/concepts/architecture) product context holds the full checklist; capability pages stay Experimental until evidence advances.
+
 ## Uploading files
 
 Product images, blog media, and other assets go through one endpoint:
