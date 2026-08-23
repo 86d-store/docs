@@ -174,7 +174,7 @@ Commit guardrails:
 1. Commit only when the user asks, or when finishing a self-contained docs slice that passes both health gates.
 2. Immediately before every commit, run both [Health gates](#health-gates) until _green_.
 3. One logical change per commit. Split unrelated work (for example a concepts rewrite and a CLI reference update) into separate commits.
-4. Let the hooks run: `git commit --no-verify` only when the user explicitly requests it.
+4. Let Husky and commitlint run on every commit. Never use `git commit --no-verify`. If a hook fails, fix the cause and commit again.
 
 ## Reporting back
 
