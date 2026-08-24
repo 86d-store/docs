@@ -91,7 +91,7 @@ Enabled Storefront components are registered for MDX, so they need no import:
 
 ## Declared binding and storage
 
-Every edge between Modules — capabilities, hooks, readers, template data, and durable events — is declared when the Store is provisioned and compiled into one deterministic execution graph. Nothing discovers another Module at request time. An unsatisfied, incompatible, ambiguous, or cyclic edge fails the build instead of degrading silently.
+Every edge between Modules (capabilities, hooks, readers, template data, and durable events) is declared when the Store is provisioned and compiled into one deterministic execution graph. Nothing discovers another Module at request time. An unsatisfied, incompatible, ambiguous, or cyclic edge fails the build instead of degrading silently.
 
 **Authoring contract:** every Module declares one explicit `storage.kind`: `none`, `config`, or `relational`. Relational storage contains native Zod `tables` with the `col` registry and may add `config`, `extends`, `anchors`, and `publishes`. A storage-free Module writes `storage: { kind: "none" }`; storage is never inferred from absence. [`ModuleDataService`](/resources/glossary#moduledataservice) reads and writes compiled Postgres tables under `mod_<moduleId>` and declared Config keys only through the compiled data service.
 

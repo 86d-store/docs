@@ -9,7 +9,7 @@ description: "Put a Store Runtime on Railway, on Vercel with Neon, or on your ow
 
 86d.store ships with a `Dockerfile` and a `docker-compose.yml`, and it runs on Railway or Vercel without modification. Pick the tab that matches where you want it. All three paths are you hosting a [Store Runtime](/concepts/architecture) yourself, which means you also own the database, the backups, and the uptime. Those host names appear here only because you chose them.
 
-A deployment created through [86d.app](/introduction) is a different arrangement: 86d provisions the machines, runs the deployment, and bills you as a [Managed Deployment](/resources/glossary#86d-cloud). That path never names the suppliers behind managed hosting, DNS, or payments — you operate 86d Cloud. See [86d Cloud plans](/resources/cloud-plans) and [architecture](/concepts/architecture#what-you-see-from-86d).
+A deployment created through [86d.app](/introduction) is a different arrangement: 86d provisions the machines, runs the deployment, and bills you as a [Managed Deployment](/resources/glossary#86d-cloud). That path never names the suppliers behind managed hosting, DNS, or payments. You operate 86d Cloud. See [86d Cloud plans](/resources/cloud-plans) and [architecture](/concepts/architecture#what-you-see-from-86d).
 
 <Tabs>
   <Tab title="Docker (self-hosted)">
@@ -36,6 +36,27 @@ A deployment created through [86d.app](/introduction) is a different arrangement
     ```bash
     docker compose up
     ```
+
+    ### Run a release image
+
+    Once an operator publishes a release, pull the immutable version tag for the 86d.store Store Runtime image from either registry:
+
+    ```bash
+    docker pull ghcr.io/86d-app/store:VERSION
+    # or
+    docker pull docker.io/86dapp/store:VERSION
+    ```
+
+    Replace `VERSION` with the exact release version. Start the selected image with the same PostgreSQL, storage, and Store services without rebuilding source:
+
+    ```bash
+    STORE_IMAGE=ghcr.io/86d-app/store:VERSION docker compose up -d --no-build
+    # or
+    STORE_IMAGE=docker.io/86dapp/store:VERSION docker compose up -d --no-build
+    curl --fail http://127.0.0.1:3000/api/health
+    ```
+
+    The release path promotes `latest` only after both immutable registry tags resolve to the same multi-platform image. Pin a version or digest for a production deployment because `latest` moves on the next release.
 
     First boot waits for PostgreSQL, applies `internals/docker/init.sql` (nanoid/pgcrypto), runs Drizzle migrations, compiles curated Module tables, seeds demo data with `AUTO_SEED=true`, and starts the Next.js server on port 3000. Seed writes only curated Modules that compile to tables (`stripe` remains tier-none). A second container restart with `AUTO_SEED=true` must upsert the same seed-owned keys without wiping schemas or duplicating rows.
 
