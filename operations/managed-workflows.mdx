@@ -14,7 +14,7 @@ A managed operation writes a durable Workflow before the request that started it
 
 Close the tab. Lose your connection. The Store still gets built.
 
-Managed provisioning, domain, and workload-identity facts for those Workflows persist through Control Plane Drizzle/PostgreSQL. The Control Plane stores provider resource identities, opaque secret references, health, and operation history — never a raw managed database URL.
+Managed provisioning, domain, and workload-identity facts for those Workflows persist through Control Plane Drizzle/PostgreSQL. The Control Plane stores provider resource identities, opaque secret references, health, and operation history. It never stores a raw managed database URL.
 
 The managed `*.86d.store` front door publishes the DNS records 86d Cloud needs for that hostname (routing plus ownership verification), then serves HTTPS only after the hostname responds healthy. Compensation and development teardown remove those owned DNS records before detaching the hostname or destroying the Managed Deployment.
 
