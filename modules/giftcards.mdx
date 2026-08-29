@@ -25,7 +25,7 @@ Issuance, purchase, top-up, credit, redemption, status mutation, and deletion ar
 | Method | Path | Authentication | Description |
 | --- | --- | --- | --- |
 | `GET` | `/gift-cards/check?code=...` | No | Check balance and status by code |
-| `POST` | `/gift-cards/send` | Yes | Send an owned gift card to a recipient |
+| `POST` | `/gift-cards/send` | Yes | Record intended email-delivery metadata for an owned gift card; this does not deliver a message |
 | `GET` | `/gift-cards/my-cards` | Yes | List the signed-in [Customer's](/resources/glossary#customer) gift cards |
 
 ## Admin endpoints
