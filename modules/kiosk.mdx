@@ -1,16 +1,16 @@
 ---
 title: "Kiosk"
-description: "Turn a tablet in your shop into a self-serve ordering screen. Unverified."
+description: "Register kiosk stations and inspect qualified legacy lifecycle records. The public terminal is unavailable."
 tag: "Experimental"
 ---
 
 <Warning>
-  **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
+  **Experimental.** Public kiosk sessions and commerce actions are unavailable. Do not use this module to accept real orders. See [maturity levels](/resources/versioning).
 </Warning>
 
-A self-serve terminal in your shop, running your own Store. The Kiosk [Module](/concepts/modules) is meant to turn a tablet into a locked-down ordering screen that resets between customers.
+The Kiosk [module](/concepts/modules) currently supports station registration and inspection of stored legacy session lifecycle records. Every displayed session status is explicitly prefixed with `legacy-`, and item, price, tax, tip, payment, and order fields are not exposed as current commerce facts.
 
-Nothing here has been verified: device lockdown, idle reset, [Checkout](/modules/checkout), [Payment](/modules/payments), and point-of-sale behavior are all unproven. A kiosk sits in public, unattended, next to a payment terminal, so treat unverified here as meaning genuinely unverified. Read the source before you evaluate it.
+The public terminal is a static unavailable surface. It cannot start or update a session, select items, report station health, calculate prices, invoke [Checkout](/modules/checkout) or [Payment](/modules/payments), create an order, or delete a station. Those paths remain absent until complete authoritative Workflows own them.
 
 **Source:** [`modules/kiosk`](https://github.com/86d-app/86d/tree/main/modules/kiosk) · **npm:** [`@86d-app/kiosk`](https://www.npmjs.com/package/@86d-app/kiosk)
 
@@ -19,6 +19,8 @@ Nothing here has been verified: device lockdown, idle reset, [Checkout](/modules
 ```sh
 86d module add kiosk
 ```
+
+Installing the module does not enable public ordering or point-of-sale behavior.
 
 ## Related pages
 
