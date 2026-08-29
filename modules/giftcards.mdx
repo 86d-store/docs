@@ -12,6 +12,8 @@ The Gift Cards [Module](/concepts/modules) preserves read access to existing dig
 
 Issuance, purchase, top-up, credit, redemption, status mutation, and deletion are unavailable through Store, admin, and controller surfaces. These operations remain blocked until complete [Workflows](/concepts/agentic-design) can execute them with durable evidence, idempotency, and closed repair behavior. Existing balances, status, ownership, transaction history, and analytics remain readable.
 
+A past expiration date appears consistently as `expired` in balance checks, lists, filters, and analytics without rewriting the stored legacy record. If a selected stored card or transaction cannot be validated, the affected endpoint returns an unavailable response instead of omitting the record or reporting partial balances, history, or totals.
+
 **Source:** [`modules/giftcards`](https://github.com/86d-app/86d/tree/main/modules/giftcards) · **npm:** [`@86d-app/giftcards`](https://www.npmjs.com/package/@86d-app/giftcards)
 
 ## Installation
