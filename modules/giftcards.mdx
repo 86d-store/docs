@@ -1,6 +1,6 @@
 ---
 title: "Gift cards"
-description: "Digital gift cards for 86d: issue cards, redeem them as tender at Checkout, and track balances."
+description: "Issue digital gift cards, inspect balances, and track their transactions."
 tag: "Experimental"
 ---
 
@@ -8,7 +8,9 @@ tag: "Experimental"
   **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
 </Warning>
 
-The Gift Cards [Module](/concepts/modules) sells and redeems digital gift cards. Each card carries a unique code and a balance; a [Customer](/resources/glossary#customer) redeems it at [Checkout](/concepts/commerce-model) in place of, or alongside, another payment method. The Module tracks each code's balance with a full transaction history.
+The Gift Cards [Module](/concepts/modules) issues and manages digital gift cards. Each card carries a unique code and balance. The Module tracks balance changes with a transaction history.
+
+Direct storefront purchase, top-up, and redemption are unavailable. Purchase and top-up remain blocked until an authoritative payment [Workflow](/concepts/agentic-design) can confirm each operation. Redemption remains blocked until Checkout can coordinate the gift card debit and Order with durable evidence and closed repair behavior.
 
 **Source:** [`modules/giftcards`](https://github.com/86d-app/86d/tree/main/modules/giftcards) · **npm:** [`@86d-app/giftcards`](https://www.npmjs.com/package/@86d-app/giftcards)
 
@@ -20,18 +22,26 @@ The Gift Cards [Module](/concepts/modules) sells and redeems digital gift cards.
 
 ## Store endpoints
 
-| Method | Path | Description |
-| --- | --- | --- |
-| `POST` | `/giftcards/balance` | Check balance for a code |
-| `POST` | `/giftcards/redeem` | Redeem at Checkout |
-| `POST` | `/giftcards/purchase` | Purchase a new gift card |
+| Method | Path | Authentication | Description |
+| --- | --- | --- | --- |
+| `GET` | `/gift-cards/check?code=...` | No | Check balance and status by code |
+| `POST` | `/gift-cards/send` | Yes | Send an owned gift card to a recipient |
+| `GET` | `/gift-cards/my-cards` | Yes | List the signed-in [Customer's](/resources/glossary#customer) gift cards |
 
 ## Admin endpoints
 
 | Method | Path | Description |
 | --- | --- | --- |
-| `GET` | `/admin/giftcards` | List gift cards |
-| `POST` | `/admin/giftcards/issue` | Manually issue (with reason) |
+| `GET` | `/admin/gift-cards` | List gift cards |
+| `POST` | `/admin/gift-cards/create` | Issue a gift card |
+| `POST` | `/admin/gift-cards/bulk-create` | Issue multiple gift cards |
+| `GET` | `/admin/gift-cards/stats` | Read gift card totals and balances |
+| `POST` | `/admin/gift-cards/disable-expired` | Disable expired gift cards |
+| `GET` | `/admin/gift-cards/:id` | Read one gift card |
+| `PUT` | `/admin/gift-cards/:id/update` | Update one gift card |
+| `DELETE` | `/admin/gift-cards/:id/delete` | Delete one gift card and its transactions |
+| `POST` | `/admin/gift-cards/:id/credit` | Credit an existing gift card |
+| `GET` | `/admin/gift-cards/:id/transactions` | List one gift card's transactions |
 
 ## Related pages
 
