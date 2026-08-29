@@ -1,6 +1,6 @@
 ---
 title: "Gift cards"
-description: "Issue digital gift cards, inspect balances, and track their transactions."
+description: "Inspect legacy gift card balances, status, ownership, and transaction history."
 tag: "Experimental"
 ---
 
@@ -8,9 +8,9 @@ tag: "Experimental"
   **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
 </Warning>
 
-The Gift Cards [Module](/concepts/modules) issues and manages digital gift cards. Each card carries a unique code and balance. The Module tracks balance changes with a transaction history.
+The Gift Cards [Module](/concepts/modules) preserves read access to existing digital gift card records. Each legacy card carries a unique code and recorded balance, and the Module projects its stored transaction history.
 
-Direct storefront purchase, top-up, and redemption are unavailable. Purchase and top-up remain blocked until an authoritative payment [Workflow](/concepts/agentic-design) can confirm each operation. Redemption remains blocked until Checkout can coordinate the gift card debit and Order with durable evidence and closed repair behavior.
+Issuance, purchase, top-up, credit, redemption, status mutation, and deletion are unavailable through Store, admin, and controller surfaces. These operations remain blocked until complete [Workflows](/concepts/agentic-design) can execute them with durable evidence, idempotency, and closed repair behavior. Existing balances, status, ownership, transaction history, and analytics remain readable.
 
 **Source:** [`modules/giftcards`](https://github.com/86d-app/86d/tree/main/modules/giftcards) · **npm:** [`@86d-app/giftcards`](https://www.npmjs.com/package/@86d-app/giftcards)
 
@@ -33,14 +33,8 @@ Direct storefront purchase, top-up, and redemption are unavailable. Purchase and
 | Method | Path | Description |
 | --- | --- | --- |
 | `GET` | `/admin/gift-cards` | List gift cards |
-| `POST` | `/admin/gift-cards/create` | Issue a gift card |
-| `POST` | `/admin/gift-cards/bulk-create` | Issue multiple gift cards |
 | `GET` | `/admin/gift-cards/stats` | Read gift card totals and balances |
-| `POST` | `/admin/gift-cards/disable-expired` | Disable expired gift cards |
 | `GET` | `/admin/gift-cards/:id` | Read one gift card |
-| `PUT` | `/admin/gift-cards/:id/update` | Update one gift card |
-| `DELETE` | `/admin/gift-cards/:id/delete` | Delete one gift card and its transactions |
-| `POST` | `/admin/gift-cards/:id/credit` | Credit an existing gift card |
 | `GET` | `/admin/gift-cards/:id/transactions` | List one gift card's transactions |
 
 ## Related pages
