@@ -1,6 +1,6 @@
 ---
 title: "Test the Store Runtime"
-description: "Run the health gates, write Vitest coverage that catches real failures, and drive Playwright against a running seeded Store."
+description: "Run the health gates, write Vitest coverage that catches real failures, and use focused browser smoke plus direct Chrome review."
 sidebarTitle: "Testing"
 ---
 
@@ -8,20 +8,22 @@ sidebarTitle: "Testing"
   **In development.** 86d is being built in the open. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on anything here.
 </Warning>
 
-Vitest covers packages and [Modules](/concepts/modules). Playwright covers browser flows and visual snapshots against a running [Store Runtime](/concepts/architecture).
+Vitest covers packages, [Modules](/concepts/modules), and deterministic rendered states. A small Playwright suite covers real-browser seams against a running [Store Runtime](/concepts/architecture). Direct Chrome review owns qualitative UI judgment.
 
-## The four health gates
+## The six health gates
 
 From the repository root:
 
 ```bash
-bun run test          # unit tests across every package and Module
-bun run typecheck     # TypeScript across the workspace
-bun run check         # Biome lint and format
-bun run build         # production build of every package
+bun run generate:modules -- --frozen  # verify the generated Module registry
+bun run typecheck                     # TypeScript across the workspace
+bun run check                         # Biome lint and format
+bun run test                          # unit and integration tests
+bun run docker:build                  # production Store Runtime image
+bun run docker:verify                 # container boot and health smoke
 ```
 
-All four pass before you hand off a change. Playwright runs separately, after its target is up.
+All six pass in that order before you hand off a change. `bun run build` remains available for package and Module authoring. Browser smoke runs separately when a change reaches a browser-specific seam.
 
 ## Unit tests
 
@@ -59,52 +61,40 @@ For a Module that talks to an outside API, use fixtures that match the provider'
 bun run --filter @86d-app/cart test
 ```
 
-## Browser tests
+## Browser smoke
 
-Playwright lives in `tests/e2e/` with four projects:
+Playwright lives in `tests/browser/`. One Chromium project runs with zero retries. The suite is deliberately small: it covers authentication and session boundaries, catalog-to-checkout navigation, cart persistence, browser request construction, representative accessibility scans, keyboard focus, mobile overflow, and recovery behavior.
 
-| Project | Viewport | Purpose |
-| --- | --- | --- |
-| `visual-desktop` | 1280 x 720 | Desktop visual snapshots |
-| `visual-tablet` | 768 x 1024 | Tablet visual snapshots |
-| `visual-mobile` | 375 x 667 | Mobile visual snapshots |
-| `store-chromium` | desktop | [Storefront](/concepts/storefront) smoke tests |
-
-Point `E2E_STORE_URL` at a Store that is already running and seeded. It defaults to `http://localhost:3000` and fails when nothing is there.
-
-<Warning>
-  Do not start a dev server inside a headless test run. Bring the target up first, then run Playwright. A test suite that owns its own long-running server hangs in ways that are miserable to debug.
-</Warning>
+Point `BROWSER_STORE_URL` at an already running, migrated, seeded Store. It defaults to `http://localhost:3000` and fails closed when the target or authenticated session is unavailable.
 
 ```bash
-bun run test:e2e          # every project
-bun run test:e2e:store    # Storefront smoke tests only
-bun run test:e2e:ui       # with the Playwright UI
+bun run test:browser       # focused browser smoke
+bun run test:browser:ui    # interactive Playwright runner
 ```
 
-### Visual snapshots
+Set `BROWSER_START_SERVER=1` if Playwright should start the development Store for a local run. CI installs Chromium, builds and starts the production Store, and runs the same suite in its path-filtered workflow.
 
-`tests/e2e/visual.spec.ts` screenshots every public route and admin screen, in light and dark mode, at three viewport sizes.
+Do not turn browser smoke into a route inventory, a wall-clock benchmark, or a screenshot matrix. Navigation, storage, focus, responsive layout, browser request construction, and similar browser boundaries belong here. State reducers, validation, calculations, endpoint envelopes, and broad route coverage belong in faster tests.
 
-After a UI change you meant to make:
+### Direct visual review
 
-```bash
-bun run test:e2e -- --update-snapshots
-```
+For affected UI, inspect the running Store directly in Chrome at 1280 x 720 and 375 x 667, in light and dark appearance. Use the browser-addressable fixture routes to exercise required loading, empty, error, permission, unavailable, and populated states without depending on live provider data. Check keyboard focus, overflow, responsive composition, errors, and recovery paths relevant to the change. Inspect browser console and network failures too.
+
+Screenshots can support a dated review, but they are not pixel-diff baselines and never advance a launch or capability gate.
 
 ### Selectors
 
-Use `data-testid`. A CSS class selector breaks the next time someone touches the styling, and you will not find out until CI is red for an unrelated reason.
+Prefer role and label selectors. Use `data-testid` when the element has no stable accessible locator. A CSS class selector breaks the next time someone touches the styling.
 
-Use `await page.waitForLoadState('networkidle')` rather than `waitForTimeout()`. A test that waits a fixed number of milliseconds passes on your laptop and fails in CI.
+Use web-first assertions. Do not add fixed delays or wait for `networkidle`; both couple the test to timing that is unrelated to the behavior under test.
 
 ## Checking a whole change
 
 1. Run the focused tests for the package or Module you touched.
-2. Run all four health gates.
+2. Run all six health gates in repository order.
 3. Seed the target Store with `bun run db:seed` (curated Modules with compiled tables only; requires `DATABASE_URL`).
-4. Run `bun run test:e2e` against it.
-5. Look at every visual difference before you update a snapshot.
+4. Run `bun run test:browser` when the change touches a real-browser seam.
+5. For UI work, inspect the affected states in the required Chrome matrix.
 
 ## Writing a Module that is testable
 
