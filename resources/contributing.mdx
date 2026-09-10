@@ -1,6 +1,6 @@
 ---
 title: "Contributing"
-description: "Setup, the five health gates, what a good pull request looks like, and how to publish a Module of your own."
+description: "Setup, the six health gates, what a good pull request looks like, and how to publish a Module of your own."
 ---
 
 <Warning>
@@ -22,19 +22,20 @@ bun install
 
 Run `86d doctor` and clear anything it flags before you start changing things. Debugging your change and your setup at the same time is miserable.
 
-## The five health gates
+## The six health gates
 
-All five pass before a pull request merges:
+All six pass before a pull request merges:
 
 ```bash
-bun run typecheck   # TypeScript
-bun run check       # Biome lint + format
-bun run test        # Vitest unit tests
-bun run test:e2e    # Playwright + visual snapshots
-bun run build       # Production build
+bun run generate:modules -- --frozen  # Generated Module registry
+bun run typecheck                     # TypeScript
+bun run check                         # Biome lint + format
+bun run test                          # Unit and integration tests
+bun run docker:build                  # Production Store Runtime image
+bun run docker:verify                 # Container boot and health smoke
 ```
 
-Run them locally first. CI runs the same five, and finding out from CI is slower for everyone.
+Run them locally first and in that order. CI runs the same six, and finding out from CI is slower for everyone. The focused Playwright browser smoke is a separate path-filtered workflow.
 
 ## Commit messages
 
@@ -64,7 +65,7 @@ Use imperative, lowercase subject with no trailing period. Keep it under 72 char
 ## What a good pull request looks like
 
 - **One change.** A bug fix, or an endpoint, or a Module, or a docs improvement. Not all four.
-- **Tests that match the change.** New endpoint means Vitest tests. UI change means updated Playwright snapshots. Bug fix means a regression test that fails without your fix.
+- **Tests that match the change.** New endpoint means Vitest tests. UI changes need rendered-state coverage and direct Chrome review. Add Playwright only for a real-browser seam. Bug fixes need a regression test that fails without the fix.
 - **A description worth reading.** What problem this solves, why this approach, what you considered instead, and what it does not cover.
 - **A Changesets entry** for anything affecting a published package. Run `bunx changeset` and commit the file. CI rejects the pull request without one when one is needed.
 
@@ -92,7 +93,9 @@ Before you ask for review:
 - loading, error, and empty states in every UI component
 - Vitest tests on the paths that matter, with fixtures shaped like the real provider response
 - for anything talking to an outside API: real HTTP, retries, error mapping, and webhook signature verification
-- Playwright snapshots for every new screen, light and dark, desktop and mobile
+- rendered-state tests for every new screen state
+- direct Chrome review at 1280 x 720 and 375 x 667, in light and dark, including focus, overflow, errors, and recovery
+- focused Playwright coverage only when the behavior depends on navigation, storage, focus, responsive layout, browser request construction, or another browser boundary
 
 See [Build a custom Module](/guides/building-a-module).
 
