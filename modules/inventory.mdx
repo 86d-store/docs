@@ -1,6 +1,6 @@
 ---
 title: "Inventory"
-description: "Reference for @86d-app/Inventory: stock records, reservations, adjustment endpoints, events, and components."
+description: "Reference for @86d-store/inventory: stock records, reservations, adjustment endpoints, events, and components."
 tag: "Experimental"
 ---
 
@@ -14,7 +14,7 @@ The Inventory [Module](/concepts/modules) tracks stock for products and variants
   The Products package still stores its own Inventory fields, and cross-Module events are not a durable outbox. Verify which record is authoritative, and how retries and oversell behave, before you connect Inventory to live Checkout or Orders.
 </Warning>
 
-**Source:** [`modules/inventory`](https://github.com/86d-app/86d/tree/main/modules/inventory) · **npm:** [`@86d-app/inventory`](https://www.npmjs.com/package/@86d-app/inventory)
+**Source:** [`modules/inventory`](https://github.com/86d-app/86d/tree/main/modules/inventory) · **npm:** [`@86d-store/inventory`](https://www.npmjs.com/package/@86d-store/inventory)
 
 ## Installation
 

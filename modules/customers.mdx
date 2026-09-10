@@ -8,9 +8,9 @@ tag: "Experimental"
   **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
 </Warning>
 
-The Customers [Module](/concepts/modules) manages the [Customer](/resources/glossary#customer) record that backs every authenticated [Shopper](/resources/glossary#shopper). Customers can read and update their profile, change their email, and change their password. You can search, filter, and edit Customer records through the admin endpoints. `@86d-app/loyalty`, `@86d-app/saved-addresses`, `@86d-app/customer-groups`, and most engagement Modules depend on it.
+The Customers [Module](/concepts/modules) manages the [Customer](/resources/glossary#customer) record that backs every authenticated [Shopper](/resources/glossary#shopper). Customers can read and update their profile, change their email, and change their password. You can search, filter, and edit Customer records through the admin endpoints. `@86d-store/loyalty`, `@86d-store/saved-addresses`, `@86d-store/customer-groups`, and most engagement Modules depend on it.
 
-**Source:** [`modules/customers`](https://github.com/86d-app/86d/tree/main/modules/customers) · **npm:** [`@86d-app/customers`](https://www.npmjs.com/package/@86d-app/customers)
+**Source:** [`modules/customers`](https://github.com/86d-app/86d/tree/main/modules/customers) · **npm:** [`@86d-store/customers`](https://www.npmjs.com/package/@86d-store/customers)
 
 ## Installation
 
@@ -25,8 +25,8 @@ Then run `86d generate`.
 The Customers Module takes no configuration options. Initialize it with no arguments:
 
 ```ts
-import customers from "@86d-app/customers";
-import { createModuleClient } from "@86d-app/core";
+import customers from "@86d-store/customers";
+import { createModuleClient } from "@86d-store/core";
 
 const client = createModuleClient([customers()]);
 ```

@@ -34,7 +34,7 @@ Enabling one Module can give your Store:
 - database schema and controller behavior
 - declared requirements on, and exports to, other Modules
 
-First-party Modules live under the `@86d-app` npm scope, with source in `modules/` in the [public repository](https://github.com/86d-app/86d).
+First-party Modules live under the `@86d-store` npm scope, with source in `modules/` in the [public repository](https://github.com/86d-app/86d).
 
 <Warning>
   A package being in the repository, the registry, or npm says nothing about whether it works. Read its reference page, its source, its tests, and how it behaves when a provider is down before you enable it.
@@ -47,9 +47,9 @@ Your active [Template](/concepts/templates)'s `config.json` holds the list:
 ```json templates/brisa/config.json
 {
   "modules": [
-    "@86d-app/products",
-    "@86d-app/collections",
-    "@86d-app/blog"
+    "@86d-store/products",
+    "@86d-store/collections",
+    "@86d-store/blog"
   ],
   "advanced": {
     "version": 1,

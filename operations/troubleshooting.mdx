@@ -64,7 +64,7 @@ or take it out of `config.json` and run `86d generate`.
 `86d generate` almost always fails for one of three reasons:
 
 - a Module whose `src/index.ts` has no default factory export
-- a Module whose `package.json` `name` does not match its directory. First-party Modules must be `@86d-app/<dir>`
+- a Module whose `package.json` `name` does not match its directory. First-party Modules must be `@86d-store/<dir>`
 - a circular `requires` between two Modules
 
 The generator names the Module at fault. Read its output before changing anything.

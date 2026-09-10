@@ -82,7 +82,7 @@ The starter is at `templates/brisa/config.json`. Your own Template uses the same
 
   ```json
   "moduleOptions": {
-    "@86d-app/cart": {
+    "@86d-store/cart": {
       "guestCartExpiration": 604800000,
       "maxItemsPerCart": 100
     }
@@ -111,8 +111,8 @@ Every first-party registry entry is Experimental right now. To load one, name it
 ```json templates/<theme>/config.json
 {
   "modules": [
-    "@86d-app/cart",
-    "@86d-app/products"
+    "@86d-store/cart",
+    "@86d-store/products"
   ],
   "advanced": {
     "version": 1,
@@ -186,15 +186,15 @@ This shows the shape of every field, with the Module list cut down to two packag
     "dark": "/assets/logo/dark.svg"
   },
   "modules": [
-    "@86d-app/cart",
-    "@86d-app/products"
+    "@86d-store/cart",
+    "@86d-store/products"
   ],
   "advanced": {
     "version": 1,
     "allowExperimentalModules": true
   },
   "moduleOptions": {
-    "@86d-app/cart": {
+    "@86d-store/cart": {
       "guestCartExpiration": 604800000,
       "maxItemsPerCart": 100
     }

@@ -12,7 +12,7 @@ The Checkout [Module](/concepts/modules) manages the current session-based Check
 
 See [How commerce records relate](/concepts/commerce-model) for the product boundary this Module is moving toward.
 
-**Source:** [`modules/checkout`](https://github.com/86d-app/86d/tree/main/modules/checkout) · **npm:** [`@86d-app/checkout`](https://www.npmjs.com/package/@86d-app/checkout)
+**Source:** [`modules/checkout`](https://github.com/86d-app/86d/tree/main/modules/checkout) · **npm:** [`@86d-store/checkout`](https://www.npmjs.com/package/@86d-store/checkout)
 
 ## Planned Checkout Request
 
@@ -21,14 +21,14 @@ When a required decision is unavailable, the planned safe path creates a non-bin
 ## Installation
 
 ```sh
-npm install @86d-app/checkout
+npm install @86d-store/checkout
 ```
 
 ## Configuration
 
 ```ts
-import checkout from "@86d-app/checkout";
-import { createModuleClient } from "@86d-app/core";
+import checkout from "@86d-store/checkout";
+import { createModuleClient } from "@86d-store/core";
 
 const client = createModuleClient([
   checkout({

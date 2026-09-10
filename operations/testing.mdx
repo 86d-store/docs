@@ -58,7 +58,7 @@ For a Module that talks to an outside API, use fixtures that match the provider'
 ### One Module at a time
 
 ```bash
-bun run --filter @86d-app/cart test
+bun run --filter @86d-store/cart test
 ```
 
 ## Browser smoke
@@ -101,7 +101,7 @@ Use web-first assertions. Do not add fixed delays or wait for `networkidle`; bot
 - **Take [`ModuleDataService`](/resources/glossary#moduledataservice) as a constructor argument.** The runtime hands it to `init` as `ctx.data`. Pass it explicitly into your controllers rather than reaching for a global, and your tests get to substitute it.
 - **Keep the logic that does not need I/O separate.** A function that takes inputs and returns outputs is trivial to test.
 - **Mock at the boundary.** Swap `fetch` itself, not your own wrapper around it. Mocking your wrapper tests your wrapper.
-- **Use `@86d-app/core/test-utils`** for an in-memory data service.
+- **Use `@86d-store/core/test-utils`** for an in-memory data service.
 
 ## Coverage
 

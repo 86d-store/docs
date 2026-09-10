@@ -12,7 +12,7 @@ When [86d Payments](/guides/payment-integrations) arrives, a [Managed Deployment
 
 You will not install or configure it. Provisioning handles it. If you are taking payments today, you want [Set up a payment provider](/guides/payment-integrations) instead.
 
-**Source:** [`modules/managed-payments`](https://github.com/86d-app/86d/tree/main/modules/managed-payments) · **npm:** [`@86d-app/managed-payments`](https://www.npmjs.com/package/@86d-app/managed-payments)
+**Source:** [`modules/managed-payments`](https://github.com/86d-app/86d/tree/main/modules/managed-payments) · **npm:** [`@86d-store/managed-payments`](https://www.npmjs.com/package/@86d-store/managed-payments)
 
 ## Why it exists
 
@@ -29,7 +29,7 @@ This Module is the seam. It authenticates with the Store's [Workload credential]
 
 ## What it does
 
-It requires [`@86d-app/payments`](/modules/payments) and reads `paymentStatus` and `paymentAmount` from it. It registers one Store endpoint and one outcome consumer.
+It requires [`@86d-store/payments`](/modules/payments) and reads `paymentStatus` and `paymentAmount` from it. It registers one Store endpoint and one outcome consumer.
 
 Four operation kinds cross the boundary: `authorize`, `capture`, `void`, and `refund`. Three shopper-visible options are supported: `card`, `apple_pay`, and `google_pay`. Every operation runs in `sandbox` or `live` mode, explicitly, with no implicit default.
 

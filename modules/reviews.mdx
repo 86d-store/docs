@@ -10,19 +10,19 @@ tag: "Experimental"
 
 The Reviews [Module](/concepts/modules) adds a product review system to your [Store](/resources/glossary#store). Reviews wait in a moderation queue until you approve them, unless you enable `autoApprove`. [Customers](/resources/glossary#customer) can submit photo reviews, vote on helpfulness, and report abuse. You can respond to any review from [Store Admin](/concepts/admin).
 
-**Source:** [`modules/reviews`](https://github.com/86d-app/86d/tree/main/modules/reviews) · **npm:** [`@86d-app/reviews`](https://www.npmjs.com/package/@86d-app/reviews)
+**Source:** [`modules/reviews`](https://github.com/86d-app/86d/tree/main/modules/reviews) · **npm:** [`@86d-store/reviews`](https://www.npmjs.com/package/@86d-store/reviews)
 
 ## Installation
 
 ```sh
-npm install @86d-app/reviews
+npm install @86d-store/reviews
 ```
 
 Add the Module to your store configuration:
 
 ```ts
-import reviews from "@86d-app/reviews";
-import { createModuleClient } from "@86d-app/core";
+import reviews from "@86d-store/reviews";
+import { createModuleClient } from "@86d-store/core";
 
 const client = createModuleClient([
   reviews({

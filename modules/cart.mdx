@@ -10,7 +10,7 @@ tag: "Experimental"
 
 The Cart [Module](/concepts/modules) stores what a [Guest](/resources/glossary#guest) or [Customer](/resources/glossary#customer) intends to buy. It keeps each selection as a line item with a price snapshot, serves the endpoints below, and includes a [Storefront](/concepts/storefront) cart drawer.
 
-**Source:** [`modules/cart`](https://github.com/86d-app/86d/tree/main/modules/cart) · **npm:** [`@86d-app/cart`](https://www.npmjs.com/package/@86d-app/cart)
+**Source:** [`modules/cart`](https://github.com/86d-app/86d/tree/main/modules/cart) · **npm:** [`@86d-store/cart`](https://www.npmjs.com/package/@86d-store/cart)
 
 <Warning>
   A Cart price is a snapshot, not an accepted offer. [Checkout](/concepts/commerce-model) must recalculate Product identity, price, discounts, Inventory, Shipping, tax, and Payment on the server.
@@ -19,7 +19,7 @@ The Cart [Module](/concepts/modules) stores what a [Guest](/resources/glossary#g
 ## Installation
 
 ```sh
-npm install @86d-app/cart
+npm install @86d-store/cart
 ```
 
 ## Configuration
@@ -27,8 +27,8 @@ npm install @86d-app/cart
 Initialize the Module by passing it to your module client. Both options have defaults, so you can omit them.
 
 ```ts
-import cart from "@86d-app/cart";
-import { createModuleClient } from "@86d-app/core";
+import cart from "@86d-store/cart";
+import { createModuleClient } from "@86d-store/core";
 
 const client = createModuleClient([
   cart({
