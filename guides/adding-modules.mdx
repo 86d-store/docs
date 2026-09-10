@@ -19,7 +19,7 @@ Browse the [Module catalog](/modules/overview) here, search [npm](https://www.np
 86d module list               # what is installed locally
 ```
 
-First-party Modules are named `@86d-app/<name>`, for example `@86d-app/reviews`. Any npm package or GitHub repository that satisfies the Module contract also works.
+First-party Modules are named `@86d-store/<name>`, for example `@86d-store/reviews`. Any npm package or GitHub repository that satisfies the Module contract also works.
 
 ## Add one with the CLI
 
@@ -35,7 +35,7 @@ First-party Modules are named `@86d-app/<name>`, for example `@86d-app/reviews`.
     86d module add reviews
     ```
 
-    It takes a short name (`reviews`), a scoped name (`@86d-app/reviews`), a GitHub specifier (`github:owner/repo/modules/loyalty`), or an npm specifier (`npm:@acme/commerce-module`). The full grammar is at [`86d module add`](/cli/commands#86d-module-add-specifier).
+    It takes a short name (`reviews`), a scoped name (`@86d-store/reviews`), a GitHub specifier (`github:owner/repo/modules/loyalty`), or an npm specifier (`npm:@acme/commerce-module`). The full grammar is at [`86d module add`](/cli/commands#86d-module-add-specifier).
   </Step>
   <Step title="Regenerate">
     ```bash
@@ -65,9 +65,9 @@ Editing `config.json` directly does the same thing. Use this when you want the c
     ```json templates/<theme>/config.json
     {
       "modules": [
-        "@86d-app/cart",
-        "@86d-app/products",
-        "@86d-app/reviews"
+        "@86d-store/cart",
+        "@86d-store/products",
+        "@86d-store/reviews"
       ],
       "advanced": {
         "version": 1,
@@ -80,7 +80,7 @@ Editing `config.json` directly does the same thing. Use this when you want the c
     Workspace Modules under `modules/` are already on disk. A published npm package that is not needs installing:
 
     ```bash
-    npm install @86d-app/reviews
+    npm install @86d-store/reviews
     ```
 
   </Step>
@@ -100,15 +100,15 @@ Most Modules accept options. They go under `moduleOptions`, keyed by exact packa
 ```json
 {
   "modules": [
-    "@86d-app/cart",
-    "@86d-app/reviews"
+    "@86d-store/cart",
+    "@86d-store/reviews"
   ],
   "advanced": {
     "version": 1,
     "allowExperimentalModules": true
   },
   "moduleOptions": {
-    "@86d-app/cart": {
+    "@86d-store/cart": {
       "guestCartExpiration": 604800000,
       "maxItemsPerCart": 100
     }
@@ -129,7 +129,7 @@ The generator loads an external npm package that exports a compatible default 86
 ```json
 {
   "modules": [
-    "@86d-app/cart",
+    "@86d-store/cart",
     "@some-company/commerce-module"
   ],
   "advanced": {
@@ -162,7 +162,7 @@ The generator loads an external npm package that exports a compatible default 86
     Leave a workspace Module in `modules/` and you can re-enable it later. An npm package you are done with can go:
 
     ```bash
-    npm uninstall @86d-app/reviews
+    npm uninstall @86d-store/reviews
     ```
   </Step>
 </Steps>

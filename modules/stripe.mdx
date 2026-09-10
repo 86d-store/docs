@@ -10,19 +10,19 @@ tag: "Experimental"
 
 The Stripe [Module](/concepts/modules) implements the current `PaymentProvider` interface from the [Payments Module](/modules/payments) using the Stripe REST API. When you configure a signing secret, it verifies Stripe's timestamped HMAC-SHA256 [Webhook](/resources/glossary#webhook) signatures.
 
-**Source:** [`modules/stripe`](https://github.com/86d-app/86d/tree/main/modules/stripe) · **npm:** [`@86d-app/stripe`](https://www.npmjs.com/package/@86d-app/stripe)
+**Source:** [`modules/stripe`](https://github.com/86d-app/86d/tree/main/modules/stripe) · **npm:** [`@86d-store/stripe`](https://www.npmjs.com/package/@86d-store/stripe)
 
 ## Installation
 
 ```sh
-npm install @86d-app/stripe @86d-app/payments
+npm install @86d-store/stripe @86d-store/payments
 ```
 
 Register both Modules in `config.json`:
 
 ```json
 {
-  "modules": ["@86d-app/payments", "@86d-app/stripe"],
+  "modules": ["@86d-store/payments", "@86d-store/stripe"],
   "advanced": {
     "version": 1,
     "allowExperimentalModules": true
@@ -169,7 +169,7 @@ interface ProviderRefundResult {
 }
 ```
 
-The full `PaymentProvider` interface from `@86d-app/payments`:
+The full `PaymentProvider` interface from `@86d-store/payments`:
 
 ```ts
 interface PaymentProvider {

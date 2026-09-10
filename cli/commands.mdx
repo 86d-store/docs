@@ -109,7 +109,7 @@ Scaffolds a Module at `modules/<name>/`: entry point, schema, Store and admin en
 
 Then wire it in:
 
-1. Run `86d module enable <name>`, or add `"@86d-app/<name>"` to your active Template's `config.json` by hand.
+1. Run `86d module enable <name>`, or add `"@86d-store/<name>"` to your active Template's `config.json` by hand.
 2. Run `86d generate`.
 
 ## `86d module add <specifier>`
@@ -121,7 +121,7 @@ Installs a Module from the registry, a GitHub repository, or npm. The CLI downlo
 | Specifier | Meaning |
 | --- | --- |
 | `products` | First-party Module, short name |
-| `@86d-app/products` | First-party Module, full name |
+| `@86d-store/products` | First-party Module, full name |
 | `github:owner/repo` | The whole repository as one Module |
 | `github:owner/repo/modules/name` | One Module inside a repository |
 | `github:owner/repo#branch` | A specific branch or tag |

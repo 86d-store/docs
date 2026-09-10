@@ -1,6 +1,6 @@
 ---
 title: "Collections"
-description: "Reference for @86d-app/collections: curate manual and automatic product groupings with SEO, featured flags, and drag-and-drop ordering."
+description: "Reference for @86d-store/collections: curate manual and automatic product groupings with SEO, featured flags, and drag-and-drop ordering."
 tag: "Experimental"
 ---
 
@@ -14,18 +14,18 @@ The Collections [Module](/concepts/modules) groups products for merchandising. Y
   The Products package still stores its own collection-link records. Check which endpoint owns the operation you are calling, and do not write through both paths for one change.
 </Note>
 
-**Source:** [`modules/collections`](https://github.com/86d-app/86d/tree/main/modules/collections) · **npm:** [`@86d-app/collections`](https://www.npmjs.com/package/@86d-app/collections)
+**Source:** [`modules/collections`](https://github.com/86d-app/86d/tree/main/modules/collections) · **npm:** [`@86d-store/collections`](https://www.npmjs.com/package/@86d-store/collections)
 
 ## Installation
 
 <CodeGroup>
 
 ```sh npm
-npm install @86d-app/collections
+npm install @86d-store/collections
 ```
 
 ```sh pnpm
-pnpm add @86d-app/collections
+pnpm add @86d-store/collections
 ```
 
 </CodeGroup>
@@ -34,7 +34,7 @@ Then register the Module in your store's `config.json`:
 
 ```json
 {
-  "modules": ["@86d-app/collections"],
+  "modules": ["@86d-store/collections"],
   "advanced": {
     "version": 1,
     "allowExperimentalModules": true
@@ -45,7 +45,7 @@ Then register the Module in your store's `config.json`:
 ## Configuration
 
 ```ts
-import collections from "@86d-app/collections";
+import collections from "@86d-store/collections";
 
 const module = collections({
   maxProductsPerCollection: "500",

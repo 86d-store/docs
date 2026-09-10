@@ -14,21 +14,21 @@ This Module is not [86d Payments](/resources/glossary#86d-payments). Using it do
 
 See [How commerce records relate](/concepts/commerce-model) and [How Connections route provider work](/concepts/connections) before you evaluate this Module.
 
-**Source:** [`modules/payments`](https://github.com/86d-app/86d/tree/main/modules/payments) · **npm:** [`@86d-app/payments`](https://www.npmjs.com/package/@86d-app/payments)
+**Source:** [`modules/payments`](https://github.com/86d-app/86d/tree/main/modules/payments) · **npm:** [`@86d-store/payments`](https://www.npmjs.com/package/@86d-store/payments)
 
 ## Installation
 
 Install the Payments Module alongside a [Third-party Payment](/resources/glossary#third-party-payments) Module:
 
 ```sh
-npm install @86d-app/payments @86d-app/stripe
+npm install @86d-store/payments @86d-store/stripe
 ```
 
 ## Configuration
 
 ```json
 {
-  "modules": ["@86d-app/payments", "@86d-app/stripe"],
+  "modules": ["@86d-store/payments", "@86d-store/stripe"],
   "advanced": {
     "version": 1,
     "allowExperimentalModules": true
@@ -154,10 +154,10 @@ Follow [Third-party Payment integrations](/guides/payment-integrations) for the 
 
 | Provider | Package |
 | --- | --- |
-| Stripe | `@86d-app/stripe` |
-| PayPal | `@86d-app/paypal` |
-| Square | `@86d-app/square` |
-| Braintree | `@86d-app/braintree` |
+| Stripe | `@86d-store/stripe` |
+| PayPal | `@86d-store/paypal` |
+| Square | `@86d-store/square` |
+| Braintree | `@86d-store/braintree` |
 
 Each provider has its own reference page: [Stripe](/modules/stripe), [PayPal](/modules/paypal), [Square](/modules/square), and [Braintree](/modules/braintree). The packages exist in the first-party catalog, but each one still needs its own maturity evidence. You can also implement the current `PaymentProvider` interface for evaluation. The contract may change before 1.0 as explicit Connection routing ships.
 

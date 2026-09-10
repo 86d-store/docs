@@ -102,7 +102,7 @@ Narrative pages that do not document one capability carry the in-development cal
 
 Published docs cover shipped behavior, setup, concepts, and safe operation. Keep private roadmap order, launch evidence detail, provider negotiations, unshipped commercial terms, security exploit detail, and personal or project-private data out of `docs/`.
 
-COSMOBIA is the founder's own Store and an internal proof loop. It is not a merchant-facing subject. Do not name it in published docs.
+yo-gu is the founder's first-customer Store and an internal proof loop. It is not a merchant-facing subject. Do not name it in published docs.
 
 **Supplier invisibility:** do not name the supplier behind an 86d-managed service. Underlying providers such as Finix, Railway, Cloudflare, Neon, Resend, and EasyPost must never appear when describing 86d Cloud, 86d Payments, managed email, managed AI, or managed hosting — including in operations pages, glossary entries, architecture diagrams' merchant-facing labels, and launch-evidence prose a merchant can read. A merchant operates 86d — describe what 86d does, not who 86d bought it from. Prefer 86d product vocabulary in docs headings and examples that a merchant reads.
 

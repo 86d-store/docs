@@ -10,12 +10,12 @@ tag: "Experimental"
 
 The Discounts [Module](/concepts/modules) creates, validates, and applies promo codes. It has no Module dependencies and no init-time options. You manage discount rules and codes at runtime through the admin endpoints or the controller API. The [Checkout Module](/modules/checkout) picks up discounts through structural typing, so promo codes entered in `CheckoutSummary` flow through without extra wiring.
 
-**Source:** [`modules/discounts`](https://github.com/86d-app/86d/tree/main/modules/discounts) · **npm:** [`@86d-app/discounts`](https://www.npmjs.com/package/@86d-app/discounts)
+**Source:** [`modules/discounts`](https://github.com/86d-app/86d/tree/main/modules/discounts) · **npm:** [`@86d-store/discounts`](https://www.npmjs.com/package/@86d-store/discounts)
 
 ## Installation
 
 ```sh
-npm install @86d-app/discounts
+npm install @86d-store/discounts
 ```
 
 ## Configuration
@@ -23,8 +23,8 @@ npm install @86d-app/discounts
 The Discounts Module takes no configuration options. Initialize it with no arguments:
 
 ```ts
-import discounts from "@86d-app/discounts";
-import { createModuleClient } from "@86d-app/core";
+import discounts from "@86d-store/discounts";
+import { createModuleClient } from "@86d-store/core";
 
 const client = createModuleClient([discounts()]);
 ```

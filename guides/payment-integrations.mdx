@@ -30,10 +30,10 @@ Read [How Connections route provider work](/concepts/connections) before you tes
 
 ## Install one provider
 
-Install `@86d-app/payments` alongside exactly one provider Module:
+Install `@86d-store/payments` alongside exactly one provider Module:
 
 ```bash
-npm install @86d-app/payments @86d-app/stripe
+npm install @86d-store/payments @86d-store/stripe
 ```
 
 Add both to your active [Template](/concepts/templates)'s `config.json` and regenerate:
@@ -41,8 +41,8 @@ Add both to your active [Template](/concepts/templates)'s `config.json` and rege
 ```json
 {
   "modules": [
-    "@86d-app/payments",
-    "@86d-app/stripe"
+    "@86d-store/payments",
+    "@86d-store/stripe"
   ],
   "advanced": {
     "version": 1,

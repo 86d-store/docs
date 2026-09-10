@@ -1,6 +1,6 @@
 ---
 title: "Media"
-description: "Reference for @86d-app/media: digital assets with folder organization, tagging, bulk operations, and Storefront display components."
+description: "Reference for @86d-store/media: digital assets with folder organization, tagging, bulk operations, and Storefront display components."
 tag: "Experimental"
 ---
 
@@ -10,18 +10,18 @@ tag: "Experimental"
 
 The Media [Module](/concepts/modules) is your store's digital asset manager. You upload images, videos, and other files through the shared upload endpoint, then organize them into folders, tag them, and display them on the [Storefront](/concepts/storefront) with the Module's image, gallery, and video components. Store endpoints are read-only; every create, update, and delete operation requires admin access.
 
-**Source:** [`modules/media`](https://github.com/86d-app/86d/tree/main/modules/media) · **npm:** [`@86d-app/media`](https://www.npmjs.com/package/@86d-app/media)
+**Source:** [`modules/media`](https://github.com/86d-app/86d/tree/main/modules/media) · **npm:** [`@86d-store/media`](https://www.npmjs.com/package/@86d-store/media)
 
 ## Installation
 
 <CodeGroup>
 
 ```sh npm
-npm install @86d-app/media
+npm install @86d-store/media
 ```
 
 ```sh pnpm
-pnpm add @86d-app/media
+pnpm add @86d-store/media
 ```
 
 </CodeGroup>
@@ -41,7 +41,7 @@ Then register the Module in your store's `config.json`:
 ## Configuration
 
 ```ts
-import media from "@86d-app/media";
+import media from "@86d-store/media";
 
 const module = media({
   maxFileSize: "10485760",

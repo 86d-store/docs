@@ -1,5 +1,5 @@
 {
-	"name": "@86d-app/docs",
+	"name": "@86d-store/docs",
 	"private": true,
 	"type": "module",
 	"scripts": {

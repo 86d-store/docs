@@ -63,7 +63,7 @@ Event names include `view_item`, `add_to_cart`, `begin_checkout`, and `purchase`
 
 ## The Analytics Module
 
-[`@86d-app/analytics`](/modules/analytics) records Storefront Analytics events in your Store's database and renders funnel views for you.
+[`@86d-store/analytics`](/modules/analytics) records Storefront Analytics events in your Store's database and renders funnel views for you.
 
 ```bash
 86d module add analytics
@@ -73,7 +73,7 @@ It reads. It does not write commerce facts and it cannot repair one.
 
 ## Audit records
 
-[`@86d-app/audit-log`](/modules/audit-log) holds administrative records for one Store Runtime.
+[`@86d-store/audit-log`](/modules/audit-log) holds administrative records for one Store Runtime.
 
 An append-oriented table is not a tamper-evident audit trail, and it is worth being precise about that with anyone who asks. A Stable audit record needs a server-authored actor, scope, target, action, outcome, and approval provenance, with access controls that have been tested. That is not where this Module is today.
 

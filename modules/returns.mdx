@@ -8,9 +8,9 @@ tag: "Experimental"
   **Experimental.** This Module has no test or production evidence recorded yet. Read it, run it locally, and hold off on real Orders. See [maturity levels](/resources/versioning).
 </Warning>
 
-The Returns [Module](/concepts/modules) is return merchandise authorization (RMA). A [Customer](/resources/glossary#customer) requests a return from their [Order](/concepts/commerce-model) detail page. The request then moves through `requested -> approved -> shipped_back -> received -> refunded -> completed`, or ends at `rejected`. Refunds run through the [Payments](/modules/payments) Module (`@86d-app/payments`), and an exchange creates a new Order automatically.
+The Returns [Module](/concepts/modules) is return merchandise authorization (RMA). A [Customer](/resources/glossary#customer) requests a return from their [Order](/concepts/commerce-model) detail page. The request then moves through `requested -> approved -> shipped_back -> received -> refunded -> completed`, or ends at `rejected`. Refunds run through the [Payments](/modules/payments) Module (`@86d-store/payments`), and an exchange creates a new Order automatically.
 
-**Source:** [`modules/returns`](https://github.com/86d-app/86d/tree/main/modules/returns) · **npm:** [`@86d-app/returns`](https://www.npmjs.com/package/@86d-app/returns)
+**Source:** [`modules/returns`](https://github.com/86d-app/86d/tree/main/modules/returns) · **npm:** [`@86d-store/returns`](https://www.npmjs.com/package/@86d-store/returns)
 
 ## Installation
 
