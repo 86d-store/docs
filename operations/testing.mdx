@@ -63,7 +63,7 @@ bun run --filter @86d-app/cart test
 
 ## Browser smoke
 
-Playwright lives in `tests/browser/`. One Chromium project runs with zero retries. The suite is deliberately small: it covers authentication and session boundaries, catalog-to-checkout navigation, cart persistence, browser request construction, representative accessibility scans, keyboard focus, mobile overflow, and recovery behavior.
+Playwright lives in `tests/browser/`. One Chromium project runs with zero retries. The suite is deliberately small: it covers authentication and session boundaries, catalog-to-checkout navigation, cart persistence, browser request construction, keyboard focus, mobile overflow, and recovery behavior.
 
 Point `BROWSER_STORE_URL` at an already running, migrated, seeded Store. It defaults to `http://localhost:3000` and fails closed when the target or authenticated session is unavailable.
 
