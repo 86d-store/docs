@@ -20,14 +20,14 @@ The `mint` CLI is not a repo dependency. Run it from the `docs/` directory: `bun
 
 The 86d codebase is split across two sibling repos. `docs/` is a third sibling and is published independently.
 
-- **Target product behavior and vocabulary:** `../prd/README.md`. Follow its reading route for architecture, commercial terms, agents, and launch claims. Module storage kinds and isolation authority live in `../prd/contexts/store-runtime/module-system.md`; this site projects shipped behavior, not the full contract.
+- **Target product behavior and vocabulary:** `../context/86d/README.md`. Follow its reading route for architecture, commercial terms, agents, and launch claims. Module storage kinds and isolation authority live in `../context/86d/contexts/store-runtime/module-system.md`; this site projects shipped behavior, not the full contract.
 - **Current implementation:** the source and tests below. Verify them before claiming a Feature exists, is available, or behaves a certain way.
-  - **Framework** (Modules, CLI, Templates, runtime, registry): `../public/`. CLI commands, flags, behavior: `../public/packages/cli/src/commands/`. Module names, options, contracts: `../public/modules/<name>/src/` and `../public/apps/registry/registry.json`. Template structure: `../public/templates/<name>/`. Framework environment variables: `../public/.env.example`.
-  - **86d.app and Control Plane** (86d Accounts, Businesses, Store lifecycle, provisioning, Cloud billing, agents): `../private/`. Platform environment variables and provisioning behavior: `../private/.env.example` and `../private/packages/api/src/router/provisioning.ts`.
+  - **Framework** (Modules, CLI, Templates, runtime, registry): `../86d-store/`. CLI commands, flags, behavior: `../86d-store/packages/cli/src/commands/`. Module names, options, contracts: `../86d-store/modules/<name>/src/` and `../86d-store/apps/registry/registry.json`. Template structure: `../86d-store/templates/<name>/`. Framework environment variables: `../86d-store/.env.example`.
+  - **86d.app and Control Plane** (86d Accounts, Businesses, Store lifecycle, provisioning, Cloud billing, agents): `../86d-app/`. Platform environment variables and provisioning behavior: `../86d-app/.env.example` and `../86d-app/packages/api/src/router/provisioning.ts`.
 
 When target context and code differ, document the current behavior accurately or label future behavior clearly. Never present a target decision as shipped. Never keep a stale implementation claim because an older page says it is current.
 
-The canonical Module registry is `https://raw.githubusercontent.com/86d-app/86d/main/apps/registry/registry.json`, generated from `../public/apps/registry/registry.json`.
+The canonical Module registry is `https://raw.githubusercontent.com/86d-store/86d/main/apps/registry/registry.json`, generated from `../86d-store/apps/registry/registry.json`.
 
 ## Who reads these pages
 
@@ -71,7 +71,7 @@ Do not use bare "dashboard", "console", "analytics", or "telemetry". Name which 
 
 ## Maturity
 
-Read `../public/apps/registry/registry.json` before you state a maturity anywhere, and never promote a page past what the registry records. Use each Module's recorded `maturity` and `maturityEvidence`; do not cache a repository-wide maturity summary in this guide.
+Read `../86d-store/apps/registry/registry.json` before you state a maturity anywhere, and never promote a page past what the registry records. Use each Module's recorded `maturity` and `maturityEvidence`; do not cache a repository-wide maturity summary in this guide.
 
 Capability pages carry the maturity in two places:
 
@@ -106,7 +106,7 @@ yo-gu is the founder's first-customer Store and an internal proof loop. It is no
 
 **Supplier invisibility:** do not name the supplier behind an 86d-managed service. Underlying providers such as Finix, Railway, Cloudflare, Neon, Resend, and EasyPost must never appear when describing 86d Cloud, 86d Payments, managed email, managed AI, or managed hosting — including in operations pages, glossary entries, architecture diagrams' merchant-facing labels, and launch-evidence prose a merchant can read. A merchant operates 86d — describe what 86d does, not who 86d bought it from. Prefer 86d product vocabulary in docs headings and examples that a merchant reads.
 
-The exceptions are real and narrow. Name a provider when the merchant is choosing it themselves: a host they deploy to (Railway, Vercel, a Docker server of their own), a [Connection](/concepts/connections) they bring (their Stripe account, their EasyPost key), or a Module that exists to talk to that company. Those are the merchant's relationships, not 86d's. Canonical rule: `../prd/product.md#the-merchant-sees-86d-never-our-suppliers`.
+The exceptions are real and narrow. Name a provider when the merchant is choosing it themselves: a host they deploy to (Railway, Vercel, a Docker server of their own), a [Connection](/concepts/connections) they bring (their Stripe account, their EasyPost key), or a Module that exists to talk to that company. Those are the merchant's relationships, not 86d's. Canonical rule: `../context/86d/product.md#the-merchant-sees-86d-never-our-suppliers`.
 
 When a planned contract helps a reader understand a migration:
 
@@ -128,7 +128,7 @@ Use these pages as the public conceptual sources and link to them instead of res
 
 ### Add or update a Module page
 
-1. Confirm the Module exists in `../public/modules/<name>/` and `../public/apps/registry/registry.json`.
+1. Confirm the Module exists in `../86d-store/modules/<name>/` and `../86d-store/apps/registry/registry.json`.
 2. Create or edit `modules/<name>.mdx` with frontmatter (`title`, `description`, `tag`).
 3. Add the page to the correct group in `docs.json` under the Modules tab.
 4. Match the shape of a well-developed page, for example `modules/products.mdx`: what it does for a Store, source and npm links, installation, configuration, what a merchant sets up, Store endpoints, admin endpoints, components, related pages.
@@ -137,7 +137,7 @@ Use these pages as the public conceptual sources and link to them instead of res
 
 ### Update a CLI command reference
 
-1. Read the actual command in `../public/packages/cli/src/commands/<name>.ts`.
+1. Read the actual command in `../86d-store/packages/cli/src/commands/<name>.ts`.
 2. Update `cli/commands.mdx` to match flags, sub-commands, and behavior.
 3. If a top-level command was added or removed, also update `cli/overview.mdx`.
    - Done when the page matches the command source and both health gates are _green_.
@@ -149,7 +149,7 @@ Before expanding a short Module page, check the current source, tests, registry 
 ## What not to touch
 
 - `LICENSE` and `.git/`.
-- Files in `../public/` and `../private/`. Treat both framework repos as read-only when working in `docs/`.
+- Files in `../86d-store/` and `../86d-app/`. Treat both framework repos as read-only when working in `docs/`.
 
 ## Health gates
 

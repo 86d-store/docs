@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://x.com/86d_app"><strong>X</strong></a> ·
   <a href="https://www.linkedin.com/company/86d"><strong>LinkedIn</strong></a> ·
-  <a href="https://github.com/86d-app/86d"><strong>GitHub</strong></a>
+  <a href="https://github.com/86d-store/86d"><strong>GitHub</strong></a>
 </p>
 <br/>
 

@@ -36,12 +36,12 @@
   "navbar": {
     "primary": {
       "type": "github",
-      "href": "https://github.com/86d-app/86d"
+      "href": "https://github.com/86d-store/86d"
     }
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/86d-app",
+      "github": "https://github.com/86d-store/86d",
       "x": "https://x.com/86d_app",
       "linkedin": "https://www.linkedin.com/company/86d"
     }
@@ -127,6 +127,7 @@
               "resources/versioning",
               "resources/contributing",
               "resources/changelog",
+              "resources/skills",
               "resources/mcp"
             ]
           }

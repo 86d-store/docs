@@ -13,7 +13,7 @@ Thank you for your interest in improving the 86d docs. The full contribution gui
 ### Option 2: local development
 
 ```bash
-git clone https://github.com/86d-app/docs
+git clone https://github.com/86d-store/docs
 cd docs
 npm i -g mint
 mint dev
@@ -102,4 +102,4 @@ description: "One- or two-sentence summary that completes the thought 'this page
 
 ## Reporting documentation bugs
 
-Open an issue at [github.com/86d-app/86d/issues](https://github.com/86d-app/86d/issues) with the `docs` label. Include the page URL and the specific section that is wrong.
+Open an issue at [github.com/86d-store/86d/issues](https://github.com/86d-store/86d/issues) with the `docs` label. Include the page URL and the specific section that is wrong.

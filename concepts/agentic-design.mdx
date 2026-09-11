@@ -16,11 +16,14 @@ None of that is live yet. This page separates what an agent can do with 86d toda
 
 | Surface | What it can do |
 | --- | --- |
+| [Agent skills](/resources/skills) | Load the 86d.store Module contract and the 86d.app authority boundary before writing code |
 | [Docs MCP server](/resources/mcp) | Search and read these pages |
 | [86d CLI](/cli/overview) | Configure and inspect a Store Runtime on your machine |
 | Repository tools | Read the code, edit files, run tests, use git |
 
 The Docs MCP server is read-only. It cannot see or change a Business, a Store, an [Order](/modules/orders), a [Payment](/modules/payments), or a deployment. Do not send it credentials.
+
+The skills are Markdown. They run no code and hold no credentials, and installing one changes what an agent knows before it starts, not what it can reach.
 
 ## Remote OAuth MCP, when it exists
 
@@ -28,7 +31,7 @@ Remote OAuth MCP is the planned transport for authorized product operations: OAu
 
 The shared wire contract and conformance digest live in the open-source package `@86d-store/contracts` (`command`, `change-set`, and `conformance` entry points). Both planes pin an exact package version and verify the embedded SHA-256 digest before serving Commands. A mismatch fails closed. Raw tRPC stays a private transport; it is not an agent or cross-plane interface.
 
-There is no public Remote OAuth MCP endpoint, authorization flow, or tool catalog today. The `/86d` skill is planned as a thin guide over that Command contract, teaching a model how to find the connection and read a result. Product behavior lives in the Command layer, never in the skill.
+There is no public Remote OAuth MCP endpoint, authorization flow, or tool catalog today. The `/86d` skill is planned as a thin guide over that Command contract, teaching a model how to find the connection and read a result. Product behavior lives in the Command layer, never in the skill. That planned skill is separate from the published [agent skills](/resources/skills), which teach an agent how to build on 86d and reach nothing at runtime.
 
 ## The planned model
 
@@ -83,14 +86,16 @@ A tool call that returned successfully proves the call succeeded. It does not pr
 
 ## Using the current tools
 
-1. Connect an MCP-compatible client to the [Docs MCP server](/resources/mcp).
-2. Search for the smallest page that answers the question.
-3. Read the whole page before acting on it.
-4. Check any implementation claim against the current source and tests.
-5. Use the [CLI](/cli/overview) only against the working copy you mean to change.
+1. Install the [agent skills](/resources/skills) for the side you are working on.
+2. Connect an MCP-compatible client to the [Docs MCP server](/resources/mcp).
+3. Search for the smallest page that answers the question.
+4. Read the whole page before acting on it.
+5. Check any implementation claim against the current source and tests.
+6. Use the [CLI](/cli/overview) only against the working copy you mean to change.
 
 ## Related pages
 
+- [Agent skills](/resources/skills)
 - [Docs MCP server](/resources/mcp)
 - [Use the 86d CLI](/cli/overview)
 - [How 86d separates product authority](/concepts/architecture)

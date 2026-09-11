@@ -1,0 +1,85 @@
+---
+title: "Agent skills"
+description: "Two installable skills that give a coding agent the 86d.store Module contract and the 86d.app authority boundary, plus what each one refuses to claim."
+sidebarTitle: "Agent skills"
+---
+
+<Warning>
+  **In development.** These skills describe what the code does today, which is less than the product will do. Every capability is Experimental until it earns evidence, so check [maturity levels](/resources/versioning) before you rely on what a skill tells you.
+</Warning>
+
+A skill is a Markdown file your coding agent loads when the task in front of it matches. It runs no code and holds no credentials. It changes what the agent knows before it starts writing.
+
+86d publishes two of them in [86d-store/skills](https://github.com/86d-store/skills), listed on [skills.sh](https://skills.sh).
+
+They exist because reading one [Module](/concepts/modules) is not enough to write a second one. An agent that has skimmed `modules/products` will produce something that compiles, registers, and breaks the storage contract in three places the compiler never sees. The skills carry those parts.
+
+## Install
+
+```bash
+npx skills add 86d-store/skills@86d-store
+npx skills add 86d-store/skills@86d-app
+```
+
+Add `-g` to install for your user instead of the current project, and `-y` to skip the prompts.
+
+If your work stays inside a Store, `86d-store` covers it. Add `86d-app` when the work touches provisioning, [Commands](/resources/glossary#command), or a [Managed Deployment](/resources/glossary#managed-deployment).
+
+## What `86d-store` covers
+
+Building on the [Store Runtime](/concepts/architecture): its [Modules](/concepts/modules), [Templates](/concepts/templates), [Storefront](/concepts/storefront), and [Store Admin](/concepts/admin).
+
+The skill body carries the parts that apply to every change: how to tell a source checkout apart from a project that installs the packages, what a finished change includes, the gate order, and the import and typing rules the linter enforces. Three reference files carry one contract each, and the agent loads only the one it needs.
+
+| Reference | Loaded when the task |
+| --- | --- |
+| `module-contract.md` | Writes or changes a Module: the factory, the three storage branches, `ModuleDataService`, cross-Module capabilities, durable events, admin and store pages |
+| `endpoints.md` | Adds or changes an endpoint: exposure, input bounds, sanitizing, error shape, rate limits, webhook verification |
+| `storefront.md` | Touches `apps/store`, `packages/ui`, or a Template: the `.tsx` and `.mdx` split, Template configuration, component overrides, UI review |
+
+The item worth naming on its own is the frozen registry check. `apps/registry/registry.lock.json` hashes every Module's source subtree, `postinstall` verifies it, and a stale lock fails during install before a single test runs. Agents lose hours to this. The skill puts it first.
+
+## What `86d-app` covers
+
+Working against [86d.app](/concepts/architecture), the managed plane. The body is the authority boundary: which plane owns which fact, the [Command](/resources/glossary#command) and [Change Set](/resources/glossary#change-set) model, the three levels of human involvement, and how to read a [Workflow](/resources/glossary#workflow) result without overstating it.
+
+| Reference | Loaded when the task |
+| --- | --- |
+| `command-contract.md` | Reads or implements the wire contract: request and receipt shapes, the failure catalog and which two codes retry, Change Set fields, approval and confirmation binding, the conformance pin |
+| `managed-runtime.md` | Makes a Store Runtime work under managed operation: what it receives, workload identity, the hostname rule, Control Plane outage behavior |
+
+This skill spends a section saying what does not exist. There is no public product-operation API, no Remote OAuth MCP endpoint, and no tool catalog. An agent that assumes one writes code that reads correctly and fails only against production, so the skill tells it to report the gap instead. See [agent operations](/concepts/agentic-design) for the current position.
+
+## How the skills fit with the other tools
+
+| Tool | What it does |
+| --- | --- |
+| Skills | Tell an agent how to build correctly before it writes |
+| [Docs MCP server](/resources/mcp) | Search and read these pages, read-only |
+| [86d CLI](/cli/overview) | Configure and inspect a Store Runtime on your machine |
+| Repository tools | Read the code, edit files, run tests, use git |
+
+None of them can read or change a live [Business](/resources/glossary#business), Store, [Order](/modules/orders), [Payment](/modules/payments), or deployment.
+
+## What a skill will not do for you
+
+It does not hold credentials, and it should never be given any.
+
+It does not promote a capability. Maturity comes from `maturityEvidence` in `apps/registry/registry.json`, and a skill that described a Module as ready would be wrong the moment the registry disagreed. Both skills route the agent to the registry instead of caching an answer.
+
+It does not replace reading the code. Both skills say so, because a contract summary written three months ago and a test written yesterday disagree, and the test wins.
+
+## When a skill is wrong
+
+Drift is the failure mode. A contract changes in `86d-store/86d`, the skill still describes the old one, and an agent follows the skill into a change that fails review.
+
+Open an issue or a pull request on [86d-store/skills](https://github.com/86d-store/skills) with the file that contradicts the skill. Corrections grounded in source land faster than corrections grounded in a design document.
+
+## Related pages
+
+- [How agents work with 86d](/concepts/agentic-design)
+- [Docs MCP server](/resources/mcp)
+- [Use the 86d CLI](/cli/overview)
+- [Build a Module](/guides/building-a-module)
+- [How 86d separates product authority](/concepts/architecture)
+- [Versioning and maturity](/resources/versioning)
